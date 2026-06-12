@@ -20,7 +20,7 @@ The workflow **defaults to free design** — it will not ask whether you want a 
 
 Send a path to a template directory in your initial message. Anywhere in the sentence is fine; the path just has to be unambiguous:
 
-> "use this template: `skills/ppt-master/templates/layouts/academic_defense/`" ✅
+> "use this template: `skills/ppt-master/templates/layouts/fanruan_tech/`" ✅
 > "用这个模板做汇报：`projects/last_deck/template/`" ✅
 > "做一份产品介绍，模板用 `/Users/me/Desktop/our_brand_v3/`" ✅
 
@@ -28,8 +28,8 @@ The AI copies that directory's SVGs, `design_spec.md`, and assets into your proj
 
 ### What does NOT trigger the template flow
 
-- **A bare template name without a path**: "use the academic_defense template" / "用 招商银行 模板" / "做一份 pixel_retro 模板的答辩" → free design. The AI does not look the name up. You must give a path.
-- **Style descriptions**: "McKinsey style" / "Google style" / "麦肯锡那种" / "极简风" / "Keynote 风" → free design. The descriptive words flow into Strategist as a style brief, but no template is copied.
+- **A bare template name without a path**: "use the fanruan_tech template" / "用帆软模板" → free design. The AI does not look the name up. You must give a path.
+- **Non-FanRuan style descriptions**: "McKinsey style" / "Google style" / "Keynote-style" → unsupported as style modes in this repository. The deck can still be generated only under the FanRuan BI / Dashboard mode when the source facts fit.
 - **Vague intent**: "想用个模板" / "I want a template" with no path → free design.
 
 This is intentional — the AI never makes a fuzzy / interpretive judgment about whether your wording maps to a template, and never resolves a name to a path on your behalf. If you want a template, give the path.
@@ -40,9 +40,9 @@ To browse what's available in the built-in library, ask "what templates are avai
 
 Templates are organized into three kinds, each in its own directory:
 
-- [`templates/brands/README.md`](../skills/ppt-master/templates/brands/README.md) — identity-only presets (color / typography / logo / voice / icon style), no SVG pages; Anthropic, Google
-- [`templates/layouts/README.md`](../skills/ppt-master/templates/layouts/README.md) — structure-only patterns (canvas / page structure / page types / SVG roster), no identity; academic_defense, government_blue/red, ai_ops, medical_university, pixel_retro, psychology_attachment
-- [`templates/decks/README.md`](../skills/ppt-master/templates/decks/README.md) — full-PPT replicas (identity + structure + middle segments); 招商银行, 中国电建_*, 中汽研_*, 重庆大学, 中国电信
+- [`templates/brands/README.md`](../skills/ppt-master/templates/brands/README.md) — identity-only presets (color / typography / logo / voice / icon style), currently empty by design
+- [`templates/layouts/README.md`](../skills/ppt-master/templates/layouts/README.md) — structure-only patterns (canvas / page structure / page types / SVG roster), currently only `fanruan_tech`
+- [`templates/decks/README.md`](../skills/ppt-master/templates/decks/README.md) — full-PPT replicas (identity + structure + middle segments), currently empty by design
 
 Full data model + fusion / conflict-resolution rules: [`docs/zh/templates-architecture.md`](./zh/templates-architecture.md) (Chinese only for now).
 
@@ -50,58 +50,33 @@ Full data model + fusion / conflict-resolution rules: [`docs/zh/templates-archit
 
 Free design is **not** "no style" — the AI designs a fresh visual system **for that specific deck** based on its content. A template **reuses an already-defined structure and style**. Both involve real design work; the difference is whether the style is improvised or preset.
 
-> Rule of thumb: clear content direction + strong brand or scenario constraints (consulting reports, government briefings, defenses) → use a template. Essay-like content where atmosphere matters more (magazine, documentary narrative) → free design usually works better.
+> Rule of thumb: KPI dashboards, operating reports, management cockpits, and data analysis decks → use the retained FanRuan template path when you want locked layout values.
 
 ### Styles are not templates
 
-A **style** is a description ("minimalist" / "Keynote-style" / "magazine 风") — a few words you type in chat. A **template** is a copy-and-paste asset bundle (SVGs + design_spec + assets) the workflow installs into your project when you give it an explicit directory path.
+A **style** is now limited to FanRuan-compatible descriptions ("FanRuan BI dashboard" / "light tech report" / "operating cockpit") — a few words you type in chat. A **template** is a copy-and-paste asset bundle (SVGs + design_spec + assets) the workflow installs into your project when you give it an explicit directory path.
 
 | | Template | Style |
 |---|---|---|
 | How invoked | Explicit directory path in your message | Free-form description in your message |
-| What happens | Files copied into project; layouts inherit from template SVGs | Words flow to Strategist; color / typography / tone proposed in Eight Confirmations |
+| What happens | Files copied into project; layouts inherit from template SVGs | Words flow to Strategist under the single FanRuan BI / Dashboard mode |
 | Locked values | Yes — values come from the template's `design_spec.md` | No — Strategist invents values that fit the deck |
-| Best for | Brand-locked decks; scenarios with strong visual conventions | When you have a feel in mind but no specific brand commitment |
+| Best for | FanRuan-locked decks; BI / report scenarios with strong visual conventions | When you want FanRuan structure but do not need the retained SVG roster |
 
-A style mention may resemble a template name (e.g., "academic style" sounds like the `academic_defense/` template directory), but they go through different machinery — a template requires a real path the AI can copy from, a style mention is interpretive language. Similar words, different paths in the most literal sense.
+A style mention may resemble the retained template name, but they go through different machinery — a template requires a real path the AI can copy from, a style mention is interpretive language. Similar words, different paths in the most literal sense.
 
-### Common styles you can describe
+### FanRuan-compatible style descriptors
 
-Three axes, freely combinable ("dark tech + minimalist" or "magazine + neo-Chinese"):
-
-**Aesthetic direction**
+Use these descriptors when you do not pass the template path:
 
 | Style | One-line characterization |
 |---|---|
-| **Minimalist / 极简风** | High whitespace, 2-3 colors, single focal point per page |
-| **Information-dense / 信息密集** | McKinsey-style structured tables, high density, conclusion-first |
-| **Keynote-style** | Single-page hero text, premium whitespace, Apple-feel |
-| **Editorial / 杂志风** | Large hero images, asymmetric layouts, strong typography contrast |
-| **Editorial illustration / 文艺手绘** | Warm tones, hand-drawn feel, zine-like |
+| **FanRuan BI dashboard** | KPI-first, chart-led, semantic status colors |
+| **Light tech report** | Blue-white surfaces, restrained panels, clean typography |
+| **Operating cockpit** | Header scope, KPI strip, analytical panels, action row |
+| **Dense readable report** | Table-led, compact labels, clear abnormal-row highlighting |
 
-**Scenario / Industry**
-
-| Style | One-line characterization |
-|---|---|
-| **Business consulting** | Data-driven, restrained, blue / grey palette |
-| **Academic defense** | Strict hierarchy, citation-heavy, clean |
-| **Government briefing** | Red / blue, formal, symmetric |
-| **Product launch** | Visually bold, marketing-driven, single hero per page |
-| **Education / training** | Clear hierarchy, friendly tone, bright palette |
-| **Pitch deck / BP** | Narrative-driven, conclusion-bold |
-
-**Visual character / atmosphere**
-
-| Style | One-line characterization |
-|---|---|
-| **Dark tech / 暗色科技** | Dark backgrounds, neon accents, futuristic |
-| **Pixel retro** | 8-bit, scanlines, gaming aesthetic |
-| **Neo-Chinese / 新中式** | Restrained traditional motifs, ink / vermilion |
-| **Scandinavian / 北欧极简** | Light, natural, restrained |
-| **Memphis / pop** | High-saturation blocks, geometric, 80s |
-| **Cyberpunk / vaporwave** | Neon purple-pink, grids, dreamlike |
-
-When you describe a style, the AI doesn't pick a template — it interprets the words and lands them in Layer 2 of confirmation `d` (Style Objective) inside Strategist's Eight Confirmations, which then drives e (color), f (icon), g (typography), and h (image). You confirm or refine. If the style you want happens to match one of our built-in templates (e.g., `academic_defense` / `pixel_retro` / `psychology_attachment`), you have a choice: send the template's directory path for locked values, or describe the style for AI-interpreted values that adapt to your deck content.
+When you describe a style, the AI does not pick a template — it interprets the words inside the single FanRuan BI / Dashboard mode, then drives e (color), f (icon), g (typography), and h (image). If you want the retained template's locked values, send `skills/ppt-master/templates/layouts/fanruan_tech/`.
 
 ---
 
@@ -135,8 +110,8 @@ The workflow does not silently infer values — before generation it lists these
 |-------|-------|
 | **Template ID** | Directory / index key. Prefer ASCII slug like `acme_consulting`; non-ASCII names work but must be filesystem-safe |
 | **Display name** | Human-readable name for documentation |
-| **Category** | One of `brand` / `general` / `scenario` / `government` / `special` |
-| **Use cases** | Annual report / consulting / defense / government briefing / ... |
+| **Category** | Use a FanRuan-compatible category such as `fanruan_bi` / `operating_report` / `dashboard` |
+| **Use cases** | KPI dashboard / operating review / data analysis / management cockpit / ... |
 | **Tone summary** | One line, e.g. "modern, restrained, data-driven" |
 | **Theme mode** | Light / dark / gradient / ... |
 | **Canvas format** | Default `ppt169` (16:9); specify other formats up front |
@@ -159,7 +134,7 @@ This is the most easily confused decision when deriving a template.
 | Abstraction | High — clean, reusable skeleton | Medium — clusters preserved with cleanup | **Zero** — verbatim copy |
 | Placeholders inserted? | Yes (`{{TITLE}}`, `{{CONTENT_AREA}}`, …) | Yes | **No** — Executor edits text in place against the project content |
 | Best for | You want "tone + basic skeleton" to generate brand-new decks later | The source PPTX itself is a customized layout library and every variant matters | Someone else's polished deck is great as-is, you want every page available as a reference |
-| Typical use | Building a base brand template | Replicating a 20-variant government briefing layout set | Reusing a 50-page McKinsey-style deck verbatim |
+| Typical use | Building a FanRuan-compatible base template | Replicating a 20-variant FanRuan report layout set | Reusing a FanRuan-style report deck verbatim |
 | Requires PPTX source? | No | **Yes** | **Yes** |
 | Decoration complexity | Usually simpler | Must preserve sprite-sheet (cropped image) structure | Inherits whatever the source had, byte-for-byte |
 

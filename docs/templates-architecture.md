@@ -17,19 +17,19 @@
 The three are **parallel reference bundles**. The physical directory and the frontmatter `kind` field correspond one-to-one:
 
 ```yaml
-# templates/brands/anthropic/design_spec.md
+# templates/brands/<fanruan_brand>/design_spec.md
 ---
 kind: brand
 ...
 ---
 
-# templates/layouts/academic_defense/design_spec.md
+# templates/layouts/fanruan_tech/design_spec.md
 ---
 kind: layout
 ...
 ---
 
-# templates/decks/招商银行/design_spec.md
+# templates/decks/<fanruan_deck>/design_spec.md
 ---
 kind: deck
 ...
@@ -218,11 +218,11 @@ When the user supplies a set of paths in their initial message, Step 3 fuses the
 
 Fusion defaults to **whole-segment integer replacement** — e.g. on deck + brand, the entire Color Scheme / Typography / Logo / Voice / Icon Style five sections come from brand. **No implicit field-level mixing** (you will never get "primary from brand, secondary from deck").
 
-Field-level micro-adjustment goes through the existing Strategist Eight Confirmations path — the user says in chat "use the anthropic brand but change primary to #FF0000", and Strategist adjusts in confirmations e/g. Step 3 fusion does not add field-level syntax.
+Field-level micro-adjustment goes through the existing Strategist Eight Confirmations path — the user says in chat "use the FanRuan primary blue but change accent to #3399FF", and Strategist adjusts in confirmations e/g. Step 3 fusion does not add field-level syntax.
 
 ### Same-kind multiple paths = git-style conflict resolution
 
-User supplies `brands/anthropic` + `brands/google` (or any same-kind permutation):
+User supplies two future FanRuan-only assets of the same kind:
 
 ```
 AI: You supplied two brands. Detected segment-level conflicts:
@@ -248,10 +248,8 @@ When fusion happens (any multi-path case), the resulting `<project>/templates/de
 
 ```markdown
 > **Fused from:**
-> - deck: `templates/decks/招商银行/` (base)
-> - brand: `templates/brands/anthropic/` (identity override)
-> - layout: `templates/layouts/academic_defense/` (structure override)
-> - conflicts resolved: Color Scheme from anthropic (user picked a)
+> - layout: `templates/layouts/fanruan_tech/` (structure)
+> - conflicts resolved: Page Structure from first FanRuan layout (user picked a)
 ```
 
 This lets both AI and humans trace which segment came from where.

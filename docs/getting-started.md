@@ -43,7 +43,7 @@ A created template lives in one of two places:
 Either way, you invoke it during generation by giving its **directory path** in chat — the workflow triggers on an explicit path only, never on a bare template name:
 
 ```
-You: Make a deck from sources/report.pdf with template skills/ppt-master/templates/layouts/academic_defense/
+You: Make a deck from sources/report.pdf with template skills/ppt-master/templates/layouts/fanruan_tech/
 ```
 
 Full guide → [Templates Guide](./templates-guide.md)

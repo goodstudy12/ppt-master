@@ -11,21 +11,18 @@
 
 ## Page Layout Templates
 
-The `layouts/` directory contains pre-built page layout templates organized by design style:
+The `layouts/` directory contains the retained FanRuan style layout template:
 
-- **General**: Versatile modern style, clean and flexible
-- **Consultant**: Consulting style, professional and structured
-- **Consultant Top**: Top-tier consulting style (MBB-level)
-- **Academic Defense**: Academic defense style, research-oriented
+- **FanRuan Tech**: light blue enterprise BI / dashboard / report designer style
 
 - **Human browsing**: [layouts/README.md](./layouts/README.md)
 - **Slim lookup (discovery only)**: [layouts/layouts_index.json](./layouts/layouts_index.json) — used to answer "what templates exist?". Step 3 triggers on an explicit directory path supplied by the user, not on names from this index.
 
 ## Brand Identity Presets
 
-The `brands/` directory holds brand-only templates: identity bundles (color / typography / logo / voice / icon style) without an SVG page roster. Brands follow the **same explicit-path trigger rule as layout templates** — at SKILL.md Step 3 the user supplies the brand directory path to apply it; bare brand names never trigger. Both layout and brand inputs land in the same project directory (`<project_path>/templates/`). When supplied together, Step 3 fuses them into a single `design_spec.md` (brand wins on identity tokens, layout wins on page structure) — see `SKILL.md` Step 3 for the precedence table.
+The `brands/` directory is currently empty by design. This repository keeps only the FanRuan style theme under `layouts/fanruan_tech/`; brand-only presets were removed from the active library.
 
-A brand is structurally a layout template minus its page roster. Use a brand when the user wants identity locking with free page layout; use a layout template when fixed page structures are also required.
+A future FanRuan-only brand preset may be added through the brand workflow, but non-FanRuan brand presets should not be registered here.
 
 - **Human browsing**: [brands/README.md](./brands/README.md)
 - **Discovery index (no trigger)**: [brands/brands_index.json](./brands/brands_index.json) — answers "what brands exist?"; Step 3 still requires an explicit directory path from the user

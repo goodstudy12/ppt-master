@@ -62,11 +62,9 @@ python3 skills/ppt-master/scripts/svg_to_pptx.py <project_path> --no-merge
 
 跟 AI 对话时也可以直接说："这个页面要严格保持逐行版式" —— AI 重新导出时会加上 `--no-merge`。
 
-## Q: 三种执行师有什么区别？
+## Q: 当前保留哪种执行师风格？
 
-- **Executor_General**: 通用场景，灵活布局
-- **Executor_Consultant**: 一般咨询，数据可视化
-- **Executor_Consultant_Top**: 顶级咨询（MBB 级），5 大核心技巧
+当前仅保留 **Executor_FanRuan**。它用于帆软 / FineReport / FineBI 风格 deck、BI 看板、经营报表、管理驾驶舱与 KPI 监控页面。
 
 ## Q: 用 PPT Master 做 PPT 贵吗？
 

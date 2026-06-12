@@ -1,5 +1,7 @@
 # Deck Templates
 
+Current library state: no full deck presets are retained. This repository keeps only the FanRuan style theme under `templates/layouts/fanruan_tech/`; non-FanRuan deck replicas were removed.
+
 **Deck = full-PPT replica.** Each deck reverse-engineers a specific organization's branded presentation and bundles its **identity + structure + middle** segments into one atomic asset. Use a deck when you want the complete look of a particular institution (color, typography, logo, page structure, voice) preserved as a whole.
 
 Single source of truth for what decks exist: [`decks_index.json`](./decks_index.json) (`deck_id → { summary, canvas_format, page_count, primary_color }`). This README explains the kind; it does **not** enumerate decks.
@@ -10,7 +12,7 @@ Full data model: [`docs/zh/templates-architecture.md`](../../../../docs/zh/templ
 
 ## Trigger rule
 
-Deck selection is **opt-in by explicit path**. The main workflow defaults to free design. A deck is only used when the user gives an explicit directory path in their initial message (e.g. `skills/ppt-master/templates/decks/招商银行/`). Bare names do not trigger. See [`SKILL.md`](../../SKILL.md) Step 3.
+Deck selection is **opt-in by explicit path**. The main workflow defaults to free design. A deck is only used when the user gives an explicit directory path in their initial message. Bare names do not trigger. See [`SKILL.md`](../../SKILL.md) Step 3.
 
 `decks_index.json` is a **discovery aid**, not a trigger — it lets the AI answer "what decks exist?" by listing ids and paths. Listing alone never advances the pipeline.
 

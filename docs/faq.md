@@ -62,11 +62,9 @@ With `--no-merge`, every visual line becomes its own PowerPoint text frame. This
 
 When you're chatting with the AI, you can also just ask for strict line fidelity on layout-sensitive pages — the AI will add `--no-merge` when re-exporting.
 
-## Q: What's the difference between the three Executors?
+## Q: What Executor style is retained?
 
-- **Executor_General**: General scenarios, flexible layout
-- **Executor_Consultant**: General consulting, data visualization
-- **Executor_Consultant_Top**: Top consulting (MBB level), 5 core techniques
+Only **Executor_FanRuan** is retained. It is used for FanRuan / FineReport / FineBI style decks, BI dashboards, operating reports, management cockpits, and KPI monitoring pages.
 
 ## Q: Is PPT Master expensive to use?
 

@@ -43,7 +43,7 @@
 无论放哪,生成时都靠在对话里给出它的**目录路径**来引用——工作流只认显式路径,绝不认裸模板名:
 
 ```
-你：用 sources/report.pdf 做 deck,模板用 skills/ppt-master/templates/layouts/academic_defense/
+你：用 sources/report.pdf 做 deck,模板用 skills/ppt-master/templates/layouts/fanruan_tech/
 ```
 
 完整说明 → [模板指南](./templates-guide.md)

@@ -184,3 +184,4 @@ PERSONAL_NOTES.md
 # Use cloud sync (iCloud/Dropbox) for backup and multi-device access
 projects/*
 !projects/README.md
+/.serena/

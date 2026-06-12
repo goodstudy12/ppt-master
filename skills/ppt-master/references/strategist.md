@@ -46,22 +46,19 @@ Two layers. Output: `d. Style: <Mode> + <Visual style descriptor>`.
 
 | Mode | Core Focus | Target Audience | One-line Description |
 |-------|-----------|----------------|---------------------|
-| **A) General Versatile** | Visual impact first | Public / clients / trainees | "Catch the eye at a glance" |
-| **B) General Consulting** | Data clarity first | Teams / management | "Let data speak" |
-| **C) Top Consulting** | Logical persuasion first | Executives / board | "Lead with conclusions" |
+| **FanRuan BI / Dashboard** | Metric diagnosis first | Business owners / operators / data teams | "Expose metric status, causes, and next actions" |
 
 Mode selection decision tree:
 
 ```
 Content characteristics?
-  ├── Heavy imagery / promotional ──→ A) General Versatile
-  ├── Data analysis / progress report ──→ B) General Consulting
-  └── Strategic decisions / persuading executives ──→ C) Top Consulting
+  ├── KPI dashboard / BI cockpit / operating report ──→ FanRuan BI / Dashboard
+  ├── Data analysis / progress report ────────────────→ FanRuan BI / Dashboard
+  └── Other source content ───────────────────────────→ Reframe as FanRuan BI / Dashboard only when facts support metric diagnosis
 
 Audience?
-  ├── Public / clients / trainees ────→ A) General Versatile
-  ├── Teams / management ────────────→ B) General Consulting
-  └── Executives / board / investors → C) Top Consulting
+  ├── Business owners / operators / data teams ───────→ FanRuan BI / Dashboard
+  └── Other audiences ────────────────────────────────→ FanRuan BI / Dashboard with audience-specific wording, not another style mode
 ```
 
 #### Layer 2 — Visual style
@@ -76,15 +73,15 @@ Anchors the downstream confirmations e (Color), f (Icon), g (Typography), h (Ima
 
 | Axis | Examples |
 |---|---|
-| Aesthetic | minimalist / information-dense / Keynote / editorial / hand-drawn |
-| Scenario | business consulting / academic defense / government briefing / product launch / education / pitch deck |
-| Visual character | dark tech / pixel retro / neo-Chinese / Scandinavian / Memphis / cyberpunk / vaporwave |
+| Aesthetic | information-dense / clean dashboard / light tech report / operational cockpit |
+| Scenario | FanRuan BI dashboard / FineReport-style report / operating report / management cockpit / KPI monitoring |
+| Visual character | light blue technology / data cockpit / restrained enterprise BI / report designer |
 
-Accept user combinations and one-off coinages ("Scandinavian + slight industrial"). The list is for recall, not constraint.
+Accept only FanRuan-compatible descriptors. If the user names a non-FanRuan style, preserve the source facts and state that the deck will still be planned under the FanRuan BI / Dashboard mode.
 
-> **Template vs descriptor**: a style mention may sound like a template name ("academic style" vs the `academic_defense/` template directory). Step 3 only triggers on an explicit template directory path supplied by the user — bare names and style words never copy templates. If a template was triggered upstream, its files are already in `<project_path>/templates/`. Layer 2 only handles descriptors that did NOT come with a template path.
+> **Template vs descriptor**: a style mention may sound like the retained template name ("FanRuan dashboard" vs the `fanruan_tech/` template directory). Step 3 only triggers on an explicit template directory path supplied by the user — bare names and style words never copy templates. If a template was triggered upstream, its files are already in `<project_path>/templates/`. Layer 2 only handles descriptors that did NOT come with a template path.
 
-**Downstream effect**: e / f / g / h values realize the Layer 2 descriptor on top of the Layer 1 mode. Example: "A) Versatile + neo-Chinese" → e leans cinnabar / ink / rice-paper; g pairs serif (KaiTi-class) with sans body; f minimal line icons; h restrained traditional imagery with negative space.
+**Downstream effect**: e / f / g / h values realize the FanRuan descriptor on top of the single Layer 1 mode. Example: "FanRuan BI / Dashboard + light tech report" → e leans blue-white surfaces and semantic status colors; g uses clean sans typography; f uses data / operations / alert icons; h uses dashboard or report imagery only when source context supports it.
 
 ### e. Color Scheme Recommendation
 
@@ -386,21 +383,9 @@ The tables below are source data Strategist reads when constructing the three ca
 
 | `d. Style` signal | Recommended rendering | Alternates |
 |---|---|---|
-| Top Consulting / strategic / MBB | `editorial` or `vector-illustration` | `blueprint`, `minimalist-swiss` |
-| General Consulting / corporate report / 学术答辩 | `vector-illustration` | `flat`, `editorial` |
-| High-end consulting / luxury / 高端 / design-firm | `minimalist-swiss` | `editorial`, `vector-illustration` |
-| Tech / SaaS / AI / 架构 | `3d-isometric`, `blueprint`, `digital-dashboard` | `flat` |
-| Modern SaaS / fintech / health-tech / premium app | `glassmorphism` | `digital-dashboard`, `flat` |
-| Product launch / brand / marketing | `flat`, `3d-isometric`, `corporate-photo` | `vector-illustration` |
-| Education / training / 教学 / 培训 | `sketch-notes` | `vector-illustration`, `paper-cut` |
-| Children / storybook / 儿童 / 治愈 | `fantasy-animation` | `paper-cut`, `watercolor`, `sketch-notes` |
-| Cultural / folk / festival / 文化 / 节日 | `paper-cut` | `vintage-poster`, `screen-print` |
-| Methodology / Before-After / 方法论 / manifesto | `ink-notes` | `editorial` |
-| Government / formal / 政务 | `editorial` or `corporate-photo` | `vector-illustration` |
-| Finance / journalism / 财经 | `editorial`, `digital-dashboard` | `vector-illustration` |
-| Personal story / 个人成长 / lifestyle | `watercolor`, `warm-scene` | `corporate-photo`, `paper-cut` |
-| Cultural / media / opinion / cinematic | `screen-print`, `vintage-poster` | `editorial`, `warm-scene` |
-| Brand heritage / hospitality / 老字号 / 周年 | `vintage-poster` | `screen-print`, `editorial` |
+| FanRuan BI dashboard / FineReport / FineBI | `digital-dashboard` | `blueprint`, `vector-illustration` |
+| Operating report / management cockpit / KPI monitoring | `digital-dashboard` | `corporate-photo`, `flat` |
+| Enterprise digitalization / data analysis report | `blueprint` or `digital-dashboard` | `vector-illustration`, `flat` |
 | Gaming / retro / 复古 / 像素 | `pixel-art` | `vintage-poster` |
 | Environment / wellness / 环保 | `nature` | `watercolor`, `paper-cut` |
 | Classroom / blackboard / 课堂 | `chalkboard` | `sketch-notes` |
@@ -616,55 +601,33 @@ The most common Strategist failure mode is missing the structural half — treat
 
 ## 2. Executor Style Details (Reference for Confirmation Item #4)
 
-### A) General Versatile — Executor_General
-
-- **Capabilities**: full-width images + gradient overlays; free creative layouts; variants (image-text / minimalist / creative)
-- **Scenarios**: promotions, product launches, training, brand campaigns
-- **Avoid**: rigid/formal tone, dense data tables
-
-### B) General Consulting — Executor_Consultant
-
-- **Capabilities**: KPI dashboards (4-card, big numbers + trend arrows); chart combinations (bar/line/pie/funnel); status color grading (R/Y/G)
-- **Scenarios**: progress reports, financial analysis, government reports, proposals
-- **Avoid**: flashy decoration, image-dominated slides
-
-### C) Top Consulting — Executor_Consultant_Top
+### FanRuan BI / Dashboard — Executor_FanRuan
 
 | Rule | Detail |
 |------|--------|
-| Data contextualization | Every data point gets a comparison ("grew 63% — industry avg 12%") |
-| SCQA framework | Situation → Complication → Question → Answer |
-| Pyramid principle | Conclusion first; core insight in title |
-| Strategic coloring | Color serves information, not decoration |
-| Chart vs Table | Trends → charts; precise values → tables |
+| Metric-first hierarchy | KPI status, variance, and abnormal signals lead the scan path |
+| BI cockpit structure | Header scope → KPI strip → analysis panels → insight/action row |
+| Report readability | Tables, labels, and chart annotations stay readable after PPT export |
+| Operational diagnosis | Each chart or table should connect to cause, risk, owner, or next action when source content supports it |
+| Semantic status color | Good / warning / risk / neutral meanings remain consistent across pages |
 
-- **Page elements**: gradient top bar + dark takeaway box, confidential marking + footer, MECE / driver tree / waterfall
-- **Scenarios**: strategic decisions, deep analysis, MBB-level deliverables
-- **Avoid**: isolated data, subjective statements, decoration
+- **Page elements**: KPI cards, operating cockpit, trend analysis, ranking chart, decomposition panel, dense but readable detail table
+- **Scenarios**: FanRuan / FineReport / FineBI style decks, BI dashboards, operating reports, management cockpits, KPI monitoring
+- **Avoid**: marketing poster layouts, decorative charts, unsupported YoY/MoM, unreadable dense tables
 
 ---
 
 ## 3. Color Knowledge Base
 
-### Consulting Style Colors
+### FanRuan BI Colors
 
-| Brand | HEX |
+| Role | HEX |
 |-------|-----|
-| Deloitte Blue | `#0076A8` |
-| McKinsey Blue | `#005587` |
-| BCG Dark Blue | `#003F6C` |
-| PwC Orange | `#D04A02` |
-| EY Yellow | `#FFE600` |
-
-### General Versatile Colors
-
-| Style | HEX |
-|-------|-----|
-| Tech Blue | `#2196F3` |
-| Vibrant Orange | `#FF9800` |
-| Growth Green | `#4CAF50` |
-| Professional Purple | `#9C27B0` |
-| Alert Red | `#F44336` |
+| Primary blue | `#035DCF` |
+| Accent blue | `#3399FF` |
+| Title navy | `#17346E` |
+| Body gray-blue | `#566280` |
+| Light surface | `#EEF7FF` |
 
 ### Data Visualization Colors
 
@@ -714,9 +677,7 @@ Templates are starting points. The Strategist may adjust based on content and au
 
 | Style | Content Outline | Speaker Notes |
 |-------|----------------|---------------|
-| A) General Versatile | Per-page core theme from source doc | Concise script |
-| B) General Consulting | Structured sections, data-driven insights | Professional terms, conclusion-first |
-| C) Top Consulting | SCQA + pyramid principle | Highly condensed, conclusion-driven |
+| FanRuan BI / Dashboard | KPI-first structure, operational diagnosis, page-level action or risk note when supported | Concise report narration with metric status, cause, and next action |
 
 **Per-block expression**: phrase each §IX content block in the mode that fits it — prose, bullet, keyword, or any phrasing the content calls for — not a default bullet. Take the cue from the source's texture: a narrative source (article / transcript / talk) leans prose — resist compressing its argument pages into fragments; a data sheet leans bullet/keyword. Write the real sentence into §IX itself, not a skeleton point to expand later. One page mixes modes; let layout pull each (narrative → prose, structural/chart → bullets/keywords).
 

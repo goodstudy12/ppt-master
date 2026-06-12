@@ -263,7 +263,7 @@ For API-backed features, put credentials in `.env`. Clone installs can use `cp .
 
 ```bash
 mkdir -p ~/.ppt-master
-cp /path/to/installed/ppt-master/.env.example ~/.ppt-master/.env
+cp /path/to/installed/ppt-master/.env ~/.ppt-master/.env
 ```
 
 PPT Master reads the current process environment first, then the first `.env` found in this order: current working directory, skill directory (e.g. `~/.agents/skills/ppt-master/.env`), clone repo root, `~/.ppt-master/.env`.

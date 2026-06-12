@@ -20,7 +20,7 @@ PPT Master 的"模板"是一份**结构 + 风格**的预设包：包含若干页
 
 在对话里把模板目录的路径写进去（位置不重要，只要明确即可）：
 
-> "用这个模板做：`skills/ppt-master/templates/layouts/academic_defense/`" ✅
+> "用这个模板做：`skills/ppt-master/templates/layouts/fanruan_tech/`" ✅
 > "用上次那个模板：`projects/last_deck/template/`" ✅
 > "做一份产品介绍，模板用 `/Users/me/Desktop/our_brand_v3/`" ✅
 
@@ -28,8 +28,8 @@ AI 会把这个目录里的 SVG、`design_spec.md` 和素材复制到项目目�
 
 ### 什么**不会**触发模板流程
 
-- **只写模板名、不给路径**："用 academic_defense 模板" / "做一份 招商银行 模板的产品介绍" → 走自由设计。AI 不会替你把名字解析成路径。要用模板，请直接给路径。
-- **风格描述**："麦肯锡风格" / "Google style" / "麦肯锡那种" / "极简风" / "Keynote 风" → 走自由设计。这些描述会顺着对话流到 Strategist 那边作为风格说明使用，但**不会复制任何模板文件**。
+- **只写模板名、不给路径**："用 fanruan_tech 模板" / "用帆软模板" → 走自由设计。AI 不会替你把名字解析成路径。要用模板，请直接给路径。
+- **非帆软风格描述**：当前仓库不再作为风格模式支持。若源内容适合指标诊断，仍只能按 FanRuan BI / Dashboard 模式生成。
 - **模糊意图**："想用个模板" / "选一个吧"——没给路径 → 走自由设计。
 
 这是有意的——AI 永远**不做模糊 / 解释性判断**，不替你把名字解析成路径。要用模板，直接给路径。
@@ -40,9 +40,9 @@ AI 会把这个目录里的 SVG、`design_spec.md` 和素材复制到项目目�
 
 模板按三种身份分目录：
 
-- [`templates/brands/README.md`](../../skills/ppt-master/templates/brands/README.md) — 仅身份预设（color / typography / logo / voice / icon style），无 SVG 页面；Anthropic、Google
-- [`templates/layouts/README.md`](../../skills/ppt-master/templates/layouts/README.md) — 仅结构样板（canvas / page structure / page types / SVG roster），无身份；academic_defense、government_blue/red、ai_ops、medical_university、pixel_retro、psychology_attachment
-- [`templates/decks/README.md`](../../skills/ppt-master/templates/decks/README.md) — 完整 PPT 复刻（身份 + 结构 + 中间段）；招商银行、中国电建_*、中汽研_*、重庆大学、中国电信
+- [`templates/brands/README.md`](../../skills/ppt-master/templates/brands/README.md) — 仅身份预设（color / typography / logo / voice / icon style），当前按设计为空
+- [`templates/layouts/README.md`](../../skills/ppt-master/templates/layouts/README.md) — 仅结构样板（canvas / page structure / page types / SVG roster），当前仅保留 `fanruan_tech`
+- [`templates/decks/README.md`](../../skills/ppt-master/templates/decks/README.md) — 完整 PPT 复刻（身份 + 结构 + 中间段），当前按设计为空
 
 完整数据模型与三类的合成 / 冲突解决规则见 [`templates-architecture.md`](./templates-architecture.md)。
 
@@ -50,58 +50,33 @@ AI 会把这个目录里的 SVG、`design_spec.md` 和素材复制到项目目�
 
 自由设计不是"没有风格"，而是 AI 根据你的内容**为这一份 deck 现场设计**视觉系统；模板则是**沿用一套已经定型的结构和风格**。两条路都不会少做"设计"，区别只在于风格是即兴还是预设。
 
-> 经验：内容方向明确、品牌或场景有强约束（咨询报告、政府汇报、答辩）→ 用模板。内容偏散文式、视觉氛围更重要（杂志风、纪录式叙事）→ 自由设计往往效果更好。
+> 经验：KPI 看板、经营报表、管理驾驶舱、数据分析 deck → 若需要锁定版式值，使用当前保留的帆软模板路径。
 
 ### 风格不是模板
 
-**风格**是一种描述（"极简风" / "Keynote 风" / "杂志风"）——你在对话里打几个字。**模板**是一份要复制粘贴的资产包（SVG + design_spec + 素材），只在你给出**显式目录路径**时由工作流安装到项目里。
+**风格**现在限定为帆软兼容描述（"FanRuan BI dashboard" / "轻质感科技报表" / "经营驾驶舱"）——你在对话里打几个字。**模板**是一份要复制粘贴的资产包（SVG + design_spec + 素材），只在你给出**显式目录路径**时由工作流安装到项目里。
 
 | | 模板 | 风格 |
 |---|---|---|
 | 怎么触发 | 消息里给出明确的目录路径 | 消息里写自由描述 |
-| 发生什么 | 文件复制到项目；layouts 继承自模板 SVG | 描述流到 Strategist；色彩 / 字体 / 调性在八项确认里推荐 |
+| 发生什么 | 文件复制到项目；layouts 继承自模板 SVG | 描述在单一 FanRuan BI / Dashboard 模式下流到 Strategist |
 | 数值锁定 | 是 — 来源于模板的 `design_spec.md` | 否 — Strategist 现场推适合 deck 的具体值 |
-| 适用场景 | 品牌锁定的 deck；强视觉约定的场景 | 心里有感觉但没有具体品牌承诺 |
+| 适用场景 | 帆软锁定的 deck；BI / 报表强视觉约定场景 | 需要帆软结构但不需要套用保留的 SVG roster |
 
-风格描述可能看起来像模板名（比如 "学术风" 听上去像 `academic_defense/` 模板目录），但走的是**两套机制**——模板需要你给一个真实可复制的路径，风格描述是解释性语言。字面接近，落地完全是两条路。
+风格描述可能看起来像当前模板名，但走的是**两套机制**——模板需要你给一个真实可复制的路径，风格描述是解释性语言。字面接近，落地完全是两条路。
 
-### 常见风格描述
+### 帆软兼容风格描述
 
-三条轴自由组合（"暗色科技 + 极简" 或 "杂志风 + 新中式" 都行）：
-
-**美学路线**
+不给模板路径时可使用这些描述：
 
 | 风格 | 一句话特征 |
 |---|---|
-| **极简风 / Minimalist** | 高留白、2-3 色、单焦点、几乎零装饰 |
-| **信息密集 / Information-dense** | 麦肯锡派结构化表格、密度高、conclusion-first |
-| **Keynote 风** | 单页 Hero 文字、premium 留白、Apple 感 |
-| **杂志风 / Editorial** | 大图当主体、不对称版式、字体反差强 |
-| **文艺手绘** | 暖色、手绘质感、像 zine |
+| **FanRuan BI dashboard** | KPI 优先、图表主导、状态色语义清晰 |
+| **轻质感科技报表** | 蓝白界面、克制面板、清晰字体层级 |
+| **经营驾驶舱** | 范围页头、KPI 条、分析面板、行动行 |
+| **高密度可读报表** | 表格主导、标签紧凑、异常行高亮明确 |
 
-**行业 / 场景**
-
-| 风格 | 一句话特征 |
-|---|---|
-| **商务咨询风** | 数据驱动、专业克制、蓝/灰主调 |
-| **学术答辩风** | 严谨层级、citation-heavy、清晰朴素 |
-| **政府汇报风** | 红/蓝、庄重对称、标题加粗 |
-| **产品发布风** | 视觉冲击、营销大胆、Hero 单图 |
-| **教学课件风** | 清晰层级、友好亲和、配色明亮 |
-| **路演/BP 风** | 叙事驱动、金句配图、conclusion-bold |
-
-**视觉调性**
-
-| 风格 | 一句话特征 |
-|---|---|
-| **暗色科技风** | 深蓝/黑底、霓虹强调、未来感 |
-| **像素复古** | 8-bit、扫描线、游戏机美学 |
-| **新中式** | 留白、传统纹样克制使用、墨色/朱砂 |
-| **北欧极简** | 浅色、原木自然、字号克制 |
-| **孟菲斯/波普风** | 高饱和大色块、几何图形、80 年代 |
-| **赛博朋克/蒸汽波** | 霓虹紫粉、网格、迷幻 |
-
-你描述风格时，AI **不会基于这些词去挑模板**——它把这些词解释为对应的色彩 / 字体 / 版式建议，放到 Strategist 八项确认里 `d` 项的第二层（视觉风格），然后驱动 e/f/g/h（色彩 / 图标 / 字体 / 图片）。你可以确认或调整。如果你想要的风格刚好对上库里某个模板（如 `academic_defense` / `pixel_retro` / `psychology_attachment`），有两条路可选：把模板的目录路径发出来锁定值，或描述风格让 AI 现场推适配你内容的值。
+你描述风格时，AI **不会基于这些词去挑模板**——它只在单一 FanRuan BI / Dashboard 模式内解释这些词，然后驱动 e/f/g/h（色彩 / 图标 / 字体 / 图片）。如果你想要当前保留模板的锁定值，请直接发送 `skills/ppt-master/templates/layouts/fanruan_tech/`。
 
 ---
 
@@ -159,7 +134,7 @@ AI 会把这个目录里的 SVG、`design_spec.md` 和素材复制到项目目�
 | 抽象程度 | 高 —— 干净可复用骨架 | 中 —— 聚类后清理 | **零** —— 原样复制 |
 | 是否插占位符 | 是（`{{TITLE}}`、`{{CONTENT_AREA}}` 等） | 是 | **否** —— Executor 直接在 SVG 里就地编辑文字 |
 | 适合场景 | 你只需要"调性 + 基本骨架"，未来用模板生成全新 deck | 源 PPTX 本身就是高度定制的版式库 | 别人的精装 deck 直接好用、想把每页都当参考页 |
-| 典型例子 | 给品牌做基础模板 | 复刻一套政府汇报的 20 种章节版式 | 把一份 50 页的麦肯锡风格 deck 整套用作模板 |
+| 典型例子 | 给帆软报表做基础模板 | 复刻一套帆软经营分析的 20 种章节版式 | 把一份 50 页的帆软风格报表 deck 整套用作模板 |
 | 必须有 PPTX 源吗 | 否 | **是** | **是** |
 | 装饰复杂度 | 通常较简洁 | 需要保留精灵图（sprite sheet）裁剪等结构 | 源页啥样就啥样，逐字节继承 |
 

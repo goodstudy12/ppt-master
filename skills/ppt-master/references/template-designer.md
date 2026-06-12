@@ -365,14 +365,11 @@ This section describes downstream reuse. The `Template_Designer` role itself is 
 ```
 templates/
 ├── brands/
-│   ├── anthropic/         # Anthropic brand identity (logo + colors + typography)
-│   └── google/            # Google brand identity
+│   └── <future_fanruan_brand>/  # Optional FanRuan-only brand identity
 ├── layouts/
-│   ├── academic_defense/  # Academic-defense structure (no identity)
-│   └── pixel_retro/       # Pixel retro / cyberpunk structure (no identity)
+│   └── fanruan_tech/      # Retained FanRuan light-tech structure
 └── decks/
-    ├── 招商银行/          # China Merchants Bank full PPT replica
-    └── 中国电建_常规/      # PowerChina full PPT replica
+    └── <future_fanruan_deck>/   # Optional FanRuan-only full PPT replica
 ```
 
 ---

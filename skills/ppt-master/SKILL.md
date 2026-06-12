@@ -163,13 +163,13 @@ Import source content (choose based on the situation):
 | User input contains | Step 3 action |
 |---|---|
 | One or more explicit template directory paths (each resolves to a directory containing `design_spec.md` with `kind: brand` / `kind: layout` / `kind: deck` in its YAML frontmatter) | Read each spec's `kind`, dispatch per the kind matrix below, fuse if multiple |
-| Anything else — bare template names ("用 academic_defense"), style descriptions ("麦肯锡风格"), brand mentions ("招商银行风格"), vague intent ("想用个模板"), or silence | Skip Step 3, free design |
+| Anything else — bare template names ("用 fanruan_tech"), non-path style descriptions, vague intent ("想用个模板"), or silence | Skip Step 3, free design |
 
 There is no slug matching, no name lookup, no fuzzy resolution. A name without a path does not trigger — the user must give a path the AI can `cd` into.
 
-> Style descriptions ("麦肯锡风格" / "Keynote 风" / "极简风" / etc.) never trigger Step 3. They flow into Strategist's Eight Confirmations as a style brief (color / typography / tone in confirmations e–g).
+> Style descriptions never trigger Step 3. This repository now keeps only the FanRuan BI / Dashboard style path; non-FanRuan style words are treated as unsupported style requests unless the user supplies explicit source content that can be converted under the FanRuan BI structure.
 
-> Bare names ("academic_defense", "招商银行", "anthropic") do NOT trigger Step 3 even if a matching directory exists in the library. The user must give a path. AI must not "helpfully" resolve a name to a path.
+> Bare names ("fanruan_tech") do NOT trigger Step 3 even if a matching directory exists in the library. The user must give a path. AI must not "helpfully" resolve a name to a path.
 
 > "What templates exist?" is out-of-band Q&A — answer by listing entries from `brands_index.json` / `layouts_index.json` / `decks_index.json` together with their paths. Listing alone does not advance the pipeline; the user must send a path back to trigger Step 3.
 
@@ -224,21 +224,21 @@ Override priority by segment:
 | layout + deck | deck | layout (overrides deck) | deck |
 | brand + layout + deck | brand | layout | deck |
 
-Field-level micro-adjustment (e.g. "use anthropic brand but primary changed to #FF0000") is **not** part of Step 3 fusion — it flows into Strategist Eight Confirmations e–g as a normal user request.
+Field-level micro-adjustment (e.g. "use FanRuan primary changed to #035DCF") is **not** part of Step 3 fusion — it flows into Strategist Eight Confirmations e–g as a normal user request.
 
 #### Same-kind multiple paths — conflict resolution
 
-When the user gives two paths of the **same kind** (e.g. `brands/anthropic` + `brands/google`), Step 3 surfaces a conflict prompt before fusing — like resolving a git merge conflict:
+Current library state: only `templates/layouts/fanruan_tech/` is retained. `templates/brands/` and `templates/decks/` are intentionally empty apart from their README / index files. Same-kind conflict handling remains part of the workflow contract for future FanRuan assets, but the current repository should not surface non-FanRuan examples.
+
+When the user gives two paths of the **same kind**, Step 3 surfaces a conflict prompt before fusing — like resolving a git merge conflict:
 
 ```
-AI: 你给了两个 brand，检测到段级冲突：
-    - Color Scheme（Anthropic 橙红 vs Google 多色）
-    - Typography（Styrene/AnthropicSans vs GoogleSans/Roboto）
-    - Logo（Anthropic 标 vs Google 标）
-    - Voice & Tone（restrained vs friendly）
-    - Icon Style（stroke vs filled）
+AI: 你给了两个 FanRuan layout，检测到段级冲突：
+    - Page Structure（轻质感科技风 vs 数据驾驶舱风）
+    - Page Types（通用汇报页 vs KPI 经营分析页）
+    - SVG Roster（基础 5 页 vs 扩展分析页）
 
-    要 (a) 全部按 Anthropic / (b) 全部按 Google / (c) 逐段挑？
+    要 (a) 全部按第一个 layout / (b) 全部按第二个 layout / (c) 逐段挑？
 ```
 
 Rules:
@@ -253,10 +253,8 @@ When fusion happens (any multi-path case), the resulting `<project>/templates/de
 
 ```markdown
 > **Fused from:**
-> - deck: `templates/decks/招商银行/` （base）
-> - brand: `templates/brands/anthropic/` （identity override）
-> - layout: `templates/layouts/academic_defense/` （structure override）
-> - conflicts resolved: Color Scheme from anthropic（user picked a）
+> - layout: `templates/layouts/fanruan_tech/` （structure）
+> - conflicts resolved: Page Structure from first FanRuan layout（user picked a）
 ```
 
 Single-path Step 3 does **not** add provenance (the source is self-evident from the copied files).
@@ -401,12 +399,10 @@ Read the role definition based on the selected style:
 ```
 Read references/executor-base.md          # REQUIRED: common guidelines
 Read references/shared-standards.md       # REQUIRED: SVG/PPT technical constraints
-Read references/executor-general.md       # General flexible style
-Read references/executor-consultant.md    # Consulting style
-Read references/executor-consultant-top.md # Top consulting style (MBB level)
+Read references/executor-fanruan.md       # FanRuan BI / dashboard / report designer style
 ```
 
-> Only read executor-base + shared-standards + one style file.
+> Only read executor-base + shared-standards + executor-fanruan. The repository intentionally keeps no other executor style roles.
 
 **Design Parameter Confirmation (Mandatory)**: before the first SVG, output key design parameters from the spec (canvas dimensions, color scheme, font plan, body font size). See executor-base.md §2.
 

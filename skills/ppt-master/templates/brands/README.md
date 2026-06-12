@@ -1,5 +1,7 @@
 # Brand Identity Presets
 
+Current library state: no brand presets are retained. This repository keeps only the FanRuan style theme under `templates/layouts/fanruan_tech/`; non-FanRuan brand presets were removed.
+
 This directory holds **brand-only templates**: identity bundles (color / typography / logo / voice / icon style) without an SVG page roster. Strategist locks the brand's identity segment as truth; Executor designs pages freely under those constraints.
 
 Brand is one of three template kinds in the library — alongside [`layouts/`](../layouts/) (structure-only) and [`decks/`](../decks/) (full-PPT replica). Full data model: [`docs/zh/templates-architecture.md`](../../../../docs/zh/templates-architecture.md).
@@ -10,8 +12,8 @@ Brand application follows the **same explicit-path rule as all template kinds** 
 
 | User input at SKILL.md Step 3 | Behavior |
 |---|---|
-| An explicit brand directory path (e.g. `templates/brands/anthropic/`) | Copy `design_spec.md` + logo files + asset subdirectories into `<project_path>/templates/`; Strategist locks identity segment |
-| Bare brand name only ("use anthropic brand"), brand mention without path, or silence | Skip — same mechanical rule as all template kinds: bare names never trigger |
+| An explicit brand directory path (future FanRuan-only preset) | Copy `design_spec.md` + logo files + asset subdirectories into `<project_path>/templates/`; Strategist locks identity segment |
+| Bare brand name only, brand mention without path, or silence | Skip — same mechanical rule as all template kinds: bare names never trigger |
 | Brand path + layout path | Fuse into one `design_spec.md` — brand owns identity segment (color / typography / logo / voice / icon style); layout owns structure segment (canvas / page roster). See `SKILL.md` Step 3. |
 | Brand path + deck path | Fuse — brand identity overrides deck identity; structure + middle segments come from deck |
 | Brand path + layout path + deck path | Three-way fuse — brand=identity, layout=structure, deck=middle |

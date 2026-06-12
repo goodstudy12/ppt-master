@@ -17,19 +17,19 @@
 三者是**三种并列的 reference bundle**，物理目录与 frontmatter `kind` 字段双向对齐：
 
 ```yaml
-# templates/brands/anthropic/design_spec.md
+# templates/brands/<fanruan_brand>/design_spec.md
 ---
 kind: brand
 ...
 ---
 
-# templates/layouts/academic_defense/design_spec.md
+# templates/layouts/fanruan_tech/design_spec.md
 ---
 kind: layout
 ...
 ---
 
-# templates/decks/招商银行/design_spec.md
+# templates/decks/<fanruan_deck>/design_spec.md
 ---
 kind: deck
 ...
@@ -218,11 +218,11 @@ primary_color: "<HEX>"
 
 合成默认是**段级整段替换**——例如 deck + brand 时，整个 Color Scheme / Typography / Logo / Voice / Icon Style 五段从 brand 拿，**不做字段级混搭**（即不会发生"primary 从 brand 拿、secondary 从 deck 拿"这类隐式混合）。
 
-字段级微调走 Strategist 八项确认这条已有路径——用户在 chat 里说"用 anthropic brand，但 primary 改成 #FF0000"，由 Strategist 在 e/g 现场调整，不在 Step 3 的 fusion 层加字段级语法。
+字段级微调走 Strategist 八项确认这条已有路径——用户在 chat 里说"沿用帆软主蓝，但 accent 改成 #3399FF"，由 Strategist 在 e/g 现场调整，不在 Step 3 的 fusion 层加字段级语法。
 
 ### 同类多份 = git 冲突解决
 
-用户给 `brands/anthropic` + `brands/google`（同类多份的任意排列组合）：
+用户给两份未来新增的帆软同类资产：
 
 ```
 AI: 你给了两个 brand，检测到段级冲突：
@@ -246,10 +246,8 @@ AI: 你给了两个 brand，检测到段级冲突：
 
 ```markdown
 > **Fused from:**
-> - deck: `templates/decks/招商银行/` （base）
-> - brand: `templates/brands/anthropic/` （identity 段覆盖）
-> - layout: `templates/layouts/academic_defense/` （structure 段覆盖）
-> - conflicts resolved: Color Scheme from anthropic（用户选 a）
+> - layout: `templates/layouts/fanruan_tech/` （structure）
+> - conflicts resolved: Page Structure from first FanRuan layout（用户选 a）
 ```
 
 让 AI 和人类都能回溯每段来自哪。

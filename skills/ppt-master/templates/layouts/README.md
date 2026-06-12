@@ -10,7 +10,9 @@ Full data model: [`docs/zh/templates-architecture.md`](../../../../docs/zh/templ
 
 ## Trigger rule
 
-Layout selection is **opt-in by explicit path**. The main workflow defaults to free design. A layout is only used when the user gives an explicit directory path in their initial message (e.g. `skills/ppt-master/templates/layouts/academic_defense/`). Bare names do not trigger. See [`SKILL.md`](../../SKILL.md) Step 3.
+Layout selection is **opt-in by explicit path**. The main workflow defaults to free design. A layout is only used when the user gives an explicit directory path in their initial message (e.g. `skills/ppt-master/templates/layouts/fanruan_tech/`). Bare names do not trigger. See [`SKILL.md`](../../SKILL.md) Step 3.
+
+Current retained layout: `fanruan_tech`. Non-FanRuan layout themes have been removed from this repository.
 
 `layouts_index.json` is a **discovery aid**, not a trigger — it lets the AI answer "what layouts exist?" by listing ids and paths. Listing alone never advances the pipeline.
 

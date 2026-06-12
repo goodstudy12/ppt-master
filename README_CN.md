@@ -271,7 +271,7 @@ AI 全程处理——内容分析、视觉设计、SVG 生成、PPTX 导出。
 
 ```bash
 mkdir -p ~/.ppt-master
-cp /path/to/installed/ppt-master/.env.example ~/.ppt-master/.env
+cp /path/to/installed/ppt-master/.env ~/.ppt-master/.env
 ```
 
 PPT Master 会优先读取当前进程环境变量，然后按顺序读取第一个存在的 `.env`：当前工作目录、clone 仓库根目录、`~/.ppt-master/.env`。
