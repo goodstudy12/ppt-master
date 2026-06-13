@@ -185,3 +185,4 @@ PERSONAL_NOTES.md
 projects/*
 !projects/README.md
 /.serena/
+/evidence/

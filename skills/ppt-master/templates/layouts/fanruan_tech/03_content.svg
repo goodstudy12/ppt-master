@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#FFFFFF"/>
+  <rect x="430" y="0" width="850" height="720" fill="#EEF7FF"/>
+  <rect x="782" y="274" width="498" height="446" fill="#D8EBFE" fill-opacity="0.18"/>
+  <rect x="0" y="0" width="660" height="280" fill="#FFFFFF" fill-opacity="0.92"/>
+  <circle cx="1120" cy="130" r="118" fill="#66B3FF" fill-opacity="0.08"/>
+  <rect x="1016" y="28" width="208" height="52" rx="26" fill="#FFFFFF" fill-opacity="0.92" stroke="#C7DCF7" stroke-width="1"/>
+  <rect x="1016" y="28" width="208" height="52" rx="26" fill="#EEF7FF" fill-opacity="0.72"/>
+  <image x="1047" y="30" width="146" height="48" href="fanruan_logo.png" preserveAspectRatio="xMidYMid meet"/>
+  <rect x="60" y="62" width="4" height="54" rx="2" fill="#3399FF"/>
+  <text x="84" y="88" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="26" font-weight="bold" fill="#035DCF">{{PAGE_TITLE}}</text>
+  <text x="84" y="120" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="15" fill="#566280">{{PAGE_SUBTITLE}}</text>
+  <rect x="84" y="138" width="176" height="4" rx="2" fill="#3399FF" fill-opacity="0.18"/>
+  <rect x="84" y="138" width="86" height="4" rx="2" fill="#035DCF"/>
+  <rect x="44" y="164" width="1192" height="492" rx="28" fill="#FFFFFF" fill-opacity="0.84" stroke="#D9EAFB" stroke-width="1.2"/>
+  <rect x="44" y="164" width="1192" height="492" rx="28" fill="#F9FCFF" fill-opacity="0.34"/>
+  <rect x="78" y="198" width="1124" height="22" rx="11" fill="#EFF6FE" fill-opacity="0.9"/>
+  <rect x="78" y="198" width="218" height="22" rx="11" fill="#DDEEFF" fill-opacity="0.8"/>
+  <rect x="78" y="246" width="1124" height="360" rx="20" fill="none" stroke="#BFD2E9" stroke-width="1" stroke-dasharray="8,6" stroke-opacity="0.58"/>
+  <text x="640" y="410" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="19" fill="#9AA9BF" text-anchor="middle">{{CONTENT_PLACEHOLDER}}</text>
+  <text x="640" y="442" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#B7C3D5" text-anchor="middle">建议在此区域自由排版图表、卡片、流程或关键结论</text>
+  <text x="84" y="688" font-family="Arial, sans-serif" font-size="12" fill="#8F99B3" letter-spacing="1.6">FANRUAN LIGHT TECH FRAME</text>
+  <rect x="1144" y="670" width="74" height="28" rx="14" fill="#035DCF" fill-opacity="0.09"/>
+  <text x="1181" y="689" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#035DCF" text-anchor="middle">{{PAGE_NUMBER}}</text>
+</svg>

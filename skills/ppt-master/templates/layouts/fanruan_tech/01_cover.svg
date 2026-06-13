@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <!-- 底色 -->
+  <rect width="1280" height="720" fill="#F5FAFF"/>
+  <!-- 底图铺满 -->
+  <image x="0" y="0" width="1280" height="720" href="cover_hero.png" preserveAspectRatio="xMidYMid slice"/>
+  <!-- 极轻全局遮罩，统一色调 -->
+  <rect x="0" y="0" width="1280" height="720" fill="#F2F8FF" fill-opacity="0.10"/>
+  <!-- 帆软 Logo -->
+  <image x="74" y="70" width="178" height="58" href="fanruan_logo.png" preserveAspectRatio="xMidYMid meet"/>
+  <!-- 装饰线 -->
+  <rect x="76" y="176" width="112" height="4" rx="2" fill="#0B76DE" fill-opacity="0.22"/>
+  <rect x="76" y="176" width="52" height="4" rx="2" fill="#0B76DE"/>
+  <!-- 标题与副标题 -->
+  <text x="76" y="312" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="58" font-weight="bold" fill="#17346E">{{TITLE}}</text>
+  <text x="76" y="374" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="24" fill="#566280">{{SUBTITLE}}</text>
+  <!-- 作者信息 -->
+  <text x="76" y="616" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="26" font-weight="bold" fill="#0B76DE">{{AUTHOR}}</text>
+  <text x="76" y="654" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="18" fill="#566280">{{COMPANY_NAME}}</text>
+  <text x="76" y="684" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="18" fill="#7F8CA7">{{DATE}}</text>
+</svg>

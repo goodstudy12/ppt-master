@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <!-- 底色 -->
+  <rect width="1280" height="720" fill="#FFFFFF"/>
+  <rect x="430" y="0" width="850" height="720" fill="#EEF7FF"/>
+  <rect x="782" y="274" width="498" height="446" fill="#D8EBFE" fill-opacity="0.18"/>
+  <rect x="0" y="0" width="660" height="280" fill="#FFFFFF" fill-opacity="0.92"/>
+  <!-- 右上圆形装饰 -->
+  <circle cx="1120" cy="130" r="118" fill="#66B3FF" fill-opacity="0.08"/>
+  <!-- 右上 Logo 胶囊 -->
+  <rect x="1016" y="28" width="208" height="52" rx="26" fill="#FFFFFF" fill-opacity="0.92" stroke="#C7DCF7" stroke-width="1"/>
+  <rect x="1016" y="28" width="208" height="52" rx="26" fill="#EEF7FF" fill-opacity="0.72"/>
+  <image x="1047" y="30" width="146" height="48" href="fanruan_logo.png" preserveAspectRatio="xMidYMid meet"/>
+  <!-- 标题区 -->
+  <rect x="60" y="62" width="4" height="54" rx="2" fill="#3399FF"/>
+  <text x="84" y="88" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="26" font-weight="bold" fill="#035DCF">{{PAGE_TITLE}}</text>
+  <text x="84" y="120" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="15" fill="#566280">{{PAGE_SUBTITLE}}</text>
+  <rect x="84" y="138" width="176" height="4" rx="2" fill="#3399FF" fill-opacity="0.18"/>
+  <rect x="84" y="138" width="86" height="4" rx="2" fill="#035DCF"/>
+  <!-- 递进五段：上方编号标题，中部时间轴，下方说明文字 -->
+  <!-- 中轴贯穿线 -->
+  <rect x="56" y="384" width="1168" height="2" rx="1" fill="#DDEBFA"/>
+  <!-- 阶段一 -->
+  <text x="80" y="266" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="#66CCFF">01</text>
+  <text x="80" y="302" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="19" font-weight="bold" fill="#17346E">{{STEP1_TITLE}}</text>
+  <path d="M 164 330 L 172 344 L 156 344 Z" fill="#66CCFF" fill-opacity="0.55"/>
+  <circle cx="164" cy="385" r="15" fill="#FFFFFF" stroke="#66CCFF" stroke-width="2"/>
+  <circle cx="164" cy="385" r="7" fill="#66CCFF"/>
+  <text x="80" y="446" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="15" font-weight="bold" fill="#17346E">{{STEP1_SUB}}</text>
+  <text x="80" y="476" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280">{{STEP1_DESC_1}}</text>
+  <text x="80" y="502" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280">{{STEP1_DESC_2}}</text>
+  <!-- 阶段二 -->
+  <text x="318" y="266" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="#33BBFF">02</text>
+  <text x="318" y="302" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="19" font-weight="bold" fill="#17346E">{{STEP2_TITLE}}</text>
+  <path d="M 402 330 L 410 344 L 394 344 Z" fill="#33BBFF" fill-opacity="0.55"/>
+  <circle cx="402" cy="385" r="15" fill="#FFFFFF" stroke="#33BBFF" stroke-width="2"/>
+  <circle cx="402" cy="385" r="7" fill="#33BBFF"/>
+  <text x="318" y="446" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="15" font-weight="bold" fill="#17346E">{{STEP2_SUB}}</text>
+  <text x="318" y="476" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280">{{STEP2_DESC_1}}</text>
+  <text x="318" y="502" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280">{{STEP2_DESC_2}}</text>
+  <!-- 阶段三 -->
+  <text x="556" y="266" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="#3399FF">03</text>
+  <text x="556" y="302" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="19" font-weight="bold" fill="#17346E">{{STEP3_TITLE}}</text>
+  <path d="M 640 330 L 648 344 L 632 344 Z" fill="#3399FF" fill-opacity="0.55"/>
+  <circle cx="640" cy="385" r="15" fill="#FFFFFF" stroke="#3399FF" stroke-width="2"/>
+  <circle cx="640" cy="385" r="7" fill="#3399FF"/>
+  <text x="556" y="446" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="15" font-weight="bold" fill="#17346E">{{STEP3_SUB}}</text>
+  <text x="556" y="476" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280">{{STEP3_DESC_1}}</text>
+  <text x="556" y="502" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280">{{STEP3_DESC_2}}</text>
+  <!-- 阶段四 -->
+  <text x="794" y="266" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="#3377FF">04</text>
+  <text x="794" y="302" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="19" font-weight="bold" fill="#17346E">{{STEP4_TITLE}}</text>
+  <path d="M 878 330 L 886 344 L 870 344 Z" fill="#3377FF" fill-opacity="0.55"/>
+  <circle cx="878" cy="385" r="15" fill="#FFFFFF" stroke="#3377FF" stroke-width="2"/>
+  <circle cx="878" cy="385" r="7" fill="#3377FF"/>
+  <text x="794" y="446" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="15" font-weight="bold" fill="#17346E">{{STEP4_SUB}}</text>
+  <text x="794" y="476" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280">{{STEP4_DESC_1}}</text>
+  <text x="794" y="502" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280">{{STEP4_DESC_2}}</text>
+  <!-- 阶段五 -->
+  <text x="1032" y="266" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="#035DCF">05</text>
+  <text x="1032" y="302" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="19" font-weight="bold" fill="#17346E">{{STEP5_TITLE}}</text>
+  <path d="M 1116 330 L 1124 344 L 1108 344 Z" fill="#035DCF" fill-opacity="0.55"/>
+  <circle cx="1116" cy="385" r="15" fill="#FFFFFF" stroke="#035DCF" stroke-width="2"/>
+  <circle cx="1116" cy="385" r="7" fill="#035DCF"/>
+  <text x="1032" y="446" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="15" font-weight="bold" fill="#17346E">{{STEP5_SUB}}</text>
+  <text x="1032" y="476" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280">{{STEP5_DESC_1}}</text>
+  <text x="1032" y="502" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280">{{STEP5_DESC_2}}</text>
+  <!-- 底部框架标注 + 页码 -->
+  <text x="84" y="700" font-family="Arial, sans-serif" font-size="12" fill="#8F99B3" letter-spacing="1.6">FANRUAN LIGHT TECH FRAME</text>
+  <rect x="1144" y="682" width="74" height="28" rx="14" fill="#035DCF" fill-opacity="0.09"/>
+  <text x="1181" y="701" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#035DCF" text-anchor="middle">{{PAGE_NUMBER}}</text>
+</svg>

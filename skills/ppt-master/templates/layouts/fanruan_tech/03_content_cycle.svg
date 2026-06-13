@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <!-- 底色 -->
+  <rect width="1280" height="720" fill="#FFFFFF"/>
+  <rect x="430" y="0" width="850" height="720" fill="#EEF7FF"/>
+  <rect x="782" y="274" width="498" height="446" fill="#D8EBFE" fill-opacity="0.18"/>
+  <rect x="0" y="0" width="660" height="280" fill="#FFFFFF" fill-opacity="0.92"/>
+  <!-- 右上圆形装饰 -->
+  <circle cx="1120" cy="130" r="118" fill="#66B3FF" fill-opacity="0.08"/>
+  <!-- 右上 Logo 胶囊 -->
+  <rect x="1016" y="28" width="208" height="52" rx="26" fill="#FFFFFF" fill-opacity="0.92" stroke="#C7DCF7" stroke-width="1"/>
+  <rect x="1016" y="28" width="208" height="52" rx="26" fill="#EEF7FF" fill-opacity="0.72"/>
+  <image x="1047" y="30" width="146" height="48" href="fanruan_logo.png" preserveAspectRatio="xMidYMid meet"/>
+  <!-- 标题区 -->
+  <rect x="60" y="62" width="4" height="54" rx="2" fill="#3399FF"/>
+  <text x="84" y="88" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="26" font-weight="bold" fill="#035DCF">{{PAGE_TITLE}}</text>
+  <text x="84" y="120" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="15" fill="#566280">{{PAGE_SUBTITLE}}</text>
+  <rect x="84" y="138" width="176" height="4" rx="2" fill="#3399FF" fill-opacity="0.18"/>
+  <rect x="84" y="138" width="86" height="4" rx="2" fill="#035DCF"/>
+  <!-- 中心同心圆 -->
+  <circle cx="640" cy="410" r="178" fill="none" stroke="#3399FF" stroke-width="1" stroke-opacity="0.08"/>
+  <circle cx="640" cy="410" r="148" fill="none" stroke="#3399FF" stroke-width="1.5" stroke-opacity="0.10"/>
+  <circle cx="640" cy="410" r="118" fill="#3399FF" fill-opacity="0.04"/>
+  <circle cx="640" cy="410" r="88" fill="#3399FF" fill-opacity="0.06"/>
+  <circle cx="640" cy="410" r="58" fill="#3399FF" fill-opacity="0.10"/>
+  <!-- 中心图标占位 -->
+  <circle cx="640" cy="390" r="28" fill="#FFFFFF" fill-opacity="0.9"/>
+  <text x="640" y="398" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="18" fill="#3399FF" text-anchor="middle">{{CENTER_ICON}}</text>
+  <text x="640" y="434" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="16" font-weight="bold" fill="#17346E" text-anchor="middle">{{CENTER_TITLE}}</text>
+  <!-- 四个编号节点（01-04）沿圆周分布 -->
+  <!-- 节点01 - 左上 -->
+  <circle cx="530" cy="290" r="18" fill="#3399FF" fill-opacity="0.16"/>
+  <circle cx="530" cy="290" r="14" fill="#FFFFFF"/>
+  <text x="530" y="296" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#035DCF" text-anchor="middle">01</text>
+  <!-- 节点02 - 右上 -->
+  <circle cx="750" cy="290" r="18" fill="#3399FF" fill-opacity="0.16"/>
+  <circle cx="750" cy="290" r="14" fill="#FFFFFF"/>
+  <text x="750" y="296" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#035DCF" text-anchor="middle">02</text>
+  <!-- 节点03 - 右下 -->
+  <circle cx="750" cy="530" r="18" fill="#3399FF" fill-opacity="0.16"/>
+  <circle cx="750" cy="530" r="14" fill="#FFFFFF"/>
+  <text x="750" y="536" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#035DCF" text-anchor="middle">03</text>
+  <!-- 节点04 - 左下 -->
+  <circle cx="530" cy="530" r="18" fill="#3399FF" fill-opacity="0.16"/>
+  <circle cx="530" cy="530" r="14" fill="#FFFFFF"/>
+  <text x="530" y="536" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#035DCF" text-anchor="middle">04</text>
+  <!-- 四角文字卡片 -->
+  <!-- 卡片一 左上 -->
+  <rect x="48" y="200" width="370" height="136" rx="16" fill="#FFFFFF" fill-opacity="0.88" stroke="#DDEBFA" stroke-width="1"/>
+  <rect x="72" y="220" width="4" height="40" rx="2" fill="#3399FF"/>
+  <text x="92" y="242" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="18" font-weight="bold" fill="#17346E">{{ITEM1_TITLE}}</text>
+  <text x="92" y="276" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280">{{ITEM1_DESC_1}}</text>
+  <text x="92" y="300" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280">{{ITEM1_DESC_2}}</text>
+  <!-- 卡片二 右上 -->
+  <rect x="862" y="200" width="370" height="136" rx="16" fill="#FFFFFF" fill-opacity="0.88" stroke="#DDEBFA" stroke-width="1"/>
+  <rect x="886" y="220" width="4" height="40" rx="2" fill="#3399FF"/>
+  <text x="906" y="242" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="18" font-weight="bold" fill="#17346E">{{ITEM2_TITLE}}</text>
+  <text x="906" y="276" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280">{{ITEM2_DESC_1}}</text>
+  <text x="906" y="300" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280">{{ITEM2_DESC_2}}</text>
+  <!-- 卡片三 左下 -->
+  <rect x="48" y="476" width="370" height="136" rx="16" fill="#FFFFFF" fill-opacity="0.88" stroke="#DDEBFA" stroke-width="1"/>
+  <rect x="72" y="496" width="4" height="40" rx="2" fill="#3399FF"/>
+  <text x="92" y="518" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="18" font-weight="bold" fill="#17346E">{{ITEM3_TITLE}}</text>
+  <text x="92" y="552" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280">{{ITEM3_DESC_1}}</text>
+  <text x="92" y="576" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280">{{ITEM3_DESC_2}}</text>
+  <!-- 卡片四 右下 -->
+  <rect x="862" y="476" width="370" height="136" rx="16" fill="#FFFFFF" fill-opacity="0.88" stroke="#DDEBFA" stroke-width="1"/>
+  <rect x="886" y="496" width="4" height="40" rx="2" fill="#3399FF"/>
+  <text x="906" y="518" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="18" font-weight="bold" fill="#17346E">{{ITEM4_TITLE}}</text>
+  <text x="906" y="552" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280">{{ITEM4_DESC_1}}</text>
+  <text x="906" y="576" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280">{{ITEM4_DESC_2}}</text>
+  <!-- 底部框架标注 + 页码 -->
+  <text x="84" y="700" font-family="Arial, sans-serif" font-size="12" fill="#8F99B3" letter-spacing="1.6">FANRUAN LIGHT TECH FRAME</text>
+  <rect x="1144" y="682" width="74" height="28" rx="14" fill="#035DCF" fill-opacity="0.09"/>
+  <text x="1181" y="701" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#035DCF" text-anchor="middle">{{PAGE_NUMBER}}</text>
+</svg>

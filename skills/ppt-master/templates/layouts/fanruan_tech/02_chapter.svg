@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#FFFFFF"/>
+  <rect x="360" y="0" width="920" height="720" fill="#EEF7FF"/>
+  <rect x="624" y="182" width="656" height="538" fill="#D8EBFE" fill-opacity="0.28"/>
+  <rect x="0" y="0" width="760" height="460" fill="#FFFFFF" fill-opacity="0.88"/>
+  <circle cx="1038" cy="370" r="190" fill="#3399FF" fill-opacity="0.05"/>
+  <rect x="1016" y="28" width="208" height="52" rx="26" fill="#FFFFFF" fill-opacity="0.92" stroke="#C7DCF7" stroke-width="1"/>
+  <rect x="1016" y="28" width="208" height="52" rx="26" fill="#EEF7FF" fill-opacity="0.72"/>
+  <image x="1047" y="30" width="146" height="48" href="fanruan_logo.png" preserveAspectRatio="xMidYMid meet"/>
+  <text x="86" y="198" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#3399FF" letter-spacing="3">SECTION {{SECTION_NUMBER}}</text>
+  <rect x="86" y="214" width="124" height="4" rx="2" fill="#3399FF" fill-opacity="0.24"/>
+  <rect x="86" y="214" width="62" height="4" rx="2" fill="#035DCF"/>
+  <text x="86" y="330" font-family="Arial, sans-serif" font-size="34" font-weight="bold" fill="#3399FF" letter-spacing="5">PART {{SECTION_NUMBER}}</text>
+  <text x="86" y="414" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="44" font-weight="bold" fill="#17346E">{{SECTION_TITLE}}</text>
+  <rect x="86" y="438" width="576" height="2" rx="1" fill="#3399FF" fill-opacity="0.16"/>
+  <rect x="86" y="436" width="124" height="6" rx="3" fill="#3399FF" fill-opacity="0.56"/>
+  <text x="86" y="486" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="22" fill="#566280">{{SECTION_DESC}}</text>
+  <text x="940" y="514" font-family="Arial, sans-serif" font-size="320" font-weight="bold" fill="#3399FF" fill-opacity="0.08" text-anchor="middle">{{SECTION_NUMBER}}</text>
+  <circle cx="940" cy="392" r="138" fill="none" stroke="#3399FF" stroke-width="2" stroke-opacity="0.08"/>
+  <circle cx="940" cy="392" r="178" fill="none" stroke="#3399FF" stroke-width="1" stroke-opacity="0.06"/>
+  <circle cx="940" cy="392" r="98" fill="none" stroke="#66B3FF" stroke-width="1" stroke-opacity="0.08"/>
+  <rect x="774" y="212" width="308" height="184" rx="24" fill="#FFFFFF" fill-opacity="0.54" stroke="#D9EAFB" stroke-width="1"/>
+  <rect x="810" y="246" width="94" height="94" rx="18" fill="#3399FF" fill-opacity="0.12"/>
+  <rect x="928" y="274" width="108" height="14" rx="7" fill="#FFFFFF" fill-opacity="0.76"/>
+  <rect x="928" y="302" width="132" height="14" rx="7" fill="#FFFFFF" fill-opacity="0.62"/>
+  <rect x="928" y="330" width="84" height="14" rx="7" fill="#CFE4FF" fill-opacity="0.8"/>
+  <rect x="790" y="546" width="292" height="18" rx="9" fill="#FFFFFF" fill-opacity="0.56"/>
+  <rect x="790" y="546" width="146" height="18" rx="9" fill="#CFE4FF" fill-opacity="0.76"/>
+</svg>

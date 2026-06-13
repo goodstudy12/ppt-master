@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <!-- 全屏渐变蓝色背景（用多层叠加模拟） -->
+  <rect width="1280" height="720" fill="#E8F4FF"/>
+  <rect width="1280" height="720" fill="#D6ECFF" fill-opacity="0.5"/>
+  <!-- 左上角光晕 -->
+  <circle cx="200" cy="200" r="320" fill="#FFFFFF" fill-opacity="0.12"/>
+  <!-- 右下角光晕 -->
+  <circle cx="1100" cy="520" r="280" fill="#FFFFFF" fill-opacity="0.10"/>
+  <!-- 中心对角线光带 -->
+  <rect x="-100" y="300" width="1500" height="120" rx="60" fill="#FFFFFF" fill-opacity="0.08" transform="rotate(-12 640 360)"/>
+  <rect x="-50" y="340" width="1400" height="40" rx="20" fill="#FFFFFF" fill-opacity="0.10" transform="rotate(-12 640 360)"/>
+  <!-- 上方小字引言 -->
+  <text x="640" y="260" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="20" fill="#566280" text-anchor="middle">{{QUOTE_INTRO_1}}</text>
+  <text x="640" y="296" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="20" fill="#566280" text-anchor="middle">{{QUOTE_INTRO_2}}</text>
+  <!-- 英文底纹 -->
+  <text x="640" y="370" font-family="Arial, sans-serif" font-size="28" fill="#3399FF" fill-opacity="0.08" text-anchor="middle" letter-spacing="6">{{QUOTE_ENGLISH}}</text>
+  <!-- 核心金句 -->
+  <text x="640" y="430" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="52" font-weight="bold" fill="#035DCF" text-anchor="middle">{{QUOTE_MAIN}}</text>
+  <!-- 底部作者署名 -->
+  <text x="640" y="510" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="16" fill="#7F8CA7" text-anchor="middle">{{QUOTE_AUTHOR}}</text>
+</svg>

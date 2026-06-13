@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <!-- 底色 -->
+  <rect width="1280" height="720" fill="#FFFFFF"/>
+  <rect x="430" y="0" width="850" height="720" fill="#EEF7FF"/>
+  <rect x="782" y="274" width="498" height="446" fill="#D8EBFE" fill-opacity="0.18"/>
+  <rect x="0" y="0" width="660" height="280" fill="#FFFFFF" fill-opacity="0.92"/>
+  <!-- 右上圆形装饰 -->
+  <circle cx="1120" cy="130" r="118" fill="#66B3FF" fill-opacity="0.08"/>
+  <!-- 右上 Logo 胶囊 -->
+  <rect x="1016" y="28" width="208" height="52" rx="26" fill="#FFFFFF" fill-opacity="0.92" stroke="#C7DCF7" stroke-width="1"/>
+  <rect x="1016" y="28" width="208" height="52" rx="26" fill="#EEF7FF" fill-opacity="0.72"/>
+  <image x="1047" y="30" width="146" height="48" href="fanruan_logo.png" preserveAspectRatio="xMidYMid meet"/>
+  <!-- 标题区 -->
+  <rect x="60" y="62" width="4" height="54" rx="2" fill="#3399FF"/>
+  <text x="84" y="88" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="26" font-weight="bold" fill="#035DCF">{{PAGE_TITLE}}</text>
+  <text x="84" y="120" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="15" fill="#566280">{{PAGE_SUBTITLE}}</text>
+  <rect x="84" y="138" width="176" height="4" rx="2" fill="#3399FF" fill-opacity="0.18"/>
+  <rect x="84" y="138" width="86" height="4" rx="2" fill="#035DCF"/>
+  <!-- 左侧卡片（方案A / 传统） -->
+  <rect x="56" y="168" width="520" height="496" rx="22" fill="#FFFFFF" fill-opacity="0.90" stroke="#DDEBFA" stroke-width="1"/>
+  <!-- 左侧标题栏 -->
+  <rect x="56" y="168" width="520" height="56" rx="22" fill="#FFFFFF" fill-opacity="0.6"/>
+  <rect x="56" y="202" width="520" height="22" rx="0" fill="#FFFFFF" fill-opacity="0.90"/>
+  <rect x="76" y="178" width="4" height="36" rx="2" fill="#8F99B3"/>
+  <text x="96" y="204" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="22" font-weight="bold" fill="#17346E">{{LEFT_TITLE}}</text>
+  <!-- 左侧要点列表 -->
+  <circle cx="90" cy="264" r="4" fill="#8F99B3"/>
+  <text x="108" y="270" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="16" fill="#566280">{{LEFT_ITEM_1}}</text>
+  <circle cx="90" cy="316" r="4" fill="#8F99B3"/>
+  <text x="108" y="322" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="16" fill="#566280">{{LEFT_ITEM_2}}</text>
+  <circle cx="90" cy="368" r="4" fill="#8F99B3"/>
+  <text x="108" y="374" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="16" fill="#566280">{{LEFT_ITEM_3}}</text>
+  <circle cx="90" cy="420" r="4" fill="#8F99B3"/>
+  <text x="108" y="426" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="16" fill="#566280">{{LEFT_ITEM_4}}</text>
+  <circle cx="90" cy="472" r="4" fill="#8F99B3"/>
+  <text x="108" y="478" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="16" fill="#566280">{{LEFT_ITEM_5}}</text>
+  <circle cx="90" cy="524" r="4" fill="#8F99B3"/>
+  <text x="108" y="530" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="16" fill="#566280">{{LEFT_ITEM_6}}</text>
+  <!-- 中间 VS 圆 -->
+  <circle cx="640" cy="400" r="52" fill="#3399FF" fill-opacity="0.12"/>
+  <circle cx="640" cy="400" r="44" fill="#FFFFFF"/>
+  <circle cx="640" cy="400" r="44" fill="#3399FF" fill-opacity="0.08"/>
+  <text x="640" y="412" font-family="Arial, sans-serif" font-size="30" font-weight="bold" fill="#3399FF" text-anchor="middle">VS</text>
+  <!-- 右侧卡片（方案B / 数字化） -->
+  <rect x="704" y="168" width="520" height="496" rx="22" fill="#FFFFFF" fill-opacity="0.90" stroke="#DDEBFA" stroke-width="1"/>
+  <!-- 右侧标题栏（蓝色渐变标题） -->
+  <rect x="704" y="168" width="520" height="56" rx="22" fill="#3399FF" fill-opacity="0.10"/>
+  <rect x="704" y="202" width="520" height="22" rx="0" fill="#FFFFFF" fill-opacity="0.90"/>
+  <rect x="724" y="178" width="4" height="36" rx="2" fill="#035DCF"/>
+  <text x="744" y="204" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="22" font-weight="bold" fill="#035DCF">{{RIGHT_TITLE}}</text>
+  <!-- 右侧要点列表（右对齐风格） -->
+  <text x="1186" y="270" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="16" fill="#035DCF" text-anchor="end">{{RIGHT_ITEM_1}}</text>
+  <circle cx="1200" cy="264" r="4" fill="#035DCF"/>
+  <text x="1186" y="322" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="16" fill="#035DCF" text-anchor="end">{{RIGHT_ITEM_2}}</text>
+  <circle cx="1200" cy="316" r="4" fill="#035DCF"/>
+  <text x="1186" y="374" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="16" fill="#035DCF" text-anchor="end">{{RIGHT_ITEM_3}}</text>
+  <circle cx="1200" cy="368" r="4" fill="#035DCF"/>
+  <text x="1186" y="426" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="16" fill="#035DCF" text-anchor="end">{{RIGHT_ITEM_4}}</text>
+  <circle cx="1200" cy="420" r="4" fill="#035DCF"/>
+  <text x="1186" y="478" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="16" fill="#035DCF" text-anchor="end">{{RIGHT_ITEM_5}}</text>
+  <circle cx="1200" cy="472" r="4" fill="#035DCF"/>
+  <text x="1186" y="530" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="16" fill="#035DCF" text-anchor="end">{{RIGHT_ITEM_6}}</text>
+  <circle cx="1200" cy="524" r="4" fill="#035DCF"/>
+  <!-- 底部框架标注 + 页码 -->
+  <text x="84" y="700" font-family="Arial, sans-serif" font-size="12" fill="#8F99B3" letter-spacing="1.6">FANRUAN LIGHT TECH FRAME</text>
+  <rect x="1144" y="682" width="74" height="28" rx="14" fill="#035DCF" fill-opacity="0.09"/>
+  <text x="1181" y="701" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#035DCF" text-anchor="middle">{{PAGE_NUMBER}}</text>
+</svg>

@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <!-- 底色 -->
+  <rect width="1280" height="720" fill="#FFFFFF"/>
+  <rect x="430" y="0" width="850" height="720" fill="#EEF7FF"/>
+  <rect x="0" y="0" width="660" height="150" fill="#FFFFFF" fill-opacity="0.92"/>
+  <!-- 右上 Logo 胶囊 -->
+  <rect x="1016" y="28" width="208" height="52" rx="26" fill="#FFFFFF" fill-opacity="0.92" stroke="#C7DCF7" stroke-width="1"/>
+  <rect x="1016" y="28" width="208" height="52" rx="26" fill="#EEF7FF" fill-opacity="0.72"/>
+  <image x="1047" y="30" width="146" height="48" href="fanruan_logo.png" preserveAspectRatio="xMidYMid meet"/>
+  <!-- 标题区 -->
+  <rect x="60" y="62" width="4" height="54" rx="2" fill="#3399FF"/>
+  <text x="84" y="88" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="26" font-weight="bold" fill="#035DCF">{{PAGE_TITLE}}</text>
+  <text x="84" y="120" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="15" fill="#566280">{{PAGE_SUBTITLE}}</text>
+  <rect x="84" y="138" width="176" height="4" rx="2" fill="#3399FF" fill-opacity="0.18"/>
+  <rect x="84" y="138" width="86" height="4" rx="2" fill="#035DCF"/>
+  <!-- 客户简介卡 -->
+  <rect x="56" y="156" width="400" height="116" rx="14" fill="#E6F3FF"/>
+  <text x="80" y="196" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="18" font-weight="bold" fill="#3399FF">{{CASE_CLIENT}}</text>
+  <text x="80" y="226" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="12" fill="#566280">{{CASE_CLIENT_DESC_1}}</text>
+  <text x="80" y="250" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="12" fill="#566280">{{CASE_CLIENT_DESC_2}}</text>
+  <!-- 项目背景及痛点区 -->
+  <rect x="472" y="156" width="752" height="116" rx="14" fill="#E6F3FF"/>
+  <rect x="484" y="168" width="64" height="92" rx="8" fill="#3399FF"/>
+  <text x="516" y="206" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" font-weight="bold" fill="#FFFFFF" text-anchor="middle">项目背景</text>
+  <text x="516" y="228" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" font-weight="bold" fill="#FFFFFF" text-anchor="middle">及痛点</text>
+  <rect x="560" y="168" width="208" height="92" rx="8" fill="#FFFFFF"/>
+  <text x="576" y="196" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#3399FF">01</text>
+  <text x="608" y="196" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" font-weight="bold" fill="#17346E">{{PAIN1_TITLE}}</text>
+  <text x="576" y="222" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="11" fill="#566280">{{PAIN1_DESC_1}}</text>
+  <text x="576" y="242" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="11" fill="#566280">{{PAIN1_DESC_2}}</text>
+  <rect x="782" y="168" width="208" height="92" rx="8" fill="#FFFFFF"/>
+  <text x="798" y="196" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#3399FF">02</text>
+  <text x="830" y="196" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" font-weight="bold" fill="#17346E">{{PAIN2_TITLE}}</text>
+  <text x="798" y="222" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="11" fill="#566280">{{PAIN2_DESC_1}}</text>
+  <text x="798" y="242" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="11" fill="#566280">{{PAIN2_DESC_2}}</text>
+  <rect x="1004" y="168" width="208" height="92" rx="8" fill="#FFFFFF"/>
+  <text x="1020" y="196" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#3399FF">03</text>
+  <text x="1052" y="196" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" font-weight="bold" fill="#17346E">{{PAIN3_TITLE}}</text>
+  <text x="1020" y="222" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="11" fill="#566280">{{PAIN3_DESC_1}}</text>
+  <text x="1020" y="242" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="11" fill="#566280">{{PAIN3_DESC_2}}</text>
+  <!-- 解决方案区 -->
+  <rect x="56" y="284" width="640" height="252" rx="14" fill="#E6F3FF"/>
+  <rect x="68" y="296" width="64" height="228" rx="8" fill="#3399FF"/>
+  <text x="100" y="400" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">解决</text>
+  <text x="100" y="424" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">方案</text>
+  <rect x="144" y="296" width="540" height="228" rx="8" fill="#FFFFFF"/>
+  <text x="414" y="414" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#8F99B3" text-anchor="middle">{{CASE_SOLUTION_IMAGE}}</text>
+  <!-- 项目价值区 -->
+  <rect x="56" y="548" width="640" height="116" rx="14" fill="#E6F3FF"/>
+  <rect x="68" y="560" width="64" height="92" rx="8" fill="#3399FF"/>
+  <text x="100" y="600" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">项目</text>
+  <text x="100" y="624" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">价值</text>
+  <rect x="144" y="560" width="170" height="92" rx="8" fill="#FFFFFF"/>
+  <text x="158" y="588" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" font-weight="bold" fill="#3399FF">{{VALUE1_TITLE}}</text>
+  <text x="158" y="612" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="11" fill="#566280">{{VALUE1_DESC_1}}</text>
+  <text x="158" y="632" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="11" fill="#566280">{{VALUE1_DESC_2}}</text>
+  <rect x="329" y="560" width="170" height="92" rx="8" fill="#FFFFFF"/>
+  <text x="343" y="588" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" font-weight="bold" fill="#3399FF">{{VALUE2_TITLE}}</text>
+  <text x="343" y="612" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="11" fill="#566280">{{VALUE2_DESC_1}}</text>
+  <text x="343" y="632" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="11" fill="#566280">{{VALUE2_DESC_2}}</text>
+  <rect x="514" y="560" width="170" height="92" rx="8" fill="#FFFFFF"/>
+  <text x="528" y="588" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" font-weight="bold" fill="#3399FF">{{VALUE3_TITLE}}</text>
+  <text x="528" y="612" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="11" fill="#566280">{{VALUE3_DESC_1}}</text>
+  <text x="528" y="632" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="11" fill="#566280">{{VALUE3_DESC_2}}</text>
+  <!-- 成果分享区 -->
+  <rect x="712" y="284" width="512" height="380" rx="14" fill="#E6F3FF"/>
+  <rect x="724" y="296" width="488" height="32" rx="8" fill="#3399FF"/>
+  <text x="968" y="317" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">成果分享</text>
+  <rect x="724" y="340" width="232" height="152" rx="8" fill="#FFFFFF"/>
+  <rect x="724" y="340" width="232" height="26" rx="8" fill="#66B3FF"/>
+  <rect x="724" y="354" width="232" height="12" fill="#66B3FF"/>
+  <text x="840" y="358" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="12" font-weight="bold" fill="#FFFFFF" text-anchor="middle">{{RESULT1_TITLE}}</text>
+  <text x="840" y="424" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="11" fill="#8F99B3" text-anchor="middle">{{RESULT1_IMAGE}}</text>
+  <text x="840" y="474" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="11" fill="#566280" text-anchor="middle">{{RESULT1_DESC}}</text>
+  <rect x="980" y="340" width="232" height="152" rx="8" fill="#FFFFFF"/>
+  <rect x="980" y="340" width="232" height="26" rx="8" fill="#66B3FF"/>
+  <rect x="980" y="354" width="232" height="12" fill="#66B3FF"/>
+  <text x="1096" y="358" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="12" font-weight="bold" fill="#FFFFFF" text-anchor="middle">{{RESULT2_TITLE}}</text>
+  <text x="1096" y="424" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="11" fill="#8F99B3" text-anchor="middle">{{RESULT2_IMAGE}}</text>
+  <text x="1096" y="474" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="11" fill="#566280" text-anchor="middle">{{RESULT2_DESC}}</text>
+  <rect x="724" y="504" width="232" height="152" rx="8" fill="#FFFFFF"/>
+  <rect x="724" y="504" width="232" height="26" rx="8" fill="#66B3FF"/>
+  <rect x="724" y="518" width="232" height="12" fill="#66B3FF"/>
+  <text x="840" y="522" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="12" font-weight="bold" fill="#FFFFFF" text-anchor="middle">{{RESULT3_TITLE}}</text>
+  <text x="840" y="588" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="11" fill="#8F99B3" text-anchor="middle">{{RESULT3_IMAGE}}</text>
+  <text x="840" y="638" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="11" fill="#566280" text-anchor="middle">{{RESULT3_DESC}}</text>
+  <rect x="980" y="504" width="232" height="152" rx="8" fill="#FFFFFF"/>
+  <rect x="980" y="504" width="232" height="26" rx="8" fill="#66B3FF"/>
+  <rect x="980" y="518" width="232" height="12" fill="#66B3FF"/>
+  <text x="1096" y="522" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="12" font-weight="bold" fill="#FFFFFF" text-anchor="middle">{{RESULT4_TITLE}}</text>
+  <text x="1096" y="588" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="11" fill="#8F99B3" text-anchor="middle">{{RESULT4_IMAGE}}</text>
+  <text x="1096" y="638" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="11" fill="#566280" text-anchor="middle">{{RESULT4_DESC}}</text>
+  <!-- 底部框架标注 + 页码 -->
+  <text x="84" y="700" font-family="Arial, sans-serif" font-size="12" fill="#8F99B3" letter-spacing="1.6">FANRUAN LIGHT TECH FRAME</text>
+  <rect x="1144" y="682" width="74" height="28" rx="14" fill="#035DCF" fill-opacity="0.09"/>
+  <text x="1181" y="701" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#035DCF" text-anchor="middle">{{PAGE_NUMBER}}</text>
+</svg>

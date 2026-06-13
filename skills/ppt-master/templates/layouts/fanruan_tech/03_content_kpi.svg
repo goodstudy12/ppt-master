@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <!-- 底色 -->
+  <rect width="1280" height="720" fill="#FFFFFF"/>
+  <rect x="430" y="0" width="850" height="720" fill="#EEF7FF"/>
+  <rect x="782" y="274" width="498" height="446" fill="#D8EBFE" fill-opacity="0.18"/>
+  <rect x="0" y="0" width="660" height="280" fill="#FFFFFF" fill-opacity="0.92"/>
+  <!-- 右上圆形装饰 -->
+  <circle cx="1120" cy="130" r="118" fill="#66B3FF" fill-opacity="0.08"/>
+  <!-- 右上 Logo 胶囊 -->
+  <rect x="1016" y="28" width="208" height="52" rx="26" fill="#FFFFFF" fill-opacity="0.92" stroke="#C7DCF7" stroke-width="1"/>
+  <rect x="1016" y="28" width="208" height="52" rx="26" fill="#EEF7FF" fill-opacity="0.72"/>
+  <image x="1047" y="30" width="146" height="48" href="fanruan_logo.png" preserveAspectRatio="xMidYMid meet"/>
+  <!-- 标题区 -->
+  <rect x="60" y="62" width="4" height="54" rx="2" fill="#3399FF"/>
+  <text x="84" y="88" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="26" font-weight="bold" fill="#035DCF">{{PAGE_TITLE}}</text>
+  <text x="84" y="120" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="15" fill="#566280">{{PAGE_SUBTITLE}}</text>
+  <rect x="84" y="138" width="176" height="4" rx="2" fill="#3399FF" fill-opacity="0.18"/>
+  <rect x="84" y="138" width="86" height="4" rx="2" fill="#035DCF"/>
+  <!-- KPI 单元一 -->
+  <circle cx="248" cy="368" r="108" fill="#FFFFFF" fill-opacity="0.92"/>
+  <circle cx="248" cy="368" r="108" fill="none" stroke="#DDEBFA" stroke-width="14"/>
+  <path d="M 248 260 A 108 108 0 1 1 140 368" fill="none" stroke="#035DCF" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="248" cy="368" r="84" fill="#F6FAFF" fill-opacity="0.6"/>
+  <text x="248" y="372" font-family="Arial, sans-serif" font-size="44" font-weight="bold" fill="#035DCF" text-anchor="middle">{{KPI1_VALUE}}</text>
+  <text x="248" y="404" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#8F99B3" text-anchor="middle">{{KPI1_TREND}}</text>
+  <rect x="148" y="500" width="200" height="10" rx="5" fill="#D8EBFE"/>
+  <text x="248" y="548" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="20" font-weight="bold" fill="#17346E" text-anchor="middle">{{KPI1_NAME}}</text>
+  <text x="248" y="578" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280" text-anchor="middle">{{KPI1_DESC}}</text>
+  <!-- KPI 单元二 -->
+  <circle cx="640" cy="368" r="108" fill="#FFFFFF" fill-opacity="0.92"/>
+  <circle cx="640" cy="368" r="108" fill="none" stroke="#DDEBFA" stroke-width="14"/>
+  <path d="M 640 260 A 108 108 0 1 1 532 368" fill="none" stroke="#3399FF" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="640" cy="368" r="84" fill="#F6FAFF" fill-opacity="0.6"/>
+  <text x="640" y="372" font-family="Arial, sans-serif" font-size="44" font-weight="bold" fill="#3399FF" text-anchor="middle">{{KPI2_VALUE}}</text>
+  <text x="640" y="404" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#8F99B3" text-anchor="middle">{{KPI2_TREND}}</text>
+  <rect x="540" y="500" width="200" height="10" rx="5" fill="#D8EBFE"/>
+  <text x="640" y="548" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="20" font-weight="bold" fill="#17346E" text-anchor="middle">{{KPI2_NAME}}</text>
+  <text x="640" y="578" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280" text-anchor="middle">{{KPI2_DESC}}</text>
+  <!-- KPI 单元三 -->
+  <circle cx="1032" cy="368" r="108" fill="#FFFFFF" fill-opacity="0.92"/>
+  <circle cx="1032" cy="368" r="108" fill="none" stroke="#DDEBFA" stroke-width="14"/>
+  <path d="M 1032 260 A 108 108 0 1 1 924 368" fill="none" stroke="#66B3FF" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="1032" cy="368" r="84" fill="#F6FAFF" fill-opacity="0.6"/>
+  <text x="1032" y="372" font-family="Arial, sans-serif" font-size="44" font-weight="bold" fill="#66B3FF" text-anchor="middle">{{KPI3_VALUE}}</text>
+  <text x="1032" y="404" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#8F99B3" text-anchor="middle">{{KPI3_TREND}}</text>
+  <rect x="932" y="500" width="200" height="10" rx="5" fill="#D8EBFE"/>
+  <text x="1032" y="548" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="20" font-weight="bold" fill="#17346E" text-anchor="middle">{{KPI3_NAME}}</text>
+  <text x="1032" y="578" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280" text-anchor="middle">{{KPI3_DESC}}</text>
+  <!-- 底部框架标注 + 页码 -->
+  <text x="84" y="700" font-family="Arial, sans-serif" font-size="12" fill="#8F99B3" letter-spacing="1.6">FANRUAN LIGHT TECH FRAME</text>
+  <rect x="1144" y="682" width="74" height="28" rx="14" fill="#035DCF" fill-opacity="0.09"/>
+  <text x="1181" y="701" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#035DCF" text-anchor="middle">{{PAGE_NUMBER}}</text>
+</svg>

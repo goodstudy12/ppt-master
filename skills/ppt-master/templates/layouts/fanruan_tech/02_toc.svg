@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#FFFFFF"/>
+  <rect x="320" y="0" width="960" height="720" fill="#EEF7FF"/>
+  <rect x="624" y="164" width="656" height="556" fill="#D8EBFE" fill-opacity="0.24"/>
+  <rect x="0" y="0" width="700" height="320" fill="#FFFFFF" fill-opacity="0.9"/>
+  <circle cx="1114" cy="146" r="110" fill="#66B3FF" fill-opacity="0.08"/>
+  <text x="64" y="88" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="30" font-weight="bold" fill="#035DCF">目录</text>
+  <text x="64" y="120" font-family="Arial, sans-serif" font-size="14" fill="#8F99B3" letter-spacing="2.8">AGENDA OVERVIEW</text>
+  <rect x="64" y="138" width="152" height="4" rx="2" fill="#3399FF" fill-opacity="0.2"/>
+  <rect x="64" y="138" width="74" height="4" rx="2" fill="#035DCF"/>
+  <rect x="1016" y="28" width="208" height="52" rx="26" fill="#FFFFFF" fill-opacity="0.92" stroke="#C7DCF7" stroke-width="1"/>
+  <rect x="1016" y="28" width="208" height="52" rx="26" fill="#EEF7FF" fill-opacity="0.72"/>
+  <image x="1047" y="30" width="146" height="48" href="fanruan_logo.png" preserveAspectRatio="xMidYMid meet"/>
+  <rect x="168" y="168" width="944" height="86" rx="18" fill="#FFFFFF" fill-opacity="0.9" stroke="#DDEBFA" stroke-width="1"/>
+  <rect x="168" y="248" width="944" height="6" rx="3" fill="#33BBFF" fill-opacity="0.16"/>
+  <rect x="168" y="248" width="160" height="6" rx="3" fill="#33BBFF" fill-opacity="0.62"/>
+  <rect x="198" y="188" width="4" height="46" rx="2" fill="#3399FF"/>
+  <text x="228" y="221" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="22" fill="#17346E">{{SECTION_TITLE_1}}</text>
+  <text x="1062" y="221" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#035DCF" text-anchor="end">PART 01</text>
+  <rect x="168" y="274" width="944" height="86" rx="18" fill="#FFFFFF" fill-opacity="0.9" stroke="#DDEBFA" stroke-width="1"/>
+  <rect x="168" y="354" width="944" height="6" rx="3" fill="#33AAFF" fill-opacity="0.16"/>
+  <rect x="168" y="354" width="160" height="6" rx="3" fill="#33AAFF" fill-opacity="0.62"/>
+  <rect x="198" y="294" width="4" height="46" rx="2" fill="#3399FF"/>
+  <text x="228" y="327" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="22" fill="#17346E">{{SECTION_TITLE_2}}</text>
+  <text x="1062" y="327" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#035DCF" text-anchor="end">PART 02</text>
+  <rect x="168" y="380" width="944" height="86" rx="18" fill="#FFFFFF" fill-opacity="0.9" stroke="#DDEBFA" stroke-width="1"/>
+  <rect x="168" y="460" width="944" height="6" rx="3" fill="#3399FF" fill-opacity="0.16"/>
+  <rect x="168" y="460" width="160" height="6" rx="3" fill="#3399FF" fill-opacity="0.62"/>
+  <rect x="198" y="400" width="4" height="46" rx="2" fill="#3399FF"/>
+  <text x="228" y="433" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="22" fill="#17346E">{{SECTION_TITLE_3}}</text>
+  <text x="1062" y="433" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#035DCF" text-anchor="end">PART 03</text>
+  <rect x="168" y="486" width="944" height="86" rx="18" fill="#FFFFFF" fill-opacity="0.9" stroke="#DDEBFA" stroke-width="1"/>
+  <rect x="168" y="566" width="944" height="6" rx="3" fill="#3388FF" fill-opacity="0.16"/>
+  <rect x="168" y="566" width="160" height="6" rx="3" fill="#3388FF" fill-opacity="0.62"/>
+  <rect x="198" y="506" width="4" height="46" rx="2" fill="#3399FF"/>
+  <text x="228" y="539" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="22" fill="#17346E">{{SECTION_TITLE_4}}</text>
+  <text x="1062" y="539" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#035DCF" text-anchor="end">PART 04</text>
+  <rect x="168" y="592" width="944" height="86" rx="18" fill="#FFFFFF" fill-opacity="0.9" stroke="#DDEBFA" stroke-width="1"/>
+  <rect x="168" y="672" width="944" height="6" rx="3" fill="#3377FF" fill-opacity="0.16"/>
+  <rect x="168" y="672" width="160" height="6" rx="3" fill="#3377FF" fill-opacity="0.62"/>
+  <rect x="198" y="612" width="4" height="46" rx="2" fill="#3399FF"/>
+  <text x="228" y="645" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="22" fill="#17346E">{{SECTION_TITLE_5}}</text>
+  <text x="1062" y="645" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#035DCF" text-anchor="end">PART 05</text>
+</svg>

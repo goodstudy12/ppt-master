@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#FFFFFF"/>
+  <rect x="320" y="0" width="960" height="720" fill="#EEF7FF"/>
+  <rect x="624" y="164" width="656" height="556" fill="#D8EBFE" fill-opacity="0.24"/>
+  <rect x="0" y="0" width="700" height="320" fill="#FFFFFF" fill-opacity="0.9"/>
+  <circle cx="1114" cy="146" r="110" fill="#66B3FF" fill-opacity="0.08"/>
+  <!-- 左上标题 -->
+  <text x="64" y="88" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="30" font-weight="bold" fill="#035DCF">目录</text>
+  <text x="128" y="88" font-family="Arial, sans-serif" font-size="14" fill="#8F99B3" letter-spacing="2.8"> CONTENTS</text>
+  <rect x="64" y="108" width="152" height="4" rx="2" fill="#3399FF" fill-opacity="0.2"/>
+  <rect x="64" y="108" width="74" height="4" rx="2" fill="#035DCF"/>
+  <!-- 右上 Logo 胶囊 -->
+  <rect x="1016" y="28" width="208" height="52" rx="26" fill="#FFFFFF" fill-opacity="0.92" stroke="#C7DCF7" stroke-width="1"/>
+  <rect x="1016" y="28" width="208" height="52" rx="26" fill="#EEF7FF" fill-opacity="0.72"/>
+  <image x="1047" y="30" width="146" height="48" href="fanruan_logo.png" preserveAspectRatio="xMidYMid meet"/>
+  <!-- 四列卡片布局 -->
+  <!-- 卡片一 -->
+  <rect x="64" y="150" width="280" height="520" rx="22" fill="#FFFFFF" fill-opacity="0.92" stroke="#DDEBFA" stroke-width="1"/>
+  <text x="84" y="194" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#3399FF" letter-spacing="1">PART 01</text>
+  <text x="84" y="230" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="22" font-weight="bold" fill="#17346E">{{SECTION_TITLE_1}}</text>
+  <rect x="84" y="248" width="36" height="3" rx="1.5" fill="#3399FF"/>
+  <!-- 子节列表 -->
+  <text x="84" y="290" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="14" fill="#566280">{{SECTION1_ITEM_1}}</text>
+  <text x="84" y="318" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="14" fill="#566280">{{SECTION1_ITEM_2}}</text>
+  <text x="84" y="346" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="14" fill="#566280">{{SECTION1_ITEM_3}}</text>
+  <text x="84" y="374" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="14" fill="#566280">{{SECTION1_ITEM_4}}</text>
+  <!-- 卡片二 -->
+  <rect x="364" y="150" width="280" height="520" rx="22" fill="#FFFFFF" fill-opacity="0.92" stroke="#DDEBFA" stroke-width="1"/>
+  <text x="384" y="194" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#3399FF" letter-spacing="1">PART 02</text>
+  <text x="384" y="230" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="22" font-weight="bold" fill="#17346E">{{SECTION_TITLE_2}}</text>
+  <rect x="384" y="248" width="36" height="3" rx="1.5" fill="#3399FF"/>
+  <text x="384" y="290" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="14" fill="#566280">{{SECTION2_ITEM_1}}</text>
+  <text x="384" y="318" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="14" fill="#566280">{{SECTION2_ITEM_2}}</text>
+  <text x="384" y="346" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="14" fill="#566280">{{SECTION2_ITEM_3}}</text>
+  <text x="384" y="374" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="14" fill="#566280">{{SECTION2_ITEM_4}}</text>
+  <!-- 卡片三 -->
+  <rect x="664" y="150" width="280" height="520" rx="22" fill="#FFFFFF" fill-opacity="0.92" stroke="#DDEBFA" stroke-width="1"/>
+  <text x="684" y="194" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#3399FF" letter-spacing="1">PART 03</text>
+  <text x="684" y="230" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="22" font-weight="bold" fill="#17346E">{{SECTION_TITLE_3}}</text>
+  <rect x="684" y="248" width="36" height="3" rx="1.5" fill="#3399FF"/>
+  <text x="684" y="290" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="14" fill="#566280">{{SECTION3_ITEM_1}}</text>
+  <text x="684" y="318" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="14" fill="#566280">{{SECTION3_ITEM_2}}</text>
+  <text x="684" y="346" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="14" fill="#566280">{{SECTION3_ITEM_3}}</text>
+  <text x="684" y="374" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="14" fill="#566280">{{SECTION3_ITEM_4}}</text>
+  <!-- 卡片四 -->
+  <rect x="964" y="150" width="280" height="520" rx="22" fill="#FFFFFF" fill-opacity="0.92" stroke="#DDEBFA" stroke-width="1"/>
+  <text x="984" y="194" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#3399FF" letter-spacing="1">PART 04</text>
+  <text x="984" y="230" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="22" font-weight="bold" fill="#17346E">{{SECTION_TITLE_4}}</text>
+  <rect x="984" y="248" width="36" height="3" rx="1.5" fill="#3399FF"/>
+  <text x="984" y="290" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="14" fill="#566280">{{SECTION4_ITEM_1}}</text>
+  <text x="984" y="318" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="14" fill="#566280">{{SECTION4_ITEM_2}}</text>
+  <text x="984" y="346" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="14" fill="#566280">{{SECTION4_ITEM_3}}</text>
+  <text x="984" y="374" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="14" fill="#566280">{{SECTION4_ITEM_4}}</text>
+</svg>
