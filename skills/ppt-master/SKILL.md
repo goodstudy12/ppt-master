@@ -156,20 +156,28 @@ Import source content (choose based on the situation):
 
 🚧 **GATE**: Step 2 complete; project directory structure is ready.
 
-**Default — free design.** Proceed directly to Step 4. Do NOT query any `*_index.json` unless triggered. Do NOT ask the user. Do NOT proactively suggest, hint at, or fuzzy-match any template based on content, slug-like words, or vague style descriptions.
+**Default — apply the `fanruan_tech` FanRuan BI layout template.** Unless the user supplied an explicit template path (handled below) or explicitly opted out into free design, copy `skills/ppt-master/templates/layouts/fanruan_tech/` into the project as a `kind: layout` dispatch, then proceed to Step 4:
 
-**Template flow triggers ONLY on explicit directory paths** supplied by the user in their initial message. The trigger rule is mechanical, not interpretive:
+```bash
+TEMPLATE_DIR=skills/ppt-master/templates/layouts/fanruan_tech
+cp -r ${TEMPLATE_DIR}/* <project_path>/templates/
+```
+
+This locks the FanRuan structure segment; identity is decided in the Eight Confirmations (e–g). Do NOT ask the user to choose a template, and do NOT query any `*_index.json` unless the user explicitly asks what templates exist. Do NOT fuzzy-match any other template based on content, slug-like words, or vague style descriptions.
+
+**Explicit user template paths still override the default.** When the user supplies one or more explicit directory paths, the trigger rule is mechanical, not interpretive:
 
 | User input contains | Step 3 action |
 |---|---|
 | One or more explicit template directory paths (each resolves to a directory containing `design_spec.md` with `kind: brand` / `kind: layout` / `kind: deck` in its YAML frontmatter) | Read each spec's `kind`, dispatch per the kind matrix below, fuse if multiple |
-| Anything else — bare template names ("用 fanruan_tech"), non-path style descriptions, vague intent ("想用个模板"), or silence | Skip Step 3, free design |
+| User explicitly opts out of templates ("不要模板" / "自由设计" / "no template" / "free design") | Skip Step 3, free design |
+| Anything else — bare template names ("用 fanruan_tech"), non-path style descriptions, vague intent ("想用个模板"), or silence | Apply the default `fanruan_tech` layout (copy command above) |
 
-There is no slug matching, no name lookup, no fuzzy resolution. A name without a path does not trigger — the user must give a path the AI can `cd` into.
+There is no slug matching, no name lookup, no fuzzy resolution. A name without a path does not resolve to some other template — it simply falls back to the default `fanruan_tech` layout. To use a *different* template the user must give a path the AI can `cd` into.
 
 > Style descriptions never trigger Step 3. This repository now keeps only the FanRuan BI / Dashboard style path; non-FanRuan style words are treated as unsupported style requests unless the user supplies explicit source content that can be converted under the FanRuan BI structure.
 
-> Bare names ("fanruan_tech") do NOT trigger Step 3 even if a matching directory exists in the library. The user must give a path. AI must not "helpfully" resolve a name to a path.
+> Bare names ("fanruan_tech") do NOT resolve to a specific library path — they fall back to the default `fanruan_tech` layout dispatch above. To apply a *different* template the user must give an explicit path. AI must not "helpfully" resolve an arbitrary name to a path.
 
 > "What templates exist?" is out-of-band Q&A — answer by listing entries from `brands_index.json` / `layouts_index.json` / `decks_index.json` together with their paths. Listing alone does not advance the pipeline; the user must send a path back to trigger Step 3.
 
@@ -259,7 +267,7 @@ When fusion happens (any multi-path case), the resulting `<project>/templates/de
 
 Single-path Step 3 does **not** add provenance (the source is self-evident from the copied files).
 
-**✅ Checkpoint — Default path proceeds to Step 4 without user interaction. If the user supplied one or more explicit template paths, those have been dispatched (or fused) into `<project_path>/templates/` before advancing.**
+**✅ Checkpoint — Default path copies the `fanruan_tech` layout into `<project_path>/templates/` and proceeds to Step 4 without user interaction. If the user supplied one or more explicit template paths, those have been dispatched (or fused) into `<project_path>/templates/` instead. If the user explicitly opted out, free design proceeds with no template copy.**
 
 ---
 
