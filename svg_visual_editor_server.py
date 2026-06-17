@@ -161,7 +161,7 @@ def _infer_project_dir(projects_root: Path, relative_path: str) -> Path | None:
 
 
 def _infer_source_dir(relative_path: str) -> str:
-    """从 SVG 相对路径判断它属于哪个源目录,返回 'final' / 'output' / ''。
+    """从 SVG 相对路径判断它属于哪个源目录,返回 'final' / 'output' / ''。12
 
     用于导出 source=auto:让 svg_to_pptx 读取用户实际编辑的那个目录(``svg_final``
     或 ``svg_output``),而不是脚本的固定默认值,从而保证保存的修改进入导出结果。
