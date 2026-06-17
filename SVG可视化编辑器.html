@@ -1773,6 +1773,10 @@
             currentProjectFileKey: '',
             sourceMode: 'memory',
             assetBasePath: '',
+            // 句柄/file:// 回退模式下,被引用图片读成 blob: URL 后的映射(原始 href -> blob URL)
+            // 及其待释放清单。API 直连模式不使用,保持 assetBasePath 解析逻辑不变。
+            assetBlobMap: null,
+            assetObjectUrls: [],
             projectFiles: [],
             projectDirectoryHandle: null,
             projectRootLabel: '',
@@ -1780,6 +1784,10 @@
             projectFilterKeyword: '',
             projectAccessMode: '',
             projectApiRoot: '',
+            projectRootIsSourceDir: false,
+            // 两级项目面板:'' 表示停在「项目列表」态;非空表示已选中某项目,
+            // 此时项目面板仅列该项目 svg_output/ 下的页面。值为项目相对前缀。
+            selectedProject: '',
 
             // AI 二次编辑面板状态
             aiBusy: false,
@@ -1832,7 +1840,9 @@
         const controlLayer = document.getElementById('controlLayer');
         const contextMenu = document.getElementById('contextMenu');
         const XLINK_NS = 'http://www.w3.org/1999/xlink';
-        const IGNORED_SCAN_DIRS = new Set(['.git', 'node_modules', '__pycache__', '.idea', '.agent', '.serena', '.ace-tool', 'tmp']);
+        const IGNORED_SCAN_DIRS = new Set(['.git', 'node_modules', '__pycache__', '.idea', '.agent', '.serena', '.ace-tool', 'tmp', 'backup', 'exports']);
+        // 源目录名:SVG 存放于此,而图片在其同级 ../images/。直接连到这里会导致图片读不到。
+        const SOURCE_DIR_NAMES = new Set(['svg_output', 'svg_final']);
         const PROJECT_API_BASE = '/api/projects';
         const PROJECT_HANDLE_DB_NAME = 'svg-editor-directory-handles';
         const PROJECT_HANDLE_STORE = 'handles';
@@ -1883,9 +1893,9 @@
                     }
                 }
 
-                // 未指定 file 或未找到：自动打开筛选后的第一个文件
+                // 未指定 file 或未找到：自动打开筛选后的第一个 svg_output 页面
                 const keyword = folder.toLowerCase();
-                const filtered = state.projectFiles.filter(f =>
+                const filtered = listOutputFiles().filter(f =>
                     f.relativePath.toLowerCase().includes(keyword));
                 if (filtered.length > 0) {
                     openProjectFile(filtered[0].relativePath);
@@ -1921,6 +1931,27 @@
         function normalizePath(value = '') {
             const normalized = String(value || '').split('\\').join('/');
             return normalized.replace(/^\.\//, '').replace(/\/{2,}/g, '/');
+        }
+
+        // 两级项目面板:项目面板只消费 svg_output/ 下的页面。约定布局为
+        // <project>/svg_output/<page>.svg,因此项目键即 '/svg_output/' 之前的前缀。
+        const OUTPUT_DIR_TOKEN = '/svg_output/';
+        // backup/ 是历史快照、exports/ 是产物目录,均非可编辑源,统一从项目面板排除
+        // (与后端 _EXCLUDED_DIR_NAMES 对齐;此处兜底覆盖句柄扫描等所有来源)。
+        const EXCLUDED_PATH_SEGMENTS = ['/backup/', '/exports/'];
+
+        function getOutputProjectKey(relativePath = '') {
+            const rp = normalizePath(relativePath);
+            const index = rp.indexOf(OUTPUT_DIR_TOKEN);
+            return index === -1 ? '' : rp.slice(0, index);
+        }
+
+        function listOutputFiles() {
+            return state.projectFiles.filter(file => {
+                const rp = normalizePath(file.relativePath);
+                if (!rp.includes(OUTPUT_DIR_TOKEN)) return false;
+                return !EXCLUDED_PATH_SEGMENTS.some(seg => rp.includes(seg));
+            });
         }
 
         function getDirectoryPath(filePath = '') {
@@ -1973,6 +2004,7 @@
                 state.projectRootLabel = 'projects';
                 state.projectWebBasePrefix = 'projects';
                 state.projectAccessMode = 'api';
+                state.projectRootIsSourceDir = false;
                 state.projectApiRoot = meta.project_root || 'projects';
                 state.projectFiles = (filesPayload.files || []).map(file => ({
                     handle: null,
@@ -2107,6 +2139,9 @@
             state.projectWebBasePrefix = projectWebBasePrefix;
             state.projectAccessMode = 'handle';
             state.projectApiRoot = '';
+            // 识别是否直接连到了源目录(svg_output/svg_final):此时图片在其上一级 images/,
+            // 受 File System Access 限制无法向上读取,需提示用户改连项目目录。
+            state.projectRootIsSourceDir = SOURCE_DIR_NAMES.has(directoryHandle.name);
             await refreshProjectFiles(false);
             return projectRootLabel;
         }
@@ -2155,14 +2190,99 @@
         }
 
         function patchSVGAssetReferences(svgRoot, meta = {}) {
-            if (!meta.assetBasePath) return;
+            const blobMap = meta.assetBlobMap || null;
+            if (!blobMap && !meta.assetBasePath) return;
             svgRoot.querySelectorAll('image').forEach(image => {
                 const originalHref = getElementHref(image);
                 if (!originalHref || isExternalHref(originalHref)) return;
+                // 句柄/file:// 模式:优先用已读入的 blob: URL(浏览器渲染 <image> 不会走目录句柄,
+                // 必须把字节内联);否则回退到 API 直连的 assetBasePath 相对解析。
+                let resolved = '';
+                if (blobMap && blobMap.has(originalHref)) {
+                    resolved = blobMap.get(originalHref);
+                } else if (meta.assetBasePath) {
+                    resolved = resolveAssetHref(originalHref, meta.assetBasePath);
+                }
+                if (!resolved || resolved === originalHref) return;
                 image.setAttribute('data-editor-original-href', originalHref);
-                setElementHref(image, resolveAssetHref(originalHref, meta.assetBasePath));
+                setElementHref(image, resolved);
             });
         }
+
+        // 把 baseDir + href 归一化为相对 projects 根的 POSIX 路径,逐段消解 ./ 与 ../。
+        // 例:baseDir='proj/svg_output/', href='../images/x.png' -> 'proj/images/x.png'
+        function resolvePosixRelative(baseDir, href) {
+            const clean = String(href || '').split('#')[0].split('?')[0];
+            if (!clean) return '';
+            const combined = `${normalizePath(baseDir)}/${normalizePath(clean)}`;
+            const segments = [];
+            for (const seg of combined.split('/')) {
+                if (seg === '' || seg === '.') continue;
+                if (seg === '..') { segments.pop(); continue; }
+                segments.push(seg);
+            }
+            return segments.join('/');
+        }
+
+        // 沿目录句柄按相对路径逐级定位到文件句柄(相对 state.projectDirectoryHandle)。
+        async function getFileHandleByRelativePath(rootHandle, relativePath) {
+            const parts = String(relativePath || '').split('/').filter(Boolean);
+            if (!parts.length) throw new Error('空路径');
+            let dir = rootHandle;
+            for (let i = 0; i < parts.length - 1; i++) {
+                dir = await dir.getDirectoryHandle(parts[i]);
+            }
+            return dir.getFileHandle(parts[parts.length - 1]);
+        }
+
+        // 句柄模式下,把 SVG 内引用的本地图片读成 blob: URL。
+        // 返回 { map: Map<原始href, blobURL>, urls: string[] } 供回填与后续释放。
+        async function buildHandleAssetBlobMap(svgString, svgRelativePath) {
+            const result = { map: new Map(), urls: [], total: 0, missing: 0 };
+            const rootHandle = state.projectDirectoryHandle;
+            if (!rootHandle) return result;
+
+            let hrefs = [];
+            try {
+                const doc = new DOMParser().parseFromString(svgString, 'image/svg+xml');
+                if (doc.querySelector('parsererror')) return result;
+                hrefs = Array.from(doc.querySelectorAll('image'))
+                    .map(getElementHref)
+                    .filter(href => href && !isExternalHref(href));
+            } catch (error) {
+                console.warn('解析图片引用失败:', error);
+                return result;
+            }
+
+            const baseDir = getDirectoryPath(svgRelativePath);
+            for (const href of Array.from(new Set(hrefs))) {
+                result.total += 1;
+                const assetRelPath = resolvePosixRelative(baseDir, href);
+                if (!assetRelPath) { result.missing += 1; continue; }
+                try {
+                    const fileHandle = await getFileHandleByRelativePath(rootHandle, assetRelPath);
+                    const file = await fileHandle.getFile();
+                    const url = URL.createObjectURL(file);
+                    result.map.set(href, url);
+                    result.urls.push(url);
+                } catch (error) {
+                    // 句柄连接层级过深(如直接连到 svg_output)时,../images 是无法向上访问的同级目录。
+                    result.missing += 1;
+                    console.warn('内联素材失败:', href, assetRelPath, error);
+                }
+            }
+            return result;
+        }
+
+        // 释放上一文档遗留的 blob: URL,保留 keep 中仍在使用的(AI 二次编辑会沿用同一批)。
+        function revokeAssetObjectUrls(keep) {
+            const keepSet = new Set(keep || []);
+            (state.assetObjectUrls || []).forEach(url => {
+                if (!keepSet.has(url)) URL.revokeObjectURL(url);
+            });
+            state.assetObjectUrls = Array.from(keepSet);
+        }
+
 
         function restorePatchedAssetReferences(svgRoot) {
             svgRoot.querySelectorAll('image[data-editor-original-href]').forEach(image => {
@@ -2185,6 +2305,7 @@
             state.currentProjectFileKey = meta.projectFileKey || '';
             state.sourceMode = meta.sourceMode || 'memory';
             state.assetBasePath = meta.assetBasePath || '';
+            state.assetBlobMap = meta.assetBlobMap || null;
             updateSaveButtonState();
             updateProjectPanel();
         }
@@ -2223,13 +2344,17 @@
             const projectFileCount = document.getElementById('projectFileCount');
             if (!projectStatus || !currentFileInfo || !projectFileCount) return;
             const supportsDirectAccess = supportsDirectProjectAccess();
-            const visibleCount = state.projectFilterKeyword
-                ? state.projectFiles.filter(file => file.relativePath.toLowerCase().includes(state.projectFilterKeyword.toLowerCase())).length
-                : state.projectFiles.length;
+            const outputFiles = listOutputFiles();
+            const keyword = state.projectFilterKeyword.toLowerCase();
+            const visibleCount = keyword
+                ? outputFiles.filter(file =>
+                    file.relativePath.toLowerCase().includes(keyword) ||
+                    file.fileName.toLowerCase().includes(keyword)).length
+                : outputFiles.length;
 
             projectFileCount.textContent = state.projectFilterKeyword
-                ? `${visibleCount}/${state.projectFiles.length}`
-                : state.projectFiles.length;
+                ? `${visibleCount}/${outputFiles.length}`
+                : outputFiles.length;
 
             if (state.projectAccessMode === 'api') {
                 projectStatus.textContent = `已直连 ${state.projectApiRoot || 'D:/PythonProject/ppt-master/projects'}，共 ${state.projectFiles.length} 个 SVG，可直接保存`;
@@ -2239,7 +2364,13 @@
                     : '当前浏览器不支持目录直连，请使用 Edge/Chrome 并通过 localhost 打开';
             } else {
                 const rootLabel = state.projectRootLabel || state.projectDirectoryHandle.name;
-                projectStatus.textContent = `已连接 ${rootLabel}，共 ${state.projectFiles.length} 个 SVG，支持 Ctrl+S 原地保存`;
+                if (state.projectRootIsSourceDir) {
+                    // 连到了源目录,图片在上一级读不到——持久提示用户改连项目目录。
+                    projectStatus.innerHTML = `已连接 ${rootLabel}，共 ${state.projectFiles.length} 个 SVG。` +
+                        `<span style="color:var(--danger);font-weight:600;">⚠ 图片无法显示:你连接的是源目录,图片在上一级 images/ 读不到。请点「连接目录」改选项目目录(${rootLabel} 的上一级)。</span>`;
+                } else {
+                    projectStatus.textContent = `已连接 ${rootLabel}，共 ${state.projectFiles.length} 个 SVG，支持 Ctrl+S 原地保存`;
+                }
             }
 
             currentFileInfo.textContent = state.currentFilePath
@@ -2255,28 +2386,110 @@
             list.innerHTML = '';
 
             const keyword = state.projectFilterKeyword.trim().toLowerCase();
-            const files = keyword
-                ? state.projectFiles.filter(file =>
-                    file.relativePath.toLowerCase().includes(keyword) ||
-                    file.fileName.toLowerCase().includes(keyword))
-                : state.projectFiles;
+            const outputFiles = listOutputFiles();
 
-            if (files.length === 0) {
+            // 未连接任何来源:沿用原空态文案。
+            if (outputFiles.length === 0) {
                 const empty = document.createElement('div');
                 empty.className = 'project-empty';
                 if (!state.projectDirectoryHandle && state.projectAccessMode !== 'api') {
                     empty.textContent = '请先连接 projects 目录，随后即可选择并编辑 SVG';
-                } else if (state.projectFiles.length === 0) {
-                    empty.textContent = '目录内暂未发现 SVG 文件';
                 } else {
-                    empty.textContent = '没有匹配的文件，请调整筛选关键词';
+                    empty.textContent = '未发现任何 svg_output 目录下的 SVG';
                 }
                 list.appendChild(empty);
                 updateSlidePanel();
                 return;
             }
 
-            files.forEach(file => {
+            // 选中项目仍存在校验:刷新后项目消失则退回项目列表态。
+            const projectKeys = [...new Set(outputFiles.map(f => getOutputProjectKey(f.relativePath)))];
+            if (state.selectedProject && !projectKeys.includes(state.selectedProject)) {
+                state.selectedProject = '';
+            }
+
+            if (!state.selectedProject) {
+                renderProjectChooser(list, outputFiles, projectKeys, keyword);
+            } else {
+                renderProjectPages(list, outputFiles, keyword);
+            }
+
+            // 更新左侧缩略图面板
+            updateSlidePanel();
+        }
+
+        // 第一级:项目选择列表。每项展示项目名与其 svg_output 页面数。
+        function renderProjectChooser(list, outputFiles, projectKeys, keyword) {
+            const counts = new Map();
+            outputFiles.forEach(f => {
+                const key = getOutputProjectKey(f.relativePath);
+                counts.set(key, (counts.get(key) || 0) + 1);
+            });
+
+            const projects = projectKeys
+                .filter(key => !keyword || key.toLowerCase().includes(keyword))
+                .sort((a, b) => a.localeCompare(b, 'zh-CN', { numeric: true }));
+
+            if (projects.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'project-empty';
+                empty.textContent = '没有匹配的项目，请调整筛选关键词';
+                list.appendChild(empty);
+                return;
+            }
+
+            projects.forEach(key => {
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'project-item';
+                item.addEventListener('click', () => selectProject(key));
+
+                const name = document.createElement('span');
+                name.className = 'project-item-name';
+                name.textContent = key.split('/').pop() || key;
+
+                const meta = document.createElement('span');
+                meta.className = 'project-item-path';
+                meta.textContent = `${counts.get(key) || 0} 页 · ${key}`;
+
+                item.appendChild(name);
+                item.appendChild(meta);
+                list.appendChild(item);
+            });
+        }
+
+        // 第二级:已选项目的 svg_output 页面列表,顶部带返回项目列表的面包屑。
+        function renderProjectPages(list, outputFiles, keyword) {
+            const back = document.createElement('button');
+            back.type = 'button';
+            back.className = 'project-item';
+            const backName = document.createElement('span');
+            backName.className = 'project-item-name';
+            backName.textContent = '← 返回项目列表';
+            const backMeta = document.createElement('span');
+            backMeta.className = 'project-item-path';
+            backMeta.textContent = `当前项目：${state.selectedProject.split('/').pop() || state.selectedProject}`;
+            back.appendChild(backName);
+            back.appendChild(backMeta);
+            back.addEventListener('click', () => backToProjectList());
+            list.appendChild(back);
+
+            const pages = outputFiles
+                .filter(f => getOutputProjectKey(f.relativePath) === state.selectedProject)
+                .filter(f => !keyword
+                    || f.relativePath.toLowerCase().includes(keyword)
+                    || f.fileName.toLowerCase().includes(keyword))
+                .sort((a, b) => a.fileName.localeCompare(b.fileName, 'zh-CN', { numeric: true }));
+
+            if (pages.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'project-empty';
+                empty.textContent = '没有匹配的页面，请调整筛选关键词';
+                list.appendChild(empty);
+                return;
+            }
+
+            pages.forEach(file => {
                 const item = document.createElement('button');
                 item.type = 'button';
                 item.className = 'project-item';
@@ -2297,9 +2510,16 @@
                 item.appendChild(filePath);
                 list.appendChild(item);
             });
+        }
 
-            // 更新左侧缩略图面板
-            updateSlidePanel();
+        function selectProject(key) {
+            state.selectedProject = key || '';
+            updateProjectPanel();
+        }
+
+        function backToProjectList() {
+            state.selectedProject = '';
+            updateProjectPanel();
         }
 
         function setProjectFilter(keyword = '') {
@@ -2456,6 +2676,19 @@
                     mode: 'readwrite'
                 });
                 const projectRootLabel = await applyProjectDirectoryHandle(directoryHandle);
+                // 连到了 svg_output/svg_final:图片在上一级 images/,句柄无法向上读取。
+                // 引导用户改选项目目录(svg_output 的上一级),否则图片无法显示。
+                if (state.projectRootIsSourceDir) {
+                    const reconnect = window.confirm(
+                        `你选择的是「${directoryHandle.name}」目录。\n` +
+                        `图片位于它的上一级 images/,受浏览器安全限制无法向上读取,图片将无法显示。\n\n` +
+                        `请改选「项目目录」(即 ${directoryHandle.name} 的上一级,内含 images/ 和 ${directoryHandle.name}/)。\n\n` +
+                        `点「确定」重新选择;点「取消」仍用当前目录(图片不显示)。`
+                    );
+                    if (reconnect) {
+                        return connectProjectDirectory();
+                    }
+                }
                 try {
                     await cacheProjectDirectoryHandle(directoryHandle);
                 } catch (cacheError) {
@@ -2532,6 +2765,10 @@
             }
             if (!confirmDiscardChanges(`打开 ${projectFile.fileName}`)) return;
 
+            // 让项目面板停在该文件所属项目的页面列表态(从缩略图/自动打开进入时同样生效)。
+            const projectKey = getOutputProjectKey(projectFile.relativePath);
+            if (projectKey) state.selectedProject = projectKey;
+
             try {
                 if (projectFile.source === 'api') {
                     const filePayload = await fetchProjectApiJSON(`/file?path=${encodeURIComponent(projectFile.relativePath)}`);
@@ -2545,14 +2782,24 @@
                     });
                 } else {
                     const file = await projectFile.handle.getFile();
-                    parseSVG(await file.text(), {
+                    const svgText = await file.text();
+                    // 句柄模式:浏览器无法用相对 URL 取到本地素材,先把图片读成 blob: URL 再回填。
+                    const assets = await buildHandleAssetBlobMap(svgText, projectFile.relativePath);
+                    parseSVG(svgText, {
                         fileHandle: projectFile.handle,
                         fileName: projectFile.fileName,
                         filePath: `projects/${projectFile.relativePath}`,
                         projectFileKey: projectFile.relativePath,
                         sourceMode: 'project',
-                        assetBasePath: projectFile.assetBasePath
+                        assetBasePath: projectFile.assetBasePath,
+                        assetBlobMap: assets.map,
+                        assetObjectUrls: assets.urls
                     });
+                    // 句柄层级过深(如直接连到 svg_output)时,../images 等同级目录无法向上访问,
+                    // 图片会缺失。提示用户连到项目目录(images 的上级),或改用 svg_visual_editor_server.py 后端。
+                    if (assets.missing > 0) {
+                        showToast(`有 ${assets.missing} 张图片无法读取:请「连接项目」选到项目目录(含 images 的上级),而非 svg_output;或用 svg_visual_editor_server.py 后端打开`);
+                    }
                 }
                 showToast(`已打开 ${projectFile.fileName}`);
             } catch (error) {
@@ -2596,6 +2843,8 @@
                 }
 
                 patchSVGAssetReferences(svg, meta);
+                // 释放上一文档遗留的 blob: URL(保留本次 meta 携带的新批次),避免内存泄漏。
+                revokeAssetObjectUrls(meta.assetObjectUrls);
                 clearCanvas();
 
                 // 获取画布尺寸
@@ -2657,7 +2906,8 @@
                     fileHandle: meta.fileHandle || null,
                     projectFileKey: meta.projectFileKey || '',
                     sourceMode: meta.sourceMode || 'memory',
-                    assetBasePath: meta.assetBasePath || ''
+                    assetBasePath: meta.assetBasePath || '',
+                    assetBlobMap: meta.assetBlobMap || null
                 });
                 state.savedSvgInnerHTML = svgCanvas.innerHTML;
                 resetHistory();
@@ -4164,33 +4414,18 @@
         }
 
         function getSlidePanelDisplayFiles() {
-            // 从当前文件路径推断项目根目录，优先筛选 svg_final/ 目录
-            let currentProjectDir = '';
+            // 当前项目键:优先用已打开文件推断的 svg_output 项目前缀,其次面板选中项目。
             const currentPath = state.currentProjectFileKey || state.currentFilePath || '';
-            const projMatch = currentPath.match(/^([^/]+)\//);
-            if (projMatch) {
-                currentProjectDir = projMatch[1];
-            }
+            const currentProject = getOutputProjectKey(currentPath) || state.selectedProject || '';
 
-            // 筛选逻辑：仅展示当前项目的 svg_final/ 目录下的 SVG 文件
-            const files = state.projectFiles.filter(f => {
+            // 仅展示当前项目 svg_output/ 下的 SVG 页面,保持与项目面板一致。
+            const files = listOutputFiles().filter(f => {
                 if (!f.fileName.toLowerCase().endsWith('.svg')) return false;
-                const rp = f.relativePath || '';
-                if (currentProjectDir) {
-                    return rp.startsWith(currentProjectDir + '/svg_final/');
-                }
-                return rp.includes('/svg_final/');
+                if (currentProject) return getOutputProjectKey(f.relativePath) === currentProject;
+                return true;
             }).sort((a, b) => a.fileName.localeCompare(b.fileName, 'zh-CN', { numeric: true }));
 
-            // 如果 svg_final 为空，回退到全部 SVG（兼容没有 svg_final 的项目）
-            const fallback = files.length === 0;
-            return fallback
-                ? state.projectFiles.filter(f => {
-                    if (!f.fileName.toLowerCase().endsWith('.svg')) return false;
-                    if (currentProjectDir) return f.relativePath.startsWith(currentProjectDir + '/');
-                    return true;
-                }).sort((a, b) => a.fileName.localeCompare(b.fileName, 'zh-CN', { numeric: true }))
-                : files;
+            return files;
         }
 
         function syncSlidePanelActiveState() {
@@ -4274,6 +4509,55 @@
             list.scrollTop = Math.min(prevScrollTop, list.scrollHeight);
         }
 
+        // Blob/File 读为 data: URI。
+        function blobToDataURL(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(reader.error);
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        // 把 SVG 文本内引用的本地图片替换为 data: URI 后返回新文本。
+        // <img> 渲染 SVG 处于安全静态模式,会拦截 blob:/http: 子资源,只有 data: 必定生效,
+        // 因此缩略图用 data: 内联。句柄优先;否则走后端 raw。够不到的图保持原样。
+        async function inlineSvgAssetsAsDataUris(svgText, file) {
+            let doc;
+            try {
+                doc = new DOMParser().parseFromString(svgText, 'image/svg+xml');
+                if (doc.querySelector('parsererror')) return svgText;
+            } catch (error) {
+                return svgText;
+            }
+            const images = Array.from(doc.querySelectorAll('image')).filter(image => {
+                const href = getElementHref(image);
+                return href && !isExternalHref(href) && !href.startsWith('data:');
+            });
+            if (!images.length) return svgText;
+
+            const baseDir = getDirectoryPath(file.relativePath);
+            const rootHandle = state.projectDirectoryHandle;
+            for (const image of images) {
+                const assetRelPath = resolvePosixRelative(baseDir, getElementHref(image));
+                if (!assetRelPath) continue;
+                try {
+                    let dataUrl = '';
+                    if (file.handle && rootHandle) {
+                        const fileHandle = await getFileHandleByRelativePath(rootHandle, assetRelPath);
+                        dataUrl = await blobToDataURL(await fileHandle.getFile());
+                    } else if (file.source === 'api' || state.projectAccessMode === 'api') {
+                        const resp = await fetch(`${PROJECT_API_BASE}/raw/${encodePathSegments(assetRelPath)}`);
+                        if (resp.ok) dataUrl = await blobToDataURL(await resp.blob());
+                    }
+                    if (dataUrl) setElementHref(image, dataUrl);
+                } catch (error) {
+                    // 单张内联失败不阻塞其余缩略图渲染。
+                }
+            }
+            return new XMLSerializer().serializeToString(doc.documentElement);
+        }
+
         async function loadThumbPreview(file, thumbEl, placeholder) {
             try {
                 let svgText = '';
@@ -4285,6 +4569,9 @@
                     svgText = payload.content || '';
                 }
                 if (!svgText || !svgText.includes('<svg')) return;
+
+                // 先把引用图片内联为 data: URI,否则 <img> 渲染 SVG 取不到 ../images 等本地素材。
+                svgText = await inlineSvgAssetsAsDataUris(svgText, file);
 
                 const blob = new Blob([svgText], { type: 'image/svg+xml' });
                 const url = URL.createObjectURL(blob);
@@ -4815,7 +5102,11 @@
                 fileHandle: state.currentFileHandle,
                 projectFileKey: state.currentProjectFileKey,
                 sourceMode: state.sourceMode,
-                assetBasePath: state.assetBasePath
+                assetBasePath: state.assetBasePath,
+                // 复用当前文档已内联的 blob: 素材,并声明保留这批 URL(避免 parseSVG 误释放),
+                // 使 AI 改写整页后图片仍可正常显示。
+                assetBlobMap: state.assetBlobMap,
+                assetObjectUrls: state.assetObjectUrls
             }, extra);
         }
 

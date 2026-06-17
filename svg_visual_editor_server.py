@@ -24,7 +24,7 @@
 
 用法:
     python3 svg_visual_editor_server.py
-    python3 svg_visual_editor_server.py --projects-root projects --port 5060
+    python3 svg_visual_editor_server.py --projects-root projects --port 5070
     python3 svg_visual_editor_server.py --no-browser
 
 依赖:
@@ -455,7 +455,9 @@ def build_parser() -> argparse.ArgumentParser:
         '--projects-root', default='projects',
         help='projects 目录路径(相对仓库根或绝对路径),默认 projects',
     )
-    parser.add_argument('--port', type=int, default=5060, help='监听端口,默认 5060')
+    # 默认端口避开 5060/5061:这两个是 SIP 端口,在 Chromium 的受限端口黑名单内,
+    # 浏览器会以 ERR_UNSAFE_PORT 拒绝加载(curl 不受限),表现为页面「打不开」。
+    parser.add_argument('--port', type=int, default=5070, help='监听端口,默认 5070')
     parser.add_argument('--host', default='127.0.0.1', help='监听地址,默认 127.0.0.1')
     parser.add_argument('--no-browser', action='store_true', help='启动后不自动打开浏览器')
     return parser
