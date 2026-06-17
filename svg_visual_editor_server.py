@@ -38,8 +38,10 @@
 """
 
 import argparse
+import base64
 import json
 import os
+import re
 import subprocess
 import sys
 import threading
@@ -96,6 +98,61 @@ _AI_SYSTEM_PROMPT = (
     "- Keep the result valid, self-contained SVG that renders the same way except for "
     "the requested change."
 )
+
+# ---------------------------------------------------------------------------
+# 图标内联(显示用)。SVG 内的小图标以 ``<use data-icon="库/名" .../>`` 形式引用图标库;
+# 浏览器不认识 data-icon,裸 <use> 渲染为空 —— 表现为「图标显示不出来」。读取文件返回给
+# 编辑器前,把这些 <use> 就地展开成 <g> 路径(与 svg_finalize/embed_icons、live preview
+# 服务同一套渲染),并把原始 <use> 串以 base64 挂到 ``data-icon-use`` 上,供前端保存时
+# 无损还原 —— 因此磁盘文件始终保持规范的 <use> 形态,导出(svg_to_pptx)不受影响。
+_ICONS_DIR = _REPO_ROOT / 'skills' / 'ppt-master' / 'templates' / 'icons'
+_FINALIZE_DIR = _REPO_ROOT / 'skills' / 'ppt-master' / 'scripts' / 'svg_finalize'
+if str(_FINALIZE_DIR) not in sys.path:
+    sys.path.insert(0, str(_FINALIZE_DIR))
+# 自闭合 <use ... data-icon="..." .../>;data-icon 可能不在首位,故用宽松匹配。
+_USE_ICON_RE = re.compile(r'<use\s+[^>]*?data-icon="[^"]*"[^>]*?/>')
+
+
+def _inline_icons_for_editor(content: str) -> str:
+    """把 ``<use data-icon=...>`` 展开为可渲染的 ``<g>``,并保留原始 <use> 以便还原。
+
+    单个图标解析失败只跳过该图标(保留原 <use>),绝不影响整页其余内容返回。
+    embed_icons 缺失或图标库异常时整体降级为原样返回。
+    """
+    matches = list(_USE_ICON_RE.finditer(content))
+    if not matches:
+        return content
+    try:
+        from embed_icons import (
+            extract_paths_from_icon,
+            generate_icon_group,
+            parse_use_element,
+            resolve_icon_path,
+        )
+    except ImportError:
+        return content
+
+    new_content = content
+    for match in reversed(matches):
+        use_str = match.group(0)
+        try:
+            attrs = parse_use_element(use_str)
+            icon_name = str(attrs.get('icon') or '')
+            if not icon_name:
+                continue
+            icon_path, _ = resolve_icon_path(icon_name, _ICONS_DIR)
+            color = str(attrs.get('fill', '#000000'))
+            elements, style, base_size = extract_paths_from_icon(icon_path, color)
+        except Exception:
+            continue
+        if not elements:
+            continue
+        group = generate_icon_group(attrs, elements, style, base_size)
+        # 原始 <use> 以 base64 内嵌,前端保存时据此 1:1 还原 <use>,磁盘不落 <g>。
+        token = base64.b64encode(use_str.encode('utf-8')).decode('ascii')
+        group = group.replace('<g ', f'<g data-icon-use="{token}" ', 1)
+        new_content = new_content[:match.start()] + group + new_content[match.end():]
+    return new_content
 
 
 def _safe_join(root: Path, relative: str) -> Path | None:
@@ -205,6 +262,8 @@ def create_app(projects_root: Path) -> Flask:
                 content = target.read_text(encoding='utf-8')
             except OSError as exc:
                 return jsonify({'error': f'读取失败: {exc}'}), 500
+            # 展开图标 <use> 供浏览器渲染;前端保存时会还原为原始 <use>。
+            content = _inline_icons_for_editor(content)
             return jsonify({'content': content})
 
         # POST:写回 SVG。仅允许覆盖已存在的 .svg,杜绝越权创建任意文件。

@@ -2293,6 +2293,34 @@
             });
         }
 
+        // 还原图标:后端把 <use data-icon> 展开成 <g> 供显示,并在 <g> 上挂了
+        // data-icon-use(原始 <use> 的 base64)。保存前把每个这样的 <g> 换回原始 <use>,
+        // 使磁盘文件保持规范的 <use> 形态(导出 svg_to_pptx 据此重新嵌图标)。
+        function restoreInlinedIcons(svgRoot) {
+            svgRoot.querySelectorAll('[data-icon-use]').forEach(group => {
+                const token = group.getAttribute('data-icon-use');
+                if (!token || !group.parentNode) return;
+                let useStr = '';
+                try {
+                    // 原串为 ASCII(图标名/数字/色值),atob 足够;兜底 decodeURIComponent。
+                    useStr = atob(token);
+                } catch (error) {
+                    return;
+                }
+                try {
+                    const doc = new DOMParser().parseFromString(
+                        `<svg xmlns="http://www.w3.org/2000/svg">${useStr}</svg>`,
+                        'image/svg+xml');
+                    const use = doc.querySelector('use');
+                    if (!use) return;
+                    const imported = svgRoot.ownerDocument.importNode(use, true);
+                    group.parentNode.replaceChild(imported, group);
+                } catch (error) {
+                    console.warn('图标还原失败:', error);
+                }
+            });
+        }
+
         function resetHistory() {
             state.history = [];
             state.historyIndex = -1;
@@ -5078,6 +5106,7 @@
                 el.style.cursor = '';
             });
             restorePatchedAssetReferences(clone);
+            restoreInlinedIcons(clone);
             clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
             return clone;
         }
