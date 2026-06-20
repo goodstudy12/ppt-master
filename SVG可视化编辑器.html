@@ -1438,6 +1438,10 @@
                                 <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
                             </button>
                         </div>
+                        <div class="project-toolbar">
+                            <button class="btn" style="flex:1;justify-content:center;" onclick="renumberProjectPages()">重编号</button>
+                            <button class="btn" style="flex:1;justify-content:center;" onclick="deleteCurrentProjectPage()">删除当前页</button>
+                        </div>
                         <div class="project-list" id="projectFileList"></div>
                         <div class="project-current" id="currentFileInfo">当前未打开文件</div>
                     </div>
@@ -1785,6 +1789,7 @@
             projectAccessMode: '',
             projectApiRoot: '',
             projectRootIsSourceDir: false,
+            projectOperationBusy: false,
             // 两级项目面板:'' 表示停在「项目列表」态;非空表示已选中某项目,
             // 此时项目面板仅列该项目 svg_output/ 下的页面。值为项目相对前缀。
             selectedProject: '',
@@ -4901,6 +4906,119 @@
                 return currentPath.slice('projects/'.length);
             }
             return '';
+        }
+
+        function getProjectOperationRelativePath() {
+            const current = getCurrentProjectRelativePath();
+            if (current) return current;
+
+            const displayFiles = getSlidePanelDisplayFiles();
+            if (displayFiles.length) return displayFiles[0].relativePath;
+
+            const outputFiles = listOutputFiles()
+                .filter(file => !state.selectedProject
+                    || getOutputProjectKey(file.relativePath) === state.selectedProject)
+                .sort((a, b) => a.fileName.localeCompare(b.fileName, 'zh-CN', { numeric: true }));
+            return outputFiles.length ? outputFiles[0].relativePath : '';
+        }
+
+        function findRenumberedPath(payload, oldRelativePath) {
+            const pages = Array.isArray(payload.pages) ? payload.pages : [];
+            const matched = pages.find(page => page.old_relative_path === oldRelativePath);
+            if (matched) return matched.new_relative_path || '';
+            return oldRelativePath;
+        }
+
+        async function renumberProjectPages(showFeedback = true) {
+            if (state.projectOperationBusy) return;
+            if (state.projectAccessMode !== 'api') {
+                showToast('重编号需要使用 svg_visual_editor_server.py 本地直连服务');
+                return;
+            }
+
+            const relativePath = getProjectOperationRelativePath();
+            if (!relativePath) {
+                showToast('请先打开或选择一个项目页面');
+                return;
+            }
+
+            if (state.isDirty) {
+                await saveCurrentSVG();
+                if (state.isDirty) {
+                    showToast('请先保存当前修改后再重编号');
+                    return;
+                }
+            }
+
+            state.projectOperationBusy = true;
+            try {
+                const payload = await fetchProjectApiJSON('/renumber-pages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ relative_path: relativePath })
+                });
+                const reopenedPath = findRenumberedPath(payload, relativePath);
+                await refreshProjectFiles(false);
+                if (getCurrentProjectRelativePath() && reopenedPath) {
+                    await openProjectFile(reopenedPath);
+                }
+                if (showFeedback) {
+                    showToast(`已重编号 ${payload.total || 0} 页，更新页脚 ${payload.footer_updated || 0} 处`);
+                }
+            } catch (error) {
+                console.error(error);
+                showToast('重编号失败: ' + error.message);
+            } finally {
+                state.projectOperationBusy = false;
+            }
+        }
+
+        async function deleteCurrentProjectPage() {
+            if (state.projectOperationBusy) return;
+            if (state.projectAccessMode !== 'api') {
+                showToast('删除页面需要使用 svg_visual_editor_server.py 本地直连服务');
+                return;
+            }
+
+            const relativePath = getCurrentProjectRelativePath();
+            if (!relativePath) {
+                showToast('请先打开要删除的项目页面');
+                return;
+            }
+
+            const dirtyTip = state.isDirty ? '\n\n当前页有未保存修改，删除后这些修改会丢失。' : '';
+            if (!confirm(`确定删除当前页并重编号剩余页面吗？\n${relativePath}${dirtyTip}`)) {
+                return;
+            }
+
+            state.projectOperationBusy = true;
+            try {
+                const payload = await fetchProjectApiJSON('/delete-page', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ relative_path: relativePath })
+                });
+                // 用户已在删除确认框中确认丢弃当前页修改,这里同步基线以免打开下一页时二次询问。
+                state.savedSvgInnerHTML = svgCanvas.innerHTML;
+                updateDirtyState();
+                await refreshProjectFiles(false);
+                if (payload.next_relative_path) {
+                    await openProjectFile(payload.next_relative_path);
+                } else {
+                    clearCanvas();
+                    setCurrentDocument({ fileName: '未命名.svg', sourceMode: 'memory' });
+                    state.savedSvgInnerHTML = svgCanvas.innerHTML;
+                    updateDirtyState();
+                    updateElementList();
+                    updateSlidePanel();
+                }
+                showToast(`已删除当前页并重编号，剩余 ${payload.total || 0} 页`);
+            } catch (error) {
+                console.error(error);
+                showToast('删除页面失败: ' + error.message);
+            } finally {
+                state.projectOperationBusy = false;
+            }
         }
 
         function inferProjectExportMeta(relativePath, source = 'auto') {

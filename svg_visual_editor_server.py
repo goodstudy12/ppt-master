@@ -18,6 +18,8 @@
     GET  /api/projects/file?path=   读取单个 SVG 文本 {content}
     POST /api/projects/file         写回单个 SVG {path, content}
     GET  /api/projects/raw/<path>   提供本地素材(图片等)原始字节
+    POST /api/projects/renumber-pages 按当前项目目录重排 SVG 文件名与页脚页码
+    POST /api/projects/delete-page   删除当前页并自动重排剩余 SVG
     POST /api/projects/export-pptx  调用 svg_to_pptx.py 导出并回传 .pptx
     POST /api/projects/ai-edit      二次 AI 编辑:把当前 SVG + 自然语言指令交给大模型,
                                     以 SSE 流式回传改后的整页 SVG
@@ -111,6 +113,13 @@ if str(_FINALIZE_DIR) not in sys.path:
     sys.path.insert(0, str(_FINALIZE_DIR))
 # 自闭合 <use ... data-icon="..." .../>;data-icon 可能不在首位,故用宽松匹配。
 _USE_ICON_RE = re.compile(r'<use\s+[^>]*?data-icon="[^"]*"[^>]*?/>')
+_PAGE_PREFIX_RE = re.compile(r'^(?P<number>\d+)(?P<suffix>(?:[_\-\s].*)?)$')
+_FOOTER_GROUP_START_RE = re.compile(
+    r'<g\b[^>]*\bid=(["\'])[^"\']*footer[^"\']*\1[^>]*>',
+    re.IGNORECASE,
+)
+_GROUP_TAG_RE = re.compile(r'</?g\b[^>]*?/?>', re.IGNORECASE)
+_TEXT_DIGITS_RE = re.compile(r'(<text\b[^>]*>)(\s*)(\d+)(\s*)(</text>)')
 
 
 def _inline_icons_for_editor(content: str) -> str:
@@ -231,6 +240,180 @@ def _infer_source_dir(relative_path: str) -> str:
     return ''
 
 
+def _natural_key(value: str) -> tuple:
+    """生成稳定的自然排序键,让 2 排在 10 前面。"""
+    parts = re.split(r'(\d+)', value.lower())
+    return tuple((0, int(part)) if part.isdigit() else (1, part) for part in parts)
+
+
+def _page_sort_key(path: Path) -> tuple:
+    """按文件名前缀页码优先排序,无页码时退化为自然文件名排序。"""
+    match = re.match(r'^(\d+)', path.stem)
+    if match:
+        return (0, int(match.group(1)), _natural_key(path.stem))
+    return (1, _natural_key(path.stem))
+
+
+def _numbered_page_name(original_name: str, page_number: int, width: int,
+                        used_names: set[str]) -> str:
+    """生成新的页文件名,保留原有语义后缀并处理重名。"""
+    stem = Path(original_name).stem
+    match = _PAGE_PREFIX_RE.match(stem)
+    if match:
+        suffix = match.group('suffix') or ''
+    else:
+        suffix = f'_{stem}' if stem else ''
+
+    prefix = str(page_number).zfill(width)
+    candidate = f'{prefix}{suffix}.svg'
+    dedupe = 2
+    while candidate in used_names:
+        candidate = f'{prefix}{suffix}_{dedupe}.svg'
+        dedupe += 1
+    used_names.add(candidate)
+    return candidate
+
+
+def _find_group_end(content: str, start_index: int) -> int | None:
+    """从一个 <g> 起点找到配对的结束位置,避免 footer 内含嵌套组时截断。"""
+    depth = 0
+    for match in _GROUP_TAG_RE.finditer(content, start_index):
+        tag = match.group(0)
+        if tag.startswith('</'):
+            depth -= 1
+            if depth == 0:
+                return match.end()
+        elif not tag.endswith('/>'):
+            depth += 1
+    return None
+
+
+def _replace_last_digit_text(block: str, page_number: int) -> tuple[str, bool]:
+    """替换一个 footer 块内最后一个纯数字 text,通常就是右下角页码。"""
+    matches = list(_TEXT_DIGITS_RE.finditer(block))
+    if not matches:
+        return block, False
+    target = matches[-1]
+    old_digits = target.group(3)
+    new_digits = (
+        str(page_number).zfill(len(old_digits))
+        if len(old_digits) > 1 else str(page_number)
+    )
+    replacement = ''.join((
+        target.group(1),
+        target.group(2),
+        new_digits,
+        target.group(4),
+        target.group(5),
+    ))
+    return block[:target.start()] + replacement + block[target.end():], new_digits != old_digits
+
+
+def _update_footer_page_number(content: str, page_number: int) -> tuple[str, bool]:
+    """只更新 id 含 footer 的组内页码,降低误改正文数字的风险。"""
+    starts = list(_FOOTER_GROUP_START_RE.finditer(content))
+    if not starts:
+        return content, False
+
+    changed = False
+    updated = content
+    for start in reversed(starts):
+        end_index = _find_group_end(content, start.start())
+        if end_index is None:
+            continue
+        block = content[start.start():end_index]
+        new_block, block_changed = _replace_last_digit_text(block, page_number)
+        if block_changed:
+            changed = True
+            updated = updated[:start.start()] + new_block + updated[end_index:]
+    return updated, changed
+
+
+def _renumber_svg_dir(source_dir: Path, projects_root: Path) -> dict:
+    """重排某个 svg_output/svg_final 目录下的 SVG 文件名与 footer 页码。"""
+    source_dir = source_dir.resolve()
+    root = projects_root.resolve()
+    svg_files = sorted(
+        (path for path in source_dir.glob('*.svg') if path.is_file()),
+        key=_page_sort_key,
+    )
+    if not svg_files:
+        return {'total': 0, 'renamed': 0, 'footer_updated': 0, 'pages': []}
+
+    existing_widths = [
+        len(match.group(1))
+        for path in svg_files
+        if (match := re.match(r'^(\d+)', path.stem))
+    ]
+    width = max([2, len(str(len(svg_files))), *existing_widths])
+    used_names: set[str] = set()
+    plan = []
+    footer_updated = 0
+
+    for index, src in enumerate(svg_files, 1):
+        dst = source_dir / _numbered_page_name(src.name, index, width, used_names)
+        content = src.read_text(encoding='utf-8')
+        new_content, footer_changed = _update_footer_page_number(content, index)
+        if footer_changed:
+            footer_updated += 1
+        plan.append({
+            'index': index,
+            'src': src,
+            'dst': dst,
+            'content': new_content,
+            'content_changed': footer_changed,
+        })
+
+    # 两阶段改名:先把需要改名的文件挪到隐藏临时名,避免 02 -> 01 等互相覆盖。
+    stamp = f'{int(time.time() * 1000)}'
+    temp_paths: dict[Path, Path] = {}
+    for item in plan:
+        src = item['src']
+        dst = item['dst']
+        if src == dst:
+            continue
+        temp = source_dir / f'.__renumber_{stamp}_{item["index"]}.svg'
+        src.replace(temp)
+        temp_paths[src] = temp
+
+    renamed = 0
+    pages = []
+    for item in plan:
+        src = item['src']
+        dst = item['dst']
+        actual = temp_paths.get(src, src)
+        if actual != dst:
+            actual.replace(dst)
+            renamed += 1
+        if item['content_changed']:
+            dst.write_text(item['content'], encoding='utf-8')
+        pages.append({
+            'page_number': item['index'],
+            'old_relative_path': src.resolve().relative_to(root).as_posix(),
+            'new_relative_path': dst.resolve().relative_to(root).as_posix(),
+            'file_name': dst.name,
+            'footer_updated': bool(item['content_changed']),
+        })
+
+    return {
+        'total': len(plan),
+        'renamed': renamed,
+        'footer_updated': footer_updated,
+        'pages': pages,
+    }
+
+
+def _source_dir_from_relative(projects_root: Path, relative_path: str) -> Path | None:
+    """定位当前页所在的源 SVG 目录,仅允许 svg_output/svg_final。"""
+    target = _safe_join(projects_root, relative_path)
+    if target is None:
+        return None
+    source_dir = target.parent if target.suffix.lower() == '.svg' else target
+    if source_dir.name not in _SOURCE_DIR_NAMES or not source_dir.is_dir():
+        return None
+    return source_dir
+
+
 def create_app(projects_root: Path) -> Flask:
     """创建并配置 Flask 应用。``projects_root`` 为 projects 目录绝对路径。"""
     projects_root = projects_root.resolve()
@@ -296,6 +479,71 @@ def create_app(projects_root: Path) -> Flask:
         return send_from_directory(
             str(target.parent), target.name, max_age=0,
         )
+
+    @app.route('/api/projects/renumber-pages', methods=['POST'])
+    def renumber_pages():
+        data = request.get_json(silent=True) or {}
+        relative_path = data.get('relative_path', '')
+        source_dir = _source_dir_from_relative(projects_root, relative_path)
+        if source_dir is None:
+            return jsonify({'error': '无法定位可重编号的 svg_output/svg_final 目录'}), 400
+        try:
+            result = _renumber_svg_dir(source_dir, projects_root)
+        except OSError as exc:
+            return jsonify({'error': f'重编号失败: {exc}'}), 500
+        return jsonify({'status': 'ok', **result})
+
+    @app.route('/api/projects/delete-page', methods=['POST'])
+    def delete_page():
+        data = request.get_json(silent=True) or {}
+        relative_path = data.get('relative_path', '')
+        target = _safe_join(projects_root, relative_path)
+        if target is None or target.suffix.lower() != '.svg' or not target.is_file():
+            return jsonify({'error': '待删除页面不存在或路径非法'}), 404
+        if target.parent.name not in _SOURCE_DIR_NAMES:
+            return jsonify({'error': '仅支持删除 svg_output/svg_final 下的 SVG 页面'}), 400
+
+        source_dir = target.parent
+        existing = sorted(
+            (path for path in source_dir.glob('*.svg') if path.is_file()),
+            key=_page_sort_key,
+        )
+        deleted_index = next(
+            (index for index, path in enumerate(existing, 1) if path == target),
+            len(existing),
+        )
+
+        project_dir = _infer_project_dir(projects_root, relative_path)
+        if project_dir is None:
+            return jsonify({'error': '无法定位项目目录,拒绝删除'}), 400
+
+        backup_dir = (
+            project_dir / 'backup' / 'editor_deleted'
+            / time.strftime('%Y%m%d_%H%M%S') / source_dir.name
+        )
+        backup_dir.mkdir(parents=True, exist_ok=True)
+        backup_path = backup_dir / target.name
+
+        try:
+            target.replace(backup_path)
+            result = _renumber_svg_dir(source_dir, projects_root)
+        except OSError as exc:
+            return jsonify({'error': f'删除或重编号失败: {exc}'}), 500
+
+        pages = result.get('pages', [])
+        next_relative = ''
+        if pages:
+            next_index = min(max(deleted_index, 1), len(pages)) - 1
+            next_relative = pages[next_index]['new_relative_path']
+
+        return jsonify({
+            'status': 'ok',
+            'deleted_relative_path': relative_path,
+            'backup_relative_path': backup_path.relative_to(projects_root.resolve()).as_posix(),
+            'deleted_page_number': deleted_index,
+            'next_relative_path': next_relative,
+            **result,
+        })
 
     @app.route('/api/projects/export-pptx', methods=['POST'])
     def export_pptx():
