@@ -19,6 +19,7 @@
     POST /api/projects/file         写回单个 SVG {path, content}
     GET  /api/projects/raw/<path>   提供本地素材(图片等)原始字节
     POST /api/projects/renumber-pages 按当前项目目录重排 SVG 文件名与页脚页码
+    POST /api/projects/reorder-pages 按前端拖拽顺序重排 SVG 文件名与页脚页码
     POST /api/projects/delete-page   删除当前页并自动重排剩余 SVG
     POST /api/projects/export-pptx  调用 svg_to_pptx.py 导出并回传 .pptx
     POST /api/projects/ai-edit      二次 AI 编辑:把当前 SVG + 自然语言指令交给大模型,
@@ -329,14 +330,33 @@ def _update_footer_page_number(content: str, page_number: int) -> tuple[str, boo
     return updated, changed
 
 
-def _renumber_svg_dir(source_dir: Path, projects_root: Path) -> dict:
-    """重排某个 svg_output/svg_final 目录下的 SVG 文件名与 footer 页码。"""
+def _renumber_svg_dir(source_dir: Path, projects_root: Path,
+                      ordered_names: list[str] | None = None) -> dict:
+    """重排某个 svg_output/svg_final 目录下的 SVG 文件名与 footer 页码。
+
+    ``ordered_names`` 为空时按文件名页码自然排序(默认重编号语义);非空时按其给定
+    的文件名顺序重排(手动拖拽调序),未在清单中的剩余文件按自然序追加到末尾,确保
+    不会因前端漏传而丢页。
+    """
     source_dir = source_dir.resolve()
     root = projects_root.resolve()
-    svg_files = sorted(
-        (path for path in source_dir.glob('*.svg') if path.is_file()),
-        key=_page_sort_key,
-    )
+    all_files = [path for path in source_dir.glob('*.svg') if path.is_file()]
+    if ordered_names:
+        by_name = {path.name: path for path in all_files}
+        seen: set[str] = set()
+        svg_files = []
+        for name in ordered_names:
+            path = by_name.get(name)
+            if path is not None and path.name not in seen:
+                svg_files.append(path)
+                seen.add(path.name)
+        leftovers = sorted(
+            (path for path in all_files if path.name not in seen),
+            key=_page_sort_key,
+        )
+        svg_files.extend(leftovers)
+    else:
+        svg_files = sorted(all_files, key=_page_sort_key)
     if not svg_files:
         return {'total': 0, 'renamed': 0, 'footer_updated': 0, 'pages': []}
 
@@ -491,6 +511,44 @@ def create_app(projects_root: Path) -> Flask:
             result = _renumber_svg_dir(source_dir, projects_root)
         except OSError as exc:
             return jsonify({'error': f'重编号失败: {exc}'}), 500
+        return jsonify({'status': 'ok', **result})
+
+    @app.route('/api/projects/reorder-pages', methods=['POST'])
+    def reorder_pages():
+        """按前端拖拽给出的顺序重排当前项目源目录下的 SVG 页面。
+
+        请求体 ``{relative_path, ordered_relative_paths}``:``relative_path`` 用于定位
+        源目录(svg_output/svg_final),``ordered_relative_paths`` 为期望的页面顺序
+        (相对 projects 根的路径列表)。仅接受与同一源目录匹配的 .svg 路径,逐一转换为
+        文件名后交给 ``_renumber_svg_dir`` 按序改名并同步页脚页码。
+        """
+        data = request.get_json(silent=True) or {}
+        relative_path = data.get('relative_path', '')
+        ordered = data.get('ordered_relative_paths')
+        source_dir = _source_dir_from_relative(projects_root, relative_path)
+        if source_dir is None:
+            return jsonify({'error': '无法定位可调序的 svg_output/svg_final 目录'}), 400
+        if not isinstance(ordered, list) or not ordered:
+            return jsonify({'error': '缺少有效的页面顺序'}), 400
+
+        ordered_names: list[str] = []
+        for item in ordered:
+            if not isinstance(item, str):
+                continue
+            safe = _safe_join(projects_root, item)
+            # 必须落在同一源目录内、且为 .svg,杜绝跨目录或路径穿越。
+            if safe is None or safe.suffix.lower() != '.svg':
+                continue
+            if safe.parent.resolve() != source_dir.resolve():
+                continue
+            ordered_names.append(safe.name)
+        if not ordered_names:
+            return jsonify({'error': '页面顺序与当前目录不匹配'}), 400
+
+        try:
+            result = _renumber_svg_dir(source_dir, projects_root, ordered_names=ordered_names)
+        except OSError as exc:
+            return jsonify({'error': f'调序失败: {exc}'}), 500
         return jsonify({'status': 'ok', **result})
 
     @app.route('/api/projects/delete-page', methods=['POST'])

@@ -1208,6 +1208,24 @@
             box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18), 0 8px 18px rgba(37, 99, 235, 0.16);
         }
 
+        /* 拖拽调序:被拖动项半透明,目标插入位顶部高亮指示线 */
+        .slide-item.draggable {
+            cursor: grab;
+        }
+
+        .slide-item.dragging {
+            opacity: 0.4;
+            cursor: grabbing;
+        }
+
+        .slide-item.drag-over-top {
+            box-shadow: inset 0 3px 0 0 var(--primary);
+        }
+
+        .slide-item.drag-over-bottom {
+            box-shadow: inset 0 -3px 0 0 var(--primary);
+        }
+
         .slide-thumb {
             position: relative;
             border: 1px solid #dbeafe;
@@ -4461,6 +4479,70 @@
             return files;
         }
 
+        // ==================== 缩略图拖拽调序 ====================
+        // 记录当前被拖动页面的相对路径;松手后据此与目标插入位计算新顺序。
+        let slideDragSrcPath = null;
+
+        function cleanupSlideDragIndicators() {
+            const list = document.getElementById('slideList');
+            if (!list) return;
+            list.querySelectorAll('.slide-item').forEach(it =>
+                it.classList.remove('drag-over-top', 'drag-over-bottom'));
+        }
+
+        function onSlideDragStart(e) {
+            slideDragSrcPath = this.dataset.relativePath;
+            this.classList.add('dragging');
+            if (e.dataTransfer) {
+                e.dataTransfer.effectAllowed = 'move';
+                // 部分浏览器要求至少写入一项数据,拖拽才会持续触发后续事件。
+                try { e.dataTransfer.setData('text/plain', slideDragSrcPath); } catch (_) {}
+            }
+        }
+
+        function onSlideDragOver(e) {
+            if (!slideDragSrcPath) return;
+            e.preventDefault();
+            if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+            if (this.classList.contains('dragging')) return;
+            // 以光标处于目标项上/下半区,决定插入到其前还是其后。
+            const rect = this.getBoundingClientRect();
+            const after = (e.clientY - rect.top) > rect.height / 2;
+            this.classList.toggle('drag-over-bottom', after);
+            this.classList.toggle('drag-over-top', !after);
+        }
+
+        function onSlideDragLeave() {
+            this.classList.remove('drag-over-top', 'drag-over-bottom');
+        }
+
+        function onSlideDrop(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const list = document.getElementById('slideList');
+            const srcPath = slideDragSrcPath;
+            const targetPath = this.dataset.relativePath;
+            const insertAfter = this.classList.contains('drag-over-bottom');
+            cleanupSlideDragIndicators();
+            if (!srcPath || srcPath === targetPath) return;
+
+            // 当前 DOM 顺序即展示顺序;移除源后按指示位重新插入,得到新顺序数组。
+            const order = Array.from(list.querySelectorAll('.slide-item'))
+                .map(it => it.dataset.relativePath);
+            const without = order.filter(p => p !== srcPath);
+            let targetIdx = without.indexOf(targetPath);
+            if (targetIdx === -1) return;
+            if (insertAfter) targetIdx += 1;
+            without.splice(targetIdx, 0, srcPath);
+            reorderProjectPages(without);
+        }
+
+        function onSlideDragEnd() {
+            this.classList.remove('dragging');
+            cleanupSlideDragIndicators();
+            slideDragSrcPath = null;
+        }
+
         function syncSlidePanelActiveState() {
             const list = document.getElementById('slideList');
             if (!list) return;
@@ -4503,6 +4585,17 @@
                 item.dataset.relativePath = file.relativePath;
                 item.title = file.fileName;
                 item.onclick = () => openProjectFile(file.relativePath);
+
+                // 仅 API 直连模式支持拖拽调序(改名持久化依赖后端);其余模式只读展示。
+                if (state.projectAccessMode === 'api') {
+                    item.classList.add('draggable');
+                    item.draggable = true;
+                    item.addEventListener('dragstart', onSlideDragStart);
+                    item.addEventListener('dragover', onSlideDragOver);
+                    item.addEventListener('dragleave', onSlideDragLeave);
+                    item.addEventListener('drop', onSlideDrop);
+                    item.addEventListener('dragend', onSlideDragEnd);
+                }
 
                 const thumb = document.createElement('div');
                 thumb.className = 'slide-thumb';
@@ -4927,6 +5020,67 @@
             const matched = pages.find(page => page.old_relative_path === oldRelativePath);
             if (matched) return matched.new_relative_path || '';
             return oldRelativePath;
+        }
+
+        async function reorderProjectPages(orderedRelativePaths) {
+            if (state.projectOperationBusy) return;
+            if (state.projectAccessMode !== 'api') {
+                showToast('调整页面顺序需要使用 svg_visual_editor_server.py 本地直连服务');
+                updateSlidePanel();
+                return;
+            }
+            if (!Array.isArray(orderedRelativePaths) || orderedRelativePaths.length < 2) return;
+
+            // 顺序未变化则直接跳过,避免无谓的改名与重开。
+            const currentOrder = getSlidePanelDisplayFiles().map(f => f.relativePath);
+            if (currentOrder.length === orderedRelativePaths.length
+                && currentOrder.every((p, i) => p === orderedRelativePaths[i])) {
+                return;
+            }
+
+            const anchor = getProjectOperationRelativePath();
+            if (!anchor) {
+                showToast('请先打开或选择一个项目页面');
+                return;
+            }
+
+            // 先落盘未保存修改,避免改名后丢失;用户拒绝则回退到磁盘真实顺序。
+            if (state.isDirty) {
+                await saveCurrentSVG();
+                if (state.isDirty) {
+                    showToast('请先保存当前修改后再调整顺序');
+                    updateSlidePanel();
+                    return;
+                }
+            }
+
+            const currentPath = getCurrentProjectRelativePath();
+            state.projectOperationBusy = true;
+            try {
+                const payload = await fetchProjectApiJSON('/reorder-pages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        relative_path: anchor,
+                        ordered_relative_paths: orderedRelativePaths
+                    })
+                });
+                const reopenedPath = currentPath ? findRenumberedPath(payload, currentPath) : '';
+                await refreshProjectFiles(false);
+                if (currentPath && reopenedPath) {
+                    await openProjectFile(reopenedPath);
+                } else {
+                    updateSlidePanel();
+                }
+                showToast(`已调整顺序，共 ${payload.total || 0} 页`);
+            } catch (error) {
+                console.error(error);
+                showToast('调整顺序失败: ' + error.message);
+                // 失败后回退到磁盘真实顺序,撤销乐观的 DOM 变更。
+                await refreshProjectFiles(false);
+            } finally {
+                state.projectOperationBusy = false;
+            }
         }
 
         async function renumberProjectPages(showFeedback = true) {
