@@ -355,6 +355,11 @@ _CONVERTERS = {
     'text': convert_text,
     'image': convert_image,
     'g': convert_g,
+    # SVG <a> is a transparent hyperlink container; render its children like a
+    # group so visuals survive the native conversion. Hyperlink targets are
+    # dropped — the downstream PPTX pipeline has no generic shape-level
+    # hyperlink plumbing yet.
+    'a': convert_g,
     'svg': convert_nested_svg,
 }
 
@@ -426,6 +431,20 @@ def _local_tag(elem: ET.Element) -> str:
     return elem.tag.split('}', 1)[-1] if isinstance(elem.tag, str) and '}' in elem.tag else str(elem.tag)
 
 
+def _describe_unsupported(elem: ET.Element, path: str) -> str:
+    # 残留 <use> 几乎都来自 use_expander 解析失败的 data-icon 占位符，
+    # 仅给 XPath 不足以定位；把图标名 / href 一起带出来。
+    tag = _local_tag(elem)
+    if tag == 'use':
+        icon = elem.get('data-icon')
+        if icon:
+            return f'{path} <use data-icon="{icon}"> (icon not found in templates/icons)'
+        href = elem.get('href') or elem.get('{http://www.w3.org/1999/xlink}href')
+        if href:
+            return f'{path} <use href="{href}">'
+    return path
+
+
 def _collect_unsupported_visuals(root: ET.Element) -> list[str]:
     issues: list[str] = []
 
@@ -439,7 +458,7 @@ def _collect_unsupported_visuals(root: ET.Element) -> list[str]:
         if (tag not in _CONVERTERS
                 and tag not in _NON_VISUAL_TAGS
                 and tag not in _SUPPORTED_VISUAL_CHILD_TAGS):
-            issues.append(current)
+            issues.append(_describe_unsupported(elem, current))
         for idx, child in enumerate(list(elem), start=1):
             walk(child, f'{current}[{idx}]', in_defs=(tag == 'defs'))
 

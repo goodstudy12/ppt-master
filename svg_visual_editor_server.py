@@ -17,6 +17,8 @@
     GET  /api/projects/files        列出 projects 下所有可编辑 SVG
     GET  /api/projects/file?path=   读取单个 SVG 文本 {content}
     POST /api/projects/file         写回单个 SVG {path, content}
+    GET  /api/projects/note?path=   读取当前 SVG 对应的演讲备注 {content}
+    POST /api/projects/note         写回当前 SVG 对应的演讲备注 {path, content}
     GET  /api/projects/raw/<path>   提供本地素材(图片等)原始字节
     POST /api/projects/renumber-pages 按当前项目目录重排 SVG 文件名与页脚页码
     POST /api/projects/reorder-pages 按前端拖拽顺序重排 SVG 文件名与页脚页码
@@ -227,6 +229,48 @@ def _infer_project_dir(projects_root: Path, relative_path: str) -> Path | None:
     return None
 
 
+def _note_path_for_svg(projects_root: Path, relative_path: str) -> Path | None:
+    """返回当前 SVG 对应的逐页备注路径,即 ``<project>/notes/<stem>.md``。
+
+    ``svg_to_pptx`` 按 SVG 文件名 stem 优先匹配 ``notes/*.md``,因此编辑器也以
+    同一规则读写,保证保存后的备注会直接进入 PPTX 导出。
+    """
+    target = _safe_join(projects_root, relative_path)
+    if target is None or target.suffix.lower() != '.svg':
+        return None
+    project_dir = _infer_project_dir(projects_root, relative_path)
+    if project_dir is None:
+        return None
+    return project_dir / 'notes' / f'{target.stem}.md'
+
+
+def _rename_note_files_for_plan(plan: list[dict], source_dir: Path) -> int:
+    """按 SVG 重编号计划同步重命名 ``notes/*.md`` 文件。"""
+    notes_dir = source_dir.parent / 'notes'
+    if not notes_dir.is_dir():
+        return 0
+
+    stamp = f'{int(time.time() * 1000)}'
+    temp_paths: dict[Path, Path] = {}
+    targets: list[tuple[Path, Path]] = []
+    for item in plan:
+        src_note = notes_dir / f'{item["src"].stem}.md'
+        dst_note = notes_dir / f'{item["dst"].stem}.md'
+        if not src_note.is_file() or src_note == dst_note:
+            continue
+        temp = notes_dir / f'.__renumber_{stamp}_{item["index"]}.md'
+        src_note.replace(temp)
+        temp_paths[src_note] = temp
+        targets.append((src_note, dst_note))
+
+    renamed = 0
+    for src_note, dst_note in targets:
+        actual = temp_paths[src_note]
+        actual.replace(dst_note)
+        renamed += 1
+    return renamed
+
+
 def _infer_source_dir(relative_path: str) -> str:
     """从 SVG 相对路径判断它属于哪个源目录,返回 'final' / 'output' / ''。12
 
@@ -415,10 +459,13 @@ def _renumber_svg_dir(source_dir: Path, projects_root: Path,
             'footer_updated': bool(item['content_changed']),
         })
 
+    notes_renamed = _rename_note_files_for_plan(plan, source_dir)
+
     return {
         'total': len(plan),
         'renamed': renamed,
         'footer_updated': footer_updated,
+        'notes_renamed': notes_renamed,
         'pages': pages,
     }
 
@@ -485,6 +532,48 @@ def create_app(projects_root: Path) -> Flask:
         except OSError as exc:
             return jsonify({'error': f'写入失败: {exc}'}), 500
         return jsonify({'status': 'ok'})
+
+    @app.route('/api/projects/note', methods=['GET', 'POST'])
+    def project_note():
+        """读取或写回当前 SVG 对应的逐页演讲备注。"""
+        if request.method == 'GET':
+            relative = request.args.get('path', '')
+            note_path = _note_path_for_svg(projects_root, relative)
+            if note_path is None:
+                return jsonify({'error': '无法定位备注文件'}), 400
+            if not note_path.exists():
+                return jsonify({
+                    'content': '',
+                    'relative_path': note_path.relative_to(projects_root.resolve()).as_posix(),
+                    'exists': False,
+                })
+            try:
+                content = note_path.read_text(encoding='utf-8')
+            except OSError as exc:
+                return jsonify({'error': f'读取备注失败: {exc}'}), 500
+            return jsonify({
+                'content': content,
+                'relative_path': note_path.relative_to(projects_root.resolve()).as_posix(),
+                'exists': True,
+            })
+
+        data = request.get_json(silent=True) or {}
+        relative = data.get('path', '')
+        content = data.get('content')
+        if not isinstance(content, str):
+            return jsonify({'error': 'content 必须为字符串'}), 400
+        note_path = _note_path_for_svg(projects_root, relative)
+        if note_path is None:
+            return jsonify({'error': '无法定位备注文件'}), 400
+        try:
+            note_path.parent.mkdir(parents=True, exist_ok=True)
+            note_path.write_text(content, encoding='utf-8')
+        except OSError as exc:
+            return jsonify({'error': f'写入备注失败: {exc}'}), 500
+        return jsonify({
+            'status': 'ok',
+            'relative_path': note_path.relative_to(projects_root.resolve()).as_posix(),
+        })
 
     @app.route('/api/projects/raw/<path:subpath>')
     def project_raw(subpath: str):
@@ -581,9 +670,17 @@ def create_app(projects_root: Path) -> Flask:
         )
         backup_dir.mkdir(parents=True, exist_ok=True)
         backup_path = backup_dir / target.name
+        note_path = _note_path_for_svg(projects_root, relative_path)
+        note_backup_path: Path | None = None
+        if note_path is not None and note_path.is_file():
+            note_backup_dir = backup_dir.parent / 'notes'
+            note_backup_dir.mkdir(parents=True, exist_ok=True)
+            note_backup_path = note_backup_dir / note_path.name
 
         try:
             target.replace(backup_path)
+            if note_path is not None and note_backup_path is not None:
+                note_path.replace(note_backup_path)
             result = _renumber_svg_dir(source_dir, projects_root)
         except OSError as exc:
             return jsonify({'error': f'删除或重编号失败: {exc}'}), 500
@@ -598,6 +695,10 @@ def create_app(projects_root: Path) -> Flask:
             'status': 'ok',
             'deleted_relative_path': relative_path,
             'backup_relative_path': backup_path.relative_to(projects_root.resolve()).as_posix(),
+            'note_backup_relative_path': (
+                note_backup_path.relative_to(projects_root.resolve()).as_posix()
+                if note_backup_path is not None else ''
+            ),
             'deleted_page_number': deleted_index,
             'next_relative_path': next_relative,
             **result,
