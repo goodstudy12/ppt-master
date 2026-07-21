@@ -7,9 +7,14 @@ import zipfile
 from typing import Any
 
 try:
-    from openpyxl import Workbook
+    from xlsxwriter import Workbook as XlsxWriterWorkbook
 except ImportError:  # pragma: no cover - optional compatibility enhancement
-    Workbook = None
+    XlsxWriterWorkbook = None
+
+try:
+    from openpyxl import Workbook as OpenpyxlWorkbook
+except ImportError:  # pragma: no cover - optional compatibility enhancement
+    OpenpyxlWorkbook = None
 
 from ..drawingml.utils import _xml_escape
 from .marker_common import _excel_col
@@ -20,6 +25,8 @@ def _xlsx_cell_ref(row: int, col: int) -> str:
 
 
 def _xlsx_cell(value: Any, row: int, col: int) -> str:
+    if value is None:
+        return ""
     ref = _xlsx_cell_ref(row, col)
     if isinstance(value, (int, float)) and not isinstance(value, bool):
         return f'<c r="{ref}"><v>{value}</v></c>'
@@ -29,12 +36,29 @@ def _xlsx_cell(value: Any, row: int, col: int) -> str:
 
 
 def _minimal_workbook(rows: list[list[Any]]) -> bytes:
-    if Workbook is not None:
-        workbook = Workbook()
+    if XlsxWriterWorkbook is not None:
+        buffer = io.BytesIO()
+        workbook = XlsxWriterWorkbook(buffer, {
+            "in_memory": True,
+            "strings_to_formulas": False,
+            "strings_to_urls": False,
+        })
+        worksheet = workbook.add_worksheet("Sheet1")
+        for row_index, row in enumerate(rows):
+            for col_index, value in enumerate(row):
+                worksheet.write(row_index, col_index, value)
+        workbook.close()
+        return buffer.getvalue()
+
+    if OpenpyxlWorkbook is not None:
+        workbook = OpenpyxlWorkbook()
         worksheet = workbook.active
         worksheet.title = "Sheet1"
-        for row in rows:
-            worksheet.append(row)
+        for row_index, row in enumerate(rows, start=1):
+            for col_index, value in enumerate(row, start=1):
+                cell = worksheet.cell(row=row_index, column=col_index, value=value)
+                if isinstance(value, str):
+                    cell.data_type = "s"
         buffer = io.BytesIO()
         workbook.save(buffer)
         workbook.close()
@@ -103,9 +127,31 @@ def _minimal_workbook(rows: list[list[Any]]) -> bytes:
 
 
 def _minimal_category_chart_workbook(chart_data: dict[str, Any]) -> bytes:
+    if chart_data.get("kind") == "combo" and chart_data.get("independent_categories"):
+        plots = chart_data["plots"]
+        column_count = max(
+            int(plot["start_column"]) + len(plot["series"]) - 1
+            for plot in plots
+        )
+        rows: list[list[Any]] = [[None] * column_count]
+        for plot in plots:
+            category_column = int(plot["category_column"]) - 1
+            start_column = int(plot["start_column"]) - 1
+            for offset, series in enumerate(plot["series"]):
+                rows[0][start_column + offset] = series["name"]
+            for point_index, category in enumerate(plot["categories"], start=1):
+                while len(rows) <= point_index:
+                    rows.append([None] * column_count)
+                rows[point_index][category_column] = category
+                for offset, series in enumerate(plot["series"]):
+                    rows[point_index][start_column + offset] = (
+                        series["values"][point_index - 1]
+                    )
+        return _minimal_workbook(rows)
+
     categories = chart_data["categories"]
     series = chart_data["series"]
-    rows: list[list[Any]] = [["Category"] + [item["name"] for item in series]]
+    rows: list[list[Any]] = [[None] + [item["name"] for item in series]]
     for row_index, category in enumerate(categories):
         rows.append([category] + [item["values"][row_index] for item in series])
     return _minimal_workbook(rows)

@@ -1,6 +1,6 @@
 # FAQ
 
-[English](./faq.md) | [中文](./zh/faq.md)
+[English](./faq.md) | [Chinese](./zh/faq.md)
 
 ---
 
@@ -10,7 +10,7 @@ Almost anything: **PDF**, **DOCX**, **PPTX**, **EPUB**, **HTML**, **LaTeX**, **R
 
 ## Q: Can I generate a deck with just a topic, no source materials?
 
-Yes. Tell the AI your topic or scenario (e.g. "make a PPT about Hayao Miyazaki", "introduce our new product"). The AI will trigger the **topic-research workflow** — gathering authoritative sources via web search (Wikipedia / official sites / institutional releases), assembling them into a Markdown research document + image folder, then feeding both into the main pipeline.
+Yes. Tell the AI your topic or scenario (e.g. "make a PPT about Hayao Miyazaki", "introduce our new product"). The Generate PPTX route will run its **topic-research stage** to gather the factual baseline and provenance needed for planning. If you provide partial material, the same stage may fill only the factual gaps required by your requested outcome unless you ask for a source-only result. Images are selected during Strategist planning and acquired only after final confirmation.
 
 Quality depends on what's on the open web. If you already have specialized material (papers, internal docs), giving those files to the AI directly produces better results than web research alone.
 
@@ -30,7 +30,36 @@ Just specify the format when starting a project (e.g., `--format xhs`). The outp
 
 ## Q: What AI tools work with PPT Master?
 
-PPT Master works with any AI coding agent that can read files and run shell commands — **Claude Code** (CLI / VS Code / JetBrains / Web), **VS Code Copilot**, **Codex**, and others. See the cost comparison below for pricing differences.
+PPT Master works inside any agent-capable AI tool that can read files and run shell commands — **Claude Code** (CLI / VS Code / JetBrains / Web), **VS Code Copilot**, **Codex**, and others. See the cost comparison below for pricing differences.
+
+## Q: I downloaded an old version. How do I update to the latest?
+
+It depends on how you installed PPT Master:
+
+| Install method | Update method |
+|---|---|
+| Git clone | Run `python3 skills/ppt-master/scripts/update_repo.py` inside the `ppt-master` folder |
+| Download ZIP | Download the latest ZIP, unzip it into a new folder, copy your old `.env` and `projects/` folder into the new folder, then run `pip install -r requirements.txt` |
+| Skill marketplace | Reinstall or update through the matching marketplace / skills tool |
+
+For long-term use, Git clone is recommended. ZIP is fine for a quick trial, but it has no Git history and cannot run `git pull`.
+
+If you are not sure which install method you used, ask the AI to run this from the project folder:
+
+```bash
+python3 skills/ppt-master/scripts/update_repo.py
+```
+
+If the folder is not a Git clone, the script will tell you how to migrate a ZIP install.
+
+## Q: The repo is over 1 GB and my skills tool fails to download it — can I get just the skill?
+
+Yes. The full repository is large (Git history plus bundled example decks and their assets), and that size is baked into the history — it can't be trimmed without breaking the many existing forks. If you only want the skill and not the full repo, use a lightweight path instead:
+
+- **Marketplace CLI**: `npx skills add hugohe3/ppt-master` or Claude Code's `/plugin install` fetch the skill files only (see the Set Up section of the README).
+- **Manual download**: grab `ppt-master-skill-*.zip` from the [Releases](https://github.com/hugohe3/ppt-master/releases) page — the skill files only (~50 MB), no full-repo clone.
+
+Either way, run `pip install -r requirements.txt` from the installed location so the post-processing scripts work.
 
 ## Q: Can I use AI-generated images in my presentation?
 
@@ -42,9 +71,13 @@ Yes — pick "Web-sourced" in the Strategist's Image Usage step. PPT Master ship
 
 For better contemporary stock photography, set `PEXELS_API_KEY` and/or `PIXABAY_API_KEY` in `.env` (both are free). The search will include Pexels / Pixabay automatically, which usually improves people, workplace, lifestyle, product, and illustration images. You can mix paths in one deck (e.g. AI for hero illustrations, web for team photos). If a selected image requires attribution, Executor adds a small inline credit on the affected slide.
 
+Be clear on what this buys you: **web search only finds *a* relevant, downloadable, license-clean image — it does not guarantee the image is good or right for that page**, because ranking sees text metadata, not the picture. During generation a multimodal model reads a thumbnail to sanity-check and re-queries a poor fit, but **the most reliable route to high quality is to search yourself**: find a better image anywhere, hand the AI its URL, and it downloads and swaps it in via `image_search.py --from-url <url>` (recorded as a manual source; rights are yours to verify). Replacement can happen any time — mid-generation or from live preview — without stopping the run. In short: treat web search as a placeholder fallback and manual picking as the polish step.
+
 ## Q: Can I edit the generated presentations?
 
-Yes. The main `.pptx` (native PowerPoint shapes — all text, graphics, and colors directly editable without any conversion) is saved to `exports/` with a timestamp. A copy of `svg_output/` (the Executor's raw SVG source) is always written to `backup/<timestamp>/svg_output/` so you can rebuild via `finalize_svg → svg_to_pptx` without re-running the LLM. Pass `--svg-snapshot` to additionally emit an SVG-image preview pptx alongside the native pptx in `exports/` — handy for cross-platform distribution as a single file; off by default because live preview already serves as the SVG visual reference for day-to-day work. Requires **Office 2016** or later.
+Yes. The only PPTX export route in the SVG pipeline is PPT Master's own `svg_output/` → DrawingML conversion. It saves a timestamped native PowerPoint deck to `exports/`, with text, graphics, and colors directly editable as PowerPoint objects. A copy of `svg_output/` (the Executor's raw SVG source) is always written to `backup/<timestamp>/svg_output/` so you can rebuild via `finalize_svg → svg_to_pptx` without re-running the LLM.
+
+`finalize_svg.py` remains a mandatory Step 7 operation even though native PPTX export reads `svg_output/`. It produces self-contained files in `svg_final/` for visual inspection and for manual insertion into another deck as SVG pictures. PowerPoint's manual **Convert to Shape** command is not a supported round-trip path; use the generated native PPTX when you need editable shapes.
 
 ## Q: Why is one paragraph split into multiple text boxes? Can I get one text box per paragraph instead?
 
@@ -58,13 +91,34 @@ python3 skills/ppt-master/scripts/svg_to_pptx.py <project_path> --no-merge
 
 With `--no-merge`, every visual line becomes its own PowerPoint text frame. This preserves the SVG's exact line layout pixel-for-pixel, which matters for covers, charts, tables, and any page with tight typographic alignment.
 
-**Trade-off**: default paragraph merging lets PowerPoint wrap merged paragraphs to a different line count than the SVG source. Best for long-form body text (abstracts, multi-paragraph sections, reference lists); use `--no-merge` for layout-tight pages. The detection is conservative — mixed-layout `<text>` falls through to the per-line path automatically.
+**Trade-off**: default merging keeps one editable frame and preserves authored line boundaries. Use `--no-merge` only when every visual line must also remain an independently movable text box. The detection is conservative — mixed-layout `<text>` falls through to the per-line path automatically.
 
 When you're chatting with the AI, you can also just ask for strict line fidelity on layout-sensitive pages — the AI will add `--no-merge` when re-exporting.
 
-## Q: What Executor style is retained?
+## Q: Why are font sizes in px, not pt? Do they change on export?
 
-Only **Executor_FanRuan** is retained. It is used for FanRuan / FineReport / FineBI style decks, BI dashboards, operating reports, management cockpits, and KPI monitoring pages.
+PPT Master works in **unitless px end-to-end** — the confirm page, `spec_lock.md`, and the SVG all carry px; there is no pt layer. The SVG canvas is literally 1280×720 px, so px is the real layout / execution unit, and keeping a single unit avoids the size drift you get when a value is "confirmed as 20pt" but written into the SVG as a different number.
+
+PowerPoint displays pt, so the **export** converts px → pt automatically (`pt = px × 0.75`, kept to one decimal). For example a `24px` body becomes `18pt`, a `42px` title becomes `31.5pt`. So a non-integer like `13.5pt` or `31.5pt` in PowerPoint is **expected and intentional**, not a bug — the size is whatever the px works out to, no longer forced onto whole or half-point values.
+
+The body baseline is a fixed value per **reading mode** (not a range). This controls reading distance and density; it is separate from the open-ended communication intent:
+
+| Reading mode | Body px | ≈ exported pt |
+|---|---|---|
+| `text` (read-close: report / leave-behind) | 20px | 15pt |
+| `balanced` (default: roadshow / review) | 24px | 18pt |
+| `presentation` (projected / launch) | 32px | 24pt |
+
+Title, subtitle, footnote and the other roles derive from the body by ratio and snap to clean even px. You can override any role's px value on the confirm page.
+
+## Q: How does PPT Master decide a deck's style?
+
+Two independent choices, locked at confirmation `d`:
+
+- **Mode** (how the deck argues): `pyramid` / `narrative` / `instructional` / `showcase` / `briefing` — see `references/modes/`
+- **Visual style** (how it looks): `swiss-minimal` / `editorial` / `soft-rounded` / `dark-tech` … + `custom` — see `references/visual-styles/`
+
+Any mode pairs with any visual style.
 
 ## Q: Is PPT Master expensive to use?
 
@@ -72,29 +126,29 @@ PPT Master itself is free and open source. The only cost is your own AI model us
 
 AI tools across the industry are shifting to usage-based billing — you pay for what you actually consume. PPT Master works with this model naturally: there's no separate PPT subscription, no proprietary credits, no per-seat fee for a presentation platform on top of what you're already paying for AI.
 
-For comparison, Gamma subscriptions run $8–20/month, Beautiful.ai $12–45/month — regardless of how much you actually use them. PPT Master adds zero cost on top of your existing AI spend.
+And because it runs inside a coding agent, a flat subscription plan lets you make many decks at no extra per-deck cost, while a direct per-token API is simply a different price structure — the choice is yours. Either way, PPT Master adds no cost of its own on top of your AI spend.
 
 ## Q: Are the charts in the generated PPTX editable?
 
-Charts are rendered as **custom-designed SVG graphics** converted to native PowerPoint shapes — fully editable as shapes (move, recolor, retype, restyle). This is a deliberate choice over Excel-driven chart objects: PowerPoint's default charts look generic and dated, and lock decks into rigid templates. SVG charts give you publication-quality visuals you can fine-tune directly in PowerPoint.
+By default, charts are rendered as **custom-designed SVG graphics** converted to native PowerPoint shapes — fully editable as shapes (move, recolor, retype, restyle). This is a deliberate default over Excel-driven chart objects: PowerPoint's default charts look generic and dated, and lock decks into rigid templates. SVG charts give you publication-quality visuals you can fine-tune directly in PowerPoint, and they render pixel-consistently across PowerPoint / Keynote / LibreOffice / WPS.
 
-If your workflow specifically requires Excel-driven data editing, manually create a similar chart yourself in PowerPoint after export.
+If your workflow specifically requires Excel-driven data editing or PowerPoint's chart/table-specific controls, export with `--native-charts-and-tables`: supported data charts and pure text-grid tables then ship as **PowerPoint-native Chart / Table objects backed by data** (saved as `exports/<name>_<timestamp>_native_charts_tables.pptx`, keeping the deck's own colors instead of PowerPoint's default theme). The default SVG fallback also becomes editable DrawingML shapes, but it has no chart data workbook or table/chart object model. Native objects may look slightly different across PowerPoint / Keynote / LibreOffice / WPS, so the shape-based route remains the visual-stability default.
 
 ## Q: Can I change page transitions and element animations?
 
-Yes. Page transitions (`fade` 0.4s by default) and per-element entrance animations (`auto` effect with `after-previous` cascade by default — effect mapped from each group's SVG id, with image-like ids cycling a visual pool for variation) are both controlled by `svg_to_pptx.py` flags — `-t/--transition` for page-level and `-a/--animation` for element-level. Common one-liners:
+Yes. Page transitions are on by default (`fade` 0.4s); per-element entrance animation is **off by default** — a page appears as a whole instead of having elements auto-cascade in one by one (that unsolicited cascade is the strongest "AI deck" tell). Both are controlled by `svg_to_pptx.py` flags — `-t/--transition` for page-level and `-a/--animation` for element-level. Turn element animation on explicitly when you want it:
 
 ```bash
 python3 skills/ppt-master/scripts/svg_to_pptx.py <project> -t push       # different transition
 python3 skills/ppt-master/scripts/svg_to_pptx.py <project> -t none       # disable transitions
-python3 skills/ppt-master/scripts/svg_to_pptx.py <project> -a none       # disable per-element animation
-python3 skills/ppt-master/scripts/svg_to_pptx.py <project> --animation fade        # use a single effect instead of mixed
-python3 skills/ppt-master/scripts/svg_to_pptx.py <project> --animation-trigger on-click   # presenter-paced reveals
+python3 skills/ppt-master/scripts/svg_to_pptx.py <project> -a auto       # enable per-element entrance (effect mapped from group id)
+python3 skills/ppt-master/scripts/svg_to_pptx.py <project> --animation fade        # enable with a single effect
+python3 skills/ppt-master/scripts/svg_to_pptx.py <project> -a auto --animation-trigger on-click   # presenter-paced reveals
 ```
 
 `on-click` is for live presentations. Narrated/video export via `--recorded-narration` rejects it because PPT Master writes page timings, not object-level click timings; use `after-previous` or `with-previous` for narrated decks.
 
-Full effect list, anchor logic (top-level `<g id="...">`), fallback behavior, and limitations: see [Animations & Transitions](../skills/ppt-master/references/animations.md).
+For common commands, Start-mode guidance, and object-level customization, see [Animations & Transitions](./animations.md). Exact effect and validation behavior remains in the linked execution reference.
 
 ## Q: Which AI model works best?
 
@@ -106,7 +160,7 @@ Other models (Gemini, GLM, MiniMax, etc.) vary in quality. In general, models wi
 
 ## Q: Someone said PPT Master is "just a toy" — is that fair?
 
-No. PPT Master is a **harness**, not a complete agent — `harness + model = agent`, and the output ceiling is set entirely by the model, not the harness. Evaluating PPT Master with a weak or small-context model is like test-driving a sports car in first gear and concluding it's slow.
+No. PPT Master is a presentation workflow, not a model or a complete agent. It supplies presentation-specific reasoning, contracts, project state, deterministic conversion, and quality gates; the selected model still sets the quality ceiling. Evaluating the workflow with a weak or small-context model is like test-driving a sports car in first gear and concluding it is slow.
 
 **The full-power combination:**
 
@@ -121,13 +175,13 @@ One last thing: this is a free, solo-maintained open-source project. If it fits 
 
 ## Q: Text overflows or elements are misaligned — what can I do?
 
-This is almost always a model capability issue, not a bug in PPT Master. SVG layout is essentially manual absolute positioning — the model must calculate coordinates, font metrics, and container sizes correctly.
+The cause depends on where the mismatch appears. If the source SVG already overflows or is misaligned, it is usually an authoring/layout problem: the model must calculate coordinates, font metrics, and container sizes correctly. If the SVG preview is correct but the exported PPTX differs, that may be a converter or renderer bug and should be reported with both artifacts.
 
 **Fixes to try**:
-1. Switch to **Claude** (Opus or Sonnet) if you're using another model
+1. Compare the page in `svg_output/` with the exported PPTX to isolate authoring from conversion
 2. Tell the AI which specific page has the problem and describe the issue — it can regenerate individual pages
-3. Open the SVG source file directly and ask the AI to fix coordinates
-4. Remember: the generated PPTX is a **high-quality starting point**, not a final deliverable — minor adjustments in PowerPoint are expected
+3. If the SVG itself is repeatedly wrong, use a stronger model or ask the AI to fix its coordinates directly
+4. Remember: the generated PPTX is a **high-quality editable draft**, not a sealed final deliverable — minor finishing adjustments in PowerPoint are expected
 
 ## Q: How long does a presentation take to generate?
 
@@ -139,15 +193,38 @@ If generation feels slow, check your model's token throughput. The bottleneck is
 
 Default recommendation: **continuous one-shot generation**. 10–15 page decks fit comfortably in a 200K window, and cross-page visual consistency is best when the Executor can see prior pages in the same session (it actively aligns style, font sizes, and rhythm).
 
-Only when signals are heavy (≥ 18 pages, thick source material, or `topic-research` ran with substantial web-fetch accumulation) does the AI surface an optional **two-stage (split mode)** hint at the Strategist phase: Phase A (eight confirmations + image acquisition) ends in the current chat; you open a fresh chat window and type `继续生成 projects/<project_name>` (or "resume execution projects/<project_name>") to enter Phase B (SVG generation + export). The new session reloads `design_spec` / `spec_lock` / `sources` / `images` from disk and continues from there.
+Only when signals are heavy (≥ 18 pages, thick source material, or `topic-research` ran with substantial web-fetch accumulation) does the AI surface an optional **split mode** hint at the Strategist phase: the planning session (Strategist confirmation stage + image acquisition) ends in the current chat; you open a fresh chat window and type `resume execution projects/<project_name>` to enter the execution session (SVG generation + export). The new session reloads `design_spec` / `spec_lock` / `sources` / `images` from disk and continues from there.
 
-Split mode is a **compromise** — it pays ~6K tokens (re-reading SKILL.md) to drop 60–200K of Phase A noise, then reuses the freed budget in Phase B to re-read `sources/` for richer slide content. **Not needed when signals are normal**; the hint won't appear, and you can always ignore it and stay in continuous mode.
+Split mode is a **compromise** — the fresh session pays the fixed cost of reloading the Generate authority and required execution references, but drops the planning-session noise and reuses the freed budget to re-read `sources/` for richer slide content. **Not needed when signals are normal**; the hint won't appear, and you can always ignore it and stay in continuous mode.
 
 ## Q: Can I preview or fix individual pages before the full export?
 
 Yes. You can **interrupt the workflow at any time** — after the first few pages are generated, review them and give feedback. The AI can regenerate specific pages based on your comments. You don't need to wait until the end to make corrections.
 
 For post-generation fixes, simply tell the AI: "Page 3 has a layout issue — the title overlaps the chart" and it will fix that specific SVG.
+
+## Q: I have an existing PPT and want to build on it — which route should I use?
+
+Think of "using an existing PPT" as two questions: **keep its content or not**, and **keep its design (layout + visuals) or not**. The four combinations map to three generation paths plus the option to keep the original unchanged:
+
+| Intent | Route | What stays fixed |
+|---|---|---|
+| Keep content + redo layout | **Generate PPTX + beautify profile** | Page count, page order, per-slide wording, chart/table data |
+| Replace content + keep design | **Fill Native PPTX** | Native source slide design; selected pages may be reused/reordered |
+| Keep only content, redo design and pagination | **Generate PPTX** | Source facts; story structure and page count may change |
+| Keep content + keep design | No generation needed | Use the original file |
+
+Use the **beautify profile** when the source deck's page split is part of the requested output: text stays verbatim, page count and order are preserved 1:1, only layout / hierarchy / whitespace are redone while inheriting the original palette/fonts. Say "make this deck look better" / "re-layout this, keep the wording". See the [beautify profile](../skills/ppt-master/workflows/profiles/beautify-pptx.md).
+
+Use the **main pipeline** when the source PPT is just material: extract it to Markdown with `ppt_to_md`, read PPTX intake facts from `analysis/`, then let Strategist re-architect the outline freely (merge / split / reorder pages). Say "build a better deck from this one's content" or "turn this into a 10-page executive briefing".
+
+The one-line test between beautify and the main pipeline: **is the source's page split information to preserve, or just the previous author's structure to improve?** Preserve → beautify; improve → main pipeline. The concrete discriminator is **page count / order**: if it changes at all — split, merge, drop, reorder, or even keeping every word but splitting one crowded page so it reads better — that is re-pagination, which is the main pipeline. Beautify is strictly 1:1.
+
+If your request is ambiguous, for example "make this PPT more professional" or "optimize this deck", the AI should ask one clarification before routing: **keep the original page count/order and each slide's wording, or treat the PPT as source material and restructure it into a new story?**
+
+There is also one orthogonal route: if you don't want to produce a deck right now but want to **harvest the design into a reusable template** for future use, use **create-template** (see "How do I create a custom template?" below).
+
+---
 
 ## Q: I already have a finished `.pptx` — can I reuse its design and just fill in new content?
 
@@ -163,24 +240,27 @@ Want to turn a PPT you love into a reusable template for PPT Master? Here's how:
 
 **Step 1 — Prepare Reference Material**
 
-The simplest path is still to prepare screenshots of the key page types from your reference PPT — cover page, table of contents, chapter divider, content page, and closing page. Save them as images in a single folder with clear, descriptive filenames (e.g., `cover.png`, `toc.png`, `chapter.png`, `content.png`, `closing.png`).
+The recommended input is the original `.pptx`. PPT Master extracts theme identity, declared Master/Layout topology, placeholder metadata, native-shape evidence, and reusable assets that are actually present and supported. `standard` and `fidelity` use the source as visual reference and author a new SVG roster plus a new Master/Layout/slot system; they neither preserve nor distill source topology. `mirror` instead materializes those validated source facts into a new workspace without semantic synthesis or gap filling. Fixed Master/Layout group wrappers are mechanically expanded into direct atoms because structural layers cannot be `<g>`.
 
-If you already have the original `.pptx` template file, you can also provide it as a reference source. PPT Master can extract reusable background images, logos, theme colors, and font metadata from the PPTX first, then use those assets during template reconstruction.
+Large imported SVGs may contain native-shape metadata, hidden carriers, and preview fingerprints. That lossless representation stays immutable in the temporary analysis workspace as payload backing. Template creation uses a lightweight editable IR with document-local source refs and a compact path/hash manifest. `standard` / `fidelity` author project-canonical SVG and use compact authored-preset groups only for exact registered preset matches. Mirror materializes final templates from the IR, reuses converter-supported payload only for unchanged Slide-local/slot refs, and keeps an SVG fallback for unsupported or edited objects.
+
+If no source PPTX exists, screenshots of the key page types still work — cover, TOC, chapter, content, and closing — but geometry, fonts, and inheritance must then be inferred visually.
 
 **Step 2 — Let AI Create the Template**
 
-Use an AI coding agent (Claude Code, Codex, etc.) and ask it to use the **PPT Master `/create-template` workflow** to convert your reference material into a template. The more context you give, the better the result — for example:
+Use an agent-capable AI tool (Claude Code, Codex, etc.) and ask it to use the **PPT Master `/create-template` workflow** to convert your reference material into a template. The more context you give, the better the result — for example:
 
 - Template name and intended use case (e.g., government reports, premium consulting)
 - Desired tone and color palette (e.g., "modern and restrained, dark blue primary")
 - Category preference (`brand` / `general` / `scenario` / `government` / `special`)
 - Canvas format, if not the default 16:9
+- Output scope: indexed `library` (default) or one already initialized `project`; both use the same workspace routing and omit empty optional asset directories
 
-You don't need to supply every detail upfront — the AI agent will ask follow-up questions to fill in anything missing (template ID, theme mode, etc.).
+You don't need to supply every detail upfront — the AI agent will ask follow-up questions to fill in anything missing (output scope, template ID, theme mode, etc.).
 
 **Step 3 — Wait for the Result**
 
-The AI agent will handle the rest — analyzing your screenshots, building the layout definitions, and registering the template so it appears as a selectable option in the PPT Master workflow.
+The AI agent will handle the rest — analyzing your references, building the layout definitions, and validating the template. If you request PowerPoint review, it also generates `exports/<id>_template_preview.pptx` on demand. Both scopes require `templates/` and use optional `images/`, `icons/`, and `exports/`: library scope writes `skills/ppt-master/templates/<kind>/<id>/` and registers it; project scope writes `projects/<name>/` and skips registration. Empty optional directories are omitted. Give that workspace root to Step 3; it never copies `exports/`, and library review exports are Git-ignored. A flat workspace with `design_spec.md` at the root remains compatible only when its SVGs already satisfy the current contract; semantic-legacy packages must be replaced through `create-template` rather than upgraded in place.
 
 > **Tip**: The more specific you are about the style and use case, the better the generated template will match your expectations.
 

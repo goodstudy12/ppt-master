@@ -1,4 +1,4 @@
-# PPT Master — AI generates natively editable PPTX from any document
+# PPT Master — AI generates native PowerPoint from any document
 
 [![Version](https://img.shields.io/github/v/release/hugohe3/ppt-master?label=version&color=blue)](https://github.com/hugohe3/ppt-master/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -13,7 +13,17 @@
 English | [中文](./README_CN.md)
 
 <details open>
-<summary>This project is kept free and open source with the support of <a href="https://www.packyapi.com/register?aff=ppt-master">PackyCode</a>, <a href="https://apikey.fun/register?aff=PPT-MASTER">APIKEY.FUN</a>, <a href="https://runapi.co/register?aff=WMLJ">RunAPI</a>, <a href="https://www.compshare.cn/coding-plan?ytag=GPU_YY-git_pptmaster0624">YouYun ZhiSuan</a> and other sponsors.</summary>
+<summary>This project is kept free and open source with the support of <a href="https://www.kimi.com/code/?aff=ppt-master">Kimi</a>, <a href="https://www.packyapi.com/register?aff=ppt-master">PackyCode</a>, <a href="https://apikey.fun/register?aff=PPT-MASTER">APIKEY.FUN</a>, <a href="https://runapi.co/register?aff=WMLJ">RunAPI</a>, <a href="https://www.compshare.cn/coding-plan?ytag=GPU_YY-git_pptmaster0624">YouYun ZhiSuan</a> and other sponsors.</summary>
+
+<p align="center">
+  <a href="https://www.kimi.com/code/?aff=ppt-master"><img src="https://gcdn.moonshot.cn/growth-cdn/sponsor/kimi-en.png" alt="Kimi" width="100%"></a>
+</p>
+
+Thanks to [Kimi](https://www.kimi.com/code/?aff=ppt-master) for sponsoring this project! [Kimi K2.7](https://platform.kimi.ai/docs/guide/kimi-k2-7-code-quickstart) is an open-source agentic model developed by Moonshot AI. With PPT Master, Kimi can understand source materials such as PDFs, DOCX files, and web pages, identify key points, structure the narrative, and generate a natively editable PPTX that you can continue refining in PowerPoint.
+
+**Try [Kimi Code](https://www.kimi.com/code/?aff=ppt-master), or access the API through the Kimi Open Platform ([中文站](https://platform.kimi.com?aff=ppt-master) | [Global](https://platform.kimi.ai?aff=ppt-master)).**
+
+<hr>
 
 <table>
   <tr>
@@ -36,7 +46,7 @@ English | [中文](./README_CN.md)
 
 </details>
 
-> **AI generates your deck — it doesn't fill in a template.** PPT Master is a workflow that runs inside AI IDEs (Claude Code, Cursor, VS Code + Copilot, etc.): hand the AI your PDF / DOCX / web pages, and it produces a real PowerPoint on your machine — every element editable in PowerPoint, your data stays local, no platform or model lock-in. How it works and where the limits are → [Product Positioning](#product-positioning).
+> **Editable is already table stakes — what sets PPT Master apart is native depth.** It hands you a real PowerPoint: slide masters, native shapes, data-backed charts and tables — not flat text boxes, and not a filled-in template. It also does more than lay slides out nicely — it reasons the argument into shape first, then designs; and that native depth keeps **converging with PowerPoint itself**, adding more of its native capabilities release after release. In form, it's a workflow that runs inside any agent-capable AI tool: hand the AI your topic or material, and it generates on your machine — your data stays local, no platform or model lock-in. How it works and where the limits are → [Product Positioning](#product-positioning).
 
 <p align="center">
   <a href="https://hugohe3.github.io/ppt-master/"><strong>Live Demo</strong></a> ·
@@ -90,30 +100,29 @@ English | [中文](./README_CN.md)
 
 ---
 
-Drop in your source material, and the deck you get back is **more than just editable**: it has native slide transitions and entrance animations, speaker notes that can become audio narration, and it can follow your own PPT template — a complete deck you can present as-is and keep refining. How to use each capability → [Getting Started](./docs/getting-started.md).
+Drop in your source material, and what you get back isn't a static layout you can edit — it's **a complete deck with real PowerPoint behavior**: native slide transitions, opt-in entrance animations (off by default), speaker notes that can become audio narration and even video, charts and tables that can ship as real data-backed PowerPoint objects, and it can follow your own PPT template — present it as-is, and keep refining. How to use each capability → [Getting Started](./docs/getting-started.md).
 
 ## Product Positioning
 
-**If a file can't be opened and edited in PowerPoint, it shouldn't be called a PPT.** AI presentation tools roughly fall into four categories, and PPT Master only does the last one:
+**Editable is now table stakes — the real question is how much of PowerPoint you actually get.** PPT Master delivers PowerPoint's native object model itself, and in depth: native shapes and connectors with working adjustment handles, data-backed charts and tables on demand, and the full text / picture / fill / effect model — click any element and keep editing it as a native PowerPoint object; and through the template / structured route, it can hand you a deck with real slide masters and layouts (`p:sldMaster` / `p:sldLayout` inheritance).
 
-| Category | Output | Editable element-by-element in PowerPoint? |
-|---|---|:---:|
-| Template fill-in | PPTX built from a fixed template | Partially — limited by the template |
-| Image-based | One large image per slide, packed into PPTX | ❌ each slide is a picture |
-| HTML presentation | Web-based deck | ❌ not a PPTX |
-| **Native editable (PPT Master)** | **Real DrawingML shapes, text boxes, charts** | ✅ click any element to edit |
+And that depth is a **direction of travel, not a fixed checklist.** PPT Master's north star is to keep converging with PowerPoint itself: an ongoing effort to build and integrate more of PowerPoint's native capabilities, release after release, closing the gap between what an AI can generate for you and what you could build by hand in PowerPoint. The [PowerPoint ↔ SVG Mapping Guide](./docs/powerpoint-svg-mapping.md) is the honest, feature-by-feature record of how far that reaches today — and SmartArt is a deliberate omission, not a gap.
 
-In form, it's not a website or an app but a workflow (a "skill") that runs inside AI IDEs like Claude Code, Cursor, VS Code + Copilot, or Codebuddy: you tell the AI in the IDE's chat — "make a deck from this PDF" — and it follows the workflow to produce a genuinely editable `.pptx` on your machine. No coding on your side; you do exactly three things — install Python, install an AI IDE, drop in your material.
+In form, it's a workflow (a "skill") that runs inside any agent-capable AI tool: tell it in chat — "make a deck from this PDF" — and it runs the workflow on your machine and exports a natively editable `.pptx`. No coding on your side; you do exactly three things — install Python, install an AI tool, drop in your material.
 
-This form buys three promises that other tools struggle to make at the same time:
+Generating a new deck from source documents is the main pipeline, but not the only route. PPT Master can also distill reusable brand / layout / deck templates from your references, fill an existing `.pptx` with new content while preserving its design, and add native transitions, animations, and narration to a finished deck — each route with an explicit contract for what gets preserved.
 
-- **Transparent, predictable cost** — the tool is free and open source; the only cost is your AI model usage. You pay exactly what you consume — no separate PPT subscription added on top
-- **Data stays local** — your files shouldn't have to be uploaded to someone else's server just to make a presentation. Apart from AI model communication, the entire pipeline runs on your machine
-- **No platform lock-in** — your workflow shouldn't be held hostage by any single company. Works with Claude Code, Cursor, VS Code Copilot, and more; supports Claude, GPT, Gemini, Kimi, and other models
+On top of that native depth, this form comes with three promises:
+
+- **Transparent, predictable cost** — free and open source; the only cost is your AI model usage, with no PPT subscription on top
+- **Data stays local** — apart from AI model communication, the entire pipeline runs on your machine
+- **No platform lock-in** — any agent-capable AI IDE can drive it; Claude, GPT, Gemini, Kimi, and other models all work
+
+Why you'd choose it, and where it isn't the right fit → [Why PPT Master](./docs/why-ppt-master.md); the long-term capability boundaries behind these promises → [Project Positioning](./docs/project-positioning.md).
 
 > [!IMPORTANT]
 > ### This is a tool, not a wishing well
-> `harness + model = agent` — PPT Master only owns the workflow; the model sets the ceiling. Recommended: **Claude with a large context window (~1M tokens) + AI image generation (`gpt-image-2`)**; other models can run the pipeline, with a quality gap.
+> `harness + model = agent` — PPT Master only owns the workflow; the model sets the ceiling. Recommended: **Kimi K3 (or Claude) with a large context window (~1M tokens) + AI image generation (`gpt-image-2` or Google `gemini-3.1-flash-image`)**; other models can run the pipeline, with a quality gap.
 >
 > And don't expect a finished, perfect deck in one shot. The tool's value is taking most of the tedious work off your plate; the polishing that's left is yours — a natively editable deck exists precisely so you can keep working on it, not a flat image you can't touch. The cheaper the model, the more there is to do; if results disappoint, upgrade the model first, then check your usage against [Getting Started](./docs/getting-started.md) and the example projects.
 
@@ -124,6 +133,47 @@ This form buys three promises that other tools struggle to make at the same time
 I'm a finance professional (CPA · CPV · Consulting Engineer (Investment)) who regularly reviews and edits presentation decks. I wanted AI-generated slides to remain editable in PowerPoint, not flattened into images — so I built this.
 
 Knowing how to use Python and AI agents will matter more and more, and this project is also meant to show how far you can go with just those two things. There's a learning curve if you're starting cold, but it's the curve worth climbing — making a deck is just the excuse; what I'm really pushing is Python and agents.
+
+---
+
+## You Might Also Like
+
+### <a href="https://github.com/microsoft/ResearchStudio">ResearchStudio-<img src="https://raw.githubusercontent.com/ai-nuts/Storage/main/ResearchStudio/ResearchStudio-Reel/docs/figures/reel-wordmark.png" alt="Reel" height="16"></a>
+
+> A Microsoft open-source project I recently joined — from **paper** to **talk video**, **poster**, and **blog**, automating the **last mile** of research dissemination.
+>
+> 📦 **Repo:** [microsoft/ResearchStudio](https://github.com/microsoft/ResearchStudio) · 📄 **Paper:** [arXiv:2607.04438](https://arxiv.org/abs/2607.04438)
+
+<table align="center">
+<tr>
+<td align="center" valign="middle" width="53%">
+  <a href="https://aka.ms/ResearchStudio">
+    <img src="https://raw.githubusercontent.com/ai-nuts/Storage/main/ResearchStudio/ResearchStudio-Reel/docs/figures/reel_demo.gif" width="100%"
+    alt="ResearchStudio-Reel demo" />
+  </a>
+</td>
+<td align="center" valign="middle" width="47%">
+  <a href="https://aka.ms/ResearchStudio">
+    <img src="https://raw.githubusercontent.com/ai-nuts/Storage/main/ResearchStudio/ResearchStudio-Reel/docs/examples/latent_diffusion_landscape/poster.png" width="100%" alt="ResearchStudio-Reel generated poster" />
+  </a>
+</td>
+</tr>
+</table>
+
+<details>
+<summary><strong>BibTeX</strong> — if you use ResearchStudio-Reel in your research</summary>
+
+```bibtex
+@article{xiao2026researchstudioreel,
+  title   = {ResearchStudio-Reel: Automate the Last Mile of Research from Paper to Poster, Video, and Blog},
+  author  = {Lingao Xiao and Yalun Dai and Yangyu Huang and Qihao Zhao and Wenshan Wu and Hugo He and Ruishuo Chen and Jin Jiang and Qianli Ma and Jiahuan Zhang and Xin Zhang and Ying Xin and Yang Ou and Yan Xia and Scarlett Li and Longbo Huang and Zhipeng Zhang and Yang He and Yap Kim Hui and Yan Lu},
+  journal = {arXiv preprint arXiv:2607.04438},
+  year    = {2026},
+  url     = {https://arxiv.org/abs/2607.04438}
+}
+```
+
+</details>
 
 ---
 
@@ -183,7 +233,7 @@ Never used one of these? Don't worry — in this project they play exactly one r
 | **IDE plugin / extension** | [Claude Code](https://claude.ai/code) (VS Code / JetBrains extension), [GitHub Copilot](https://github.com/features/copilot), [Cline](https://cline.bot/), etc. | Installed inside hosts like VS Code or JetBrains |
 | **CLI agent** | [Claude Code](https://claude.ai/code) CLI, [Codex CLI](https://github.com/openai/codex), Gemini CLI, etc. | Runs in the terminal; suits scripting, remote, or server use |
 
-> **Model recommendation**: for the best results, use **Claude Opus** with `gpt-image-2`; **Gemini 3.5 Flash** currently offers great overall value for money — notably fast and well worth a try.
+> **Model recommendation**: for the best results, use **[Kimi K3](https://www.kimi.com/code/?aff=ppt-master)** (or Claude) to drive the pipeline, paired with AI image generation — **`gpt-image-2`** (OpenAI) or **`gemini-3.1-flash-image`** (Google). Kimi Code, the project sponsor, is a great pick for pay-as-you-go access.
 
 **🔑 Want to use Claude / GPT / Gemini but don't have access yet?** Project sponsors **[PackyCode](https://www.packyapi.com/register?aff=ppt-master)**, **[APIKEY.FUN](https://apikey.fun/register?aff=PPT-MASTER)** and **[RunAPI](https://runapi.co/register?aff=WMLJ)** offer pay-as-you-go access to Claude, GPT, Gemini and more — no subscription required, with exclusive discounts for our users (details at the top of this page).
 
@@ -191,9 +241,7 @@ Never used one of these? Don't worry — in this project they play exactly one r
 
 ### 3. Set Up
 
-**Option A — Download ZIP** (no Git required): click **Code → Download ZIP** on the [GitHub page](https://github.com/hugohe3/ppt-master), then unzip.
-
-**Option B — Git clone** (requires [Git](https://git-scm.com/downloads) installed):
+**Option A — Git clone** (recommended; requires [Git](https://git-scm.com/downloads) installed): the preferred path, since a clone can pull the latest version at any time.
 
 ```bash
 git clone https://github.com/hugohe3/ppt-master.git
@@ -206,7 +254,25 @@ Then install dependencies:
 pip install -r requirements.txt
 ```
 
-To update later (Option A / B): `python3 skills/ppt-master/scripts/update_repo.py`
+**Option B — Download ZIP** (no Git required; best for a quick trial): click **Code → Download ZIP** on the [GitHub page](https://github.com/hugohe3/ppt-master), then unzip, and install dependencies with `pip install -r requirements.txt`. A ZIP has no Git history, so it can't `git pull` — see Updating Later. If that download is too large or fails, grab the skill-only package `ppt-master-skill-*.zip` (~50 MB, fully functional but without the bundled example decks) from the [Releases](https://github.com/hugohe3/ppt-master/releases) page instead.
+
+#### Updating Later
+
+**Git clone installs:**
+
+```bash
+python3 skills/ppt-master/scripts/update_repo.py
+```
+
+The script pulls the latest version and syncs Python dependencies when `requirements.txt` changes.
+
+**Download ZIP installs:**
+
+ZIP folders do not include Git history, so they cannot run `git pull`. To update, download the latest ZIP, unzip it into a new folder, copy your old `.env` and `projects/` folder into the new folder, then run:
+
+```bash
+pip install -r requirements.txt
+```
 
 > **Option C — Skill marketplace**: the repo ships `.claude-plugin/marketplace.json`, so it can be installed through the [Claude Code plugin marketplace](https://code.claude.com/docs/en/plugin-marketplaces) ecosystem:
 >
@@ -249,7 +315,7 @@ AI:  Sure. Let's confirm the design spec:
 
 The AI handles everything — content analysis, visual design, SVG generation, and PPTX export.
 
-> **Output:** Native-shapes `.pptx` (directly editable) saved to `exports/<name>_<timestamp>.pptx`. A copy of `svg_output/` is always snapshotted to `backup/<timestamp>/svg_output/` for re-export / archival. Pass `--svg-snapshot` to additionally emit an SVG-image preview pptx alongside the native pptx in `exports/` (see [FAQ](./docs/faq.md)). Requires Office 2016+.
+> **Output:** The SVG pipeline has one PPTX export route: PPT Master's converter reads `svg_output/` and writes a directly editable native DrawingML deck to `exports/<name>_<timestamp>.pptx`. Step 7 still always runs `finalize_svg.py`, producing self-contained files in `svg_final/` for visual inspection or manual insertion as SVG pictures; PowerPoint's manual **Convert to Shape** command is outside the supported contract. A copy of `svg_output/` is always snapshotted to `backup/<timestamp>/svg_output/` for re-export / archival. By default charts and tables export as individually editable SVG-derived DrawingML shapes, which prioritize cross-app visual consistency. Pass `--native-charts-and-tables` to replace eligible groups with PowerPoint-native Chart/Table objects backed by data, which provide **Edit Data** and object-specific controls but may render differently across apps; this variant is saved as `exports/<name>_<timestamp>_native_charts_tables.pptx`. Both routes are editable—the distinction is the PowerPoint object model, not editability itself.
 
 > **Already have a `.pptx` you want to reuse?** Hand the AI that deck plus your material and ask it to "fill this deck with the new content" — it fills text, table, and chart data into your existing design and exports only the pages you pick, staying natively editable. See the [FAQ](./docs/faq.md) and [template-fill workflow](./skills/ppt-master/workflows/template-fill-pptx.md).
 
@@ -286,7 +352,8 @@ PPT Master reads the current process environment first, then the first `.env` fo
 | | Document | Description |
 |---|----------|-------------|
 | 📘 | [Getting Started](./docs/getting-started.md) | First deck in 3 steps, plus how to use templates, live preview, animations, narration, voice cloning (**new users start here**) |
-| 🆚 | [Why PPT Master](./docs/why-ppt-master.md) | How it compares to Gamma, Copilot, and other AI tools |
+| 🆚 | [Why PPT Master](./docs/why-ppt-master.md) | Why choose it, and where it's not the right fit |
+| 🧭 | [Project Positioning](./docs/project-positioning.md) | Long-term positioning, product promises, and capability boundaries |
 | 🪟 | [Windows Installation](./docs/windows-installation.md) | Step-by-step setup guide for Windows users |
 | 📖 | [SKILL.md](./skills/ppt-master/SKILL.md) | Core workflow and rules |
 | 📐 | [Canvas Formats](./skills/ppt-master/references/canvas-formats.md) | PPT 16:9, Xiaohongshu, WeChat, and 10+ formats |
@@ -294,6 +361,8 @@ PPT Master reads the current process environment first, then the first `.env` fo
 | 💼 | [Examples](./examples/README.md) | All example projects |
 | 🏗️ | [Technical Design](./docs/technical-design.md) | Architecture, design philosophy, why SVG |
 | ❓ | [FAQ](./docs/faq.md) | Model selection, cost, layout troubleshooting, custom templates |
+
+<sub>Full documentation index → [`docs/`](./docs/README.md)</sub>
 
 ---
 
@@ -322,24 +391,14 @@ Looking to collaborate, integrate PPT Master into your workflow, or just have qu
 
 ---
 
-## Star History
-
-<a href="https://star-history.com/#hugohe3/ppt-master&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=hugohe3/ppt-master&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=hugohe3/ppt-master&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=hugohe3/ppt-master&type=Date" />
- </picture>
-</a>
-
----
-
 ## Sponsors & Support
 
 PPT Master is currently built and maintained primarily by me. Every new template, bug fix, and documentation update takes ongoing resources — currently shared by the sponsors and individual supporters below.
 
 **Corporate sponsors**
 
+<a href="https://www.kimi.com/code/?aff=ppt-master"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/sponsors/kimi-dark.svg"><img src="docs/assets/sponsors/kimi-light.svg" alt="Kimi" height="40" /></picture></a>
+&nbsp;
 <a href="https://www.packyapi.com/register?aff=ppt-master"><img src="docs/assets/sponsors/packycode.png" alt="PackyCode" height="40" /></a>
 &nbsp;
 <a href="https://apikey.fun/register?aff=PPT-MASTER"><img src="docs/assets/sponsors/apikey-fun.png" alt="APIKEY.FUN" height="40" /></a>
@@ -364,4 +423,4 @@ Made with ❤️ by [Hugo He](https://www.hehugo.com/) — if this project helps
 
 <sub>Official distribution: <a href="https://github.com/hugohe3/ppt-master">GitHub</a> (primary) · <a href="https://atomgit.com/hugohe3/ppt-master">AtomGit</a> (mirror). Redistributions on other platforms are unofficial. MIT licensed — attribution required.</sub>
 
-[⬆ Back to Top](#ppt-master--ai-generates-natively-editable-pptx-from-any-document)
+[⬆ Back to Top](#ppt-master--ai-generates-native-powerpoint-from-any-document)

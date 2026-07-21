@@ -1,10 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" data-pptx-master="fanruan_tech_master" data-pptx-master-name="FanRuan Tech" data-pptx-layout="cover" data-pptx-layout-name="Cover">
   <!-- 底色 -->
-  <rect width="1280" height="720" fill="#F5FAFF"/>
+  <rect id="slide-background" width="1280" height="720" fill="#F5FAFF"/>
   <!-- 底图铺满 -->
   <image x="0" y="0" width="1280" height="720" href="cover_hero.png" preserveAspectRatio="xMidYMid slice"/>
   <!-- 极轻全局遮罩，统一色调 -->
-  <rect x="0" y="0" width="1280" height="720" fill="#F2F8FF" fill-opacity="0.10"/>
+  <g id="cover-tone-overlay" data-pptx-bounds="0 0 1280 720">
+    <rect x="0" y="0" width="1280" height="720" fill="#F2F8FF" fill-opacity="0.10"/>
+  </g>
   <!-- 帆软 Logo -->
   <image x="74" y="70" width="178" height="58" href="fanruan_logo.png" preserveAspectRatio="xMidYMid meet"/>
   <!-- 装饰线 -->

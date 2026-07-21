@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
-  <rect width="1280" height="720" fill="#FFFFFF"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" data-pptx-master="fanruan_tech_master" data-pptx-master-name="FanRuan Tech" data-pptx-layout="chapter" data-pptx-layout-name="Chapter">
+  <rect id="slide-background" width="1280" height="720" fill="#FFFFFF"/>
   <rect x="360" y="0" width="920" height="720" fill="#EEF7FF"/>
   <rect x="624" y="182" width="656" height="538" fill="#D8EBFE" fill-opacity="0.28"/>
   <rect x="0" y="0" width="760" height="460" fill="#FFFFFF" fill-opacity="0.88"/>

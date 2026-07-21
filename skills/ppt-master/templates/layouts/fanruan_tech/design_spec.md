@@ -6,9 +6,16 @@ summary: 帆软轻质感科技风——浅蓝通透的企业汇报 / BI 数据�
 keywords: [帆软, 轻质感科技风, 科技蓝, BI汇报, 数据分析]
 primary_color: "#035DCF"
 canvas_format: ppt169
+canvas_width: 1280
+canvas_height: 720
+canvas_viewbox: "0 0 1280 720"
+source_canvas_width: 1280
+source_canvas_height: 720
+source_viewbox: "0 0 1280 720"
 page_count: 21
 replication_mode: fidelity
-page_types: [cover, toc, chapter, content, kpi, architecture, case, comparison, timeline, steps, pyramid, cycle, image, quote, ending]
+native_structure_mode: structured
+page_types: [cover, chapter, toc, toc_cards, content, content_3col, content_4col, content_5col, content_6col, content_architecture, content_before_after, content_case, content_comparison, content_cycle, content_image, content_kpi, content_pyramid, content_quote, content_steps, content_timeline, ending]
 placeholders:
   01_cover: ["{{TITLE}}", "{{SUBTITLE}}", "{{AUTHOR}}", "{{COMPANY_NAME}}", "{{DATE}}"]
   02_chapter: ["{{SECTION_NUMBER}}", "{{SECTION_TITLE}}", "{{SECTION_DESC}}"]
