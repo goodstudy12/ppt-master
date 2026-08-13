@@ -95,6 +95,7 @@ PowerPoint 意图
 | 带箭头的线 | 带已登记 triangle、stealth、arrow、diamond 或 oval 起点/终点 marker 的 `<line>` 或受支持 path | 原生 DrawingML 线首/线尾 | `Native-normalized`；marker 大小为近似 | marker 定义必须遵循条件 marker 合同 |
 | 原生连接符 | 带 connector metadata 和直接可见 path 的项目创作 compact preset 组 | `p:cxnSp` | 导入 connector 保留源拓扑往返所需的 expanded 证据 | 已登记 preset/connector schema 内为 `Native-stable` |
 | 任意多边形 | `<path>` | 带 `a:custGeom` 的 `p:sp` | 导入自定义几何重建为 path | `Native-normalized`；SVG arc 转为三次曲线段 |
+| 已物化的合并形状结果 | `shape_boolean_svg.py` 输出的普通 `<path>`；“拆分”返回多个同级 path | 每个返回 path 对应一个带 `a:custGeom` 的 `p:sp` | `Native-normalized`；回导为最终自由形状几何，不保留可重放的操作历史 | 接受受支持的闭合几何，或字体 face 可精确解析的隐式从左到右水平直接文本；文本会转为字形几何，第一个 source 决定样式与顺序，且不输出 clip、mask 或显式 fill rule |
 | 多边形 | `<polygon>` | 闭合自定义几何 | `Native-normalized` | points 必须有限且合法 |
 | 折线 | `<polyline>` | 开放自定义几何 | `Native-normalized` | points 使用与其他生成几何相同的有限、已登记语法 |
 | PowerPoint 预设形状 | 由 registry 生成的 compact `<g>`，由该组承载 preset 意图与基础 paint，并直接包含可见 `<path>` 子元素 | 一个可编辑 preset `p:sp` | preset 身份与 adjustment 可以经导入/导出保留 | 质检与导出动态重渲染 registry；规范创作表达不含隐藏 carrier、preview wrapper 或已存储 preview hash |
@@ -113,7 +114,7 @@ PowerPoint 意图
 |---|---|---|---|---|
 | 文本框 | `<text>` | 带 `p:txBody` 的可编辑 `p:sp` | 重建为 `<text>`，需要时含 `<tspan>` | 文本必须是良构 XML，且仅使用已登记属性 |
 | 行内混合格式 | 不带定位的 `<tspan>` run | 同一文本框内的 DrawingML run | `Native-normalized`；已登记 run 格式仍可编辑 | 改变文本框几何的定位可能会拆分结果 |
-| 多段落 | 可合并的 text/tspan 结构 | 同一文本框内的多个 `a:p` 段落 | `Native-normalized` | 严格独立定位的行可保持为独立文本框 |
+| 作者断行与多段落文本 | 一个 `<text>` 加直接定位的 `<tspan>` 行 | 默认在一个禁用自动换行的文本框中保留作者断行；普通生成文本框会随后续编辑调整大小，精确框和结构化多行占位符 carrier 保持原有固定尺寸行为；语义段落边界仍为 `a:p` | `Native-normalized` | `--reflow-text` 允许 PowerPoint 重排；`--no-merge` 为每一视觉行生成一个形状 |
 | 有意义的文本空白 | `<text>`/`<tspan>` 上精确的 `xml:space="default"` 或 `xml:space="preserve"` | 可编辑 DrawingML run 中归一化或保留的 U+0020 文本 | `Native-normalized`；保留行内 run 所有权 | 使用项目 Chromium/SVG2 合同：LF/TAB 转为空格，`default` 跨 run 折叠，`preserve` 全部保留，Unicode 间隔字符保持字面值；CSS `white-space` 与 SVG 1.1 遗留换行删除不在映射内 |
 | 字体 | 根据项目 lock 解析的规范 `font-family` | 直接 typeface 或已登记 theme font | 在安装字体/替换边界内为 `Native-stable` | 校验会报告未锁定或不可用字体 |
 | 字号 | 有限、无单位的 SVG px，例如 `font-size="24"` | DrawingML 百分之一磅；`1 px = 0.75 pt` | 单位转换后为 `Native-stable` | 生成创作只使用无单位 px；已登记历史单位是会产生 warning 的兼容输入，未知单位为 error；DrawingML 下限为 1 pt |
@@ -139,9 +140,10 @@ PowerPoint 意图
 | 图片裁剪填充 | 一个已登记对齐值加显式 `slice` | 原生 `a:srcRect` 裁剪 | 源尺寸可读时为 `Native-stable` | 对齐值区分大小写；未知模式与额外 token 为 error |
 | 图片适应框 | 省略时使用默认值，或一个已登记对齐值加显式 `meet` | 原生 fitted picture frame | `Native-normalized` | 仅写对齐值是兼容输入，Checker 会给出规范化建议 |
 | 图片透明度 | 原子 image `opacity` | 原生 `a:alphaModFix` | `Native-stable` | 值必须有限，并在可接受 opacity 语法内 |
+| 图片阴影或发光 | 未裁剪 `<image>` 直接承载一个已登记效果 filter；裁剪图片或导入 crop 使用精确单图片外层载体 | 原生 `p:pic/p:spPr/a:effectLst` | `Approximate`；单一效果以一个可编辑图片往返，也可作为直接 Master/Layout 原子 | `filter` 与 `clip-path` 不得同挂一个 `<image>`；仅直接固定原子可在载体上声明 `data-pptx-layer="master|layout"`，Placeholder/Binding/替换所有权仍留在外层；普通组 filter、其他 primitive、效果 DAG 与多个独立效果仍不支持 |
 | 图片裁成形状 | 作用于 image/crop wrapper 且只含一个 SVG 命名空间形状的已登记 `clip-path` | picture preset 或 custom geometry | `Native-normalized` | circle/ellipse/rect preset 必须覆盖完整图片 frame；局部或偏移轮廓使用 path/polygon；不接受任意 mask 或依赖绕组规则（winding rule）的轮廓 |
 | 导入的裁剪图片 | 导入器产生的精确 SVG 命名空间嵌套 crop wrapper，在可视根/`g` 树中内含一个直接 unit-frame image | 重新导出为原生 signed `a:srcRect` | crop 合同内为 `Native-stable`，包括负裁剪值 | 拒绝通用嵌套 viewport、非可视或仅渲染所属容器、额外可视子元素、不可表示的 crop window、无裁剪的冗余 wrapper，以及无法解析的 clip-marker 配对 |
-| 图片重着色、艺术滤镜、模糊或复杂 mask | 无通用创作映射 | 使用受支持 overlay 重建或预渲染 | `Bake-required` | 任意 SVG filter 和 blend mode 违反主合同 |
+| 图片重着色、艺术滤镜、模糊或复杂 mask | 无通用创作映射 | 使用受支持 overlay 重建或预渲染 | `Bake-required` | 未登记 SVG filter 和 blend mode 违反主合同 |
 
 ## 6. PowerPoint 填充、线条与效果功能
 
@@ -151,7 +153,7 @@ PowerPoint 意图
 | 纯色填充 | 已锁定规范 `fill="#RRGGBB"` | `a:solidFill`；当锁定角色可精确复用时使用 theme token | `Native-stable` | 兼容颜色拼法可产生 warning；格式错误或生成未锁定值失败 |
 | 填充透明度 | 不透明 fill 加 `fill-opacity` | 原生 alpha | `Native-stable` | 生成值为 0 到 1 的有限无单位数 |
 | 线性渐变填充 | `<defs>` 中已登记 `<linearGradient>` | 原生 `a:gradFill` | `Native-normalized` | stop、坐标、transform 与引用必须遵循封闭合同 |
-| 径向渐变填充 | 已登记 `<radialGradient>` | 居中圆形 DrawingML 渐变 | `Approximate` | 对焦点/半径敏感的设计需复核 |
+| 径向渐变填充 | 已登记 `<radialGradient>` | 可偏心单点焦点的圆形 DrawingML 渐变 | `Approximate`；位于规范圆内的有效焦点可往返，外圆中心与半径会归一化 | 有效焦点必须落在中心 `(0.5,0.5)`、半径 `0.5` 的规范圆内；回导会居中越界焦点并记录诊断；对半径或外圆中心敏感的设计需复核 |
 | 图案填充 | 带注解的项目 pattern 定义 | 原生 `a:pattFill` | `Native-normalized` | 仅支持已登记 PowerPoint 预设 pattern |
 | 无轮廓 | `stroke="none"` 或已登记线缺省 | `a:ln` 内的 `a:noFill` | `Native-stable` | 不得用零线宽模糊 CSS 模拟缺省 |
 | 实线轮廓 | 已登记 `stroke` 与宽度 | 原生 `a:ln` | `Native-stable` | 宽度与 paint 必须使用规范单位/语法 |
@@ -162,12 +164,12 @@ PowerPoint 意图
 | 虚线或点线轮廓 | 已登记 dash array | 预设或自定义 DrawingML dash | `Native-normalized` | 拒绝不支持的 dash 语义 |
 | 线端与连接样式 | 已登记 cap/join 值 | 原生 line cap/join 属性 | 固定 join 合同内为 `Native-stable` | 回导仅接受一个 join；miter 必须精确使用 `lim="800000"` |
 | 线条箭头 | 已登记起点/终点 marker | 原生 head/tail end 属性 | marker 大小为 `Approximate` | 仅 triangle、stealth、arrow、diamond、oval 遵循条件 marker 合同 |
-| 外阴影 | 一个受支持 shadow filter 图 | `a:effectLst` 中的原生外阴影 | `Approximate`；仅当非零偏移仍可稳定分类时，才重建单一 shape/connector 来源 `outerShdw` | 零偏移来源阴影和不支持的图结构不会被静默改成其他效果 |
-| 发光 | 一个受支持 glow filter 图 | `a:effectLst` 中的原生发光 | `Approximate`；单一 shape/connector 来源发光保持已登记的半径换算 | 发光承载语义强调时需复核 |
+| 外阴影 | 一个受支持 shadow filter 图 | `a:effectLst` 中的原生外阴影 | `Approximate`；仅当非零偏移可稳定分类，且缩放、倾斜和旋转行为为中性或可表达时，才重建单一 shape/connector/picture 来源 `outerShdw` | 非中性的 `sx`/`sy`/`kx`/`ky`、旋转对象上的随形旋转、零偏移，以及不支持的属性或效果图均产生阻塞诊断，不做静默简化 |
+| 发光 | 一个受支持 glow filter 图 | `a:effectLst` 中的原生发光 | `Approximate`；单一 shape/connector/picture 来源发光保持已登记的半径换算 | 发光承载语义强调时需复核 |
 | 导入的文字 run 效果 | 逻辑 shape 上未变更的 `metadata[data-pptx-part="txbody"]`；继承自 Layout/Master 的列表样式以及竖排、含关系引用、表格单元格降级路径使用仅限导入的阻塞效果状态 | `p:txBody` 内原始的 slide-local 原生 run 效果 | 仅在原始 slide-local payload 仍可用时为 `Native-stable`；继承效果、编辑或降级路径若会丢失非空 run `effectLst` / `effectDag` 则被阻断 | 不是公开创作语法；表格单元格 run 效果还会禁用原生 Table 替换 payload |
 | 整个对象透明度 | 原子元素 `opacity` | alpha 分发至受支持原生通道 | `Native-normalized` | 除非整个原子对象需要淡出，否则优先通道专属 alpha |
 | 组透明度 | 兼容 `<g opacity>` | 后代归一化近似 | `Approximate`，并产生 warning | 生成 SVG 应优先后代 alpha |
-| 内阴影、柔化边缘、倒影、模糊、湍流、混合模式或任意 mask | 无已登记原生映射 | 显式几何替代或栅格资产 | `Bake-required`；PPTX 回导保留基础对象，并对不支持的 shape/connector 效果、图片/组效果 DAG 及非空图片/组效果列表产生阻塞诊断 | 已处理的对象效果不能被改成其他类型或静默省略；文字 run 安全边界见上方未变更 `txBody` 行 |
+| 内阴影、柔化边缘、倒影、模糊、湍流、混合模式或任意 mask | 无已登记原生映射 | 显式几何替代或栅格资产 | `Bake-required`；PPTX 回导保留基础对象，并对不支持的效果、效果 DAG 及不符合单一已登记效果的图片/组列表产生阻塞诊断 | 已处理的对象效果不能被改成其他类型或静默省略；文字 run 安全边界见上方未变更 `txBody` 行 |
 
 ## 7. PowerPoint 表格
 
@@ -205,12 +207,19 @@ PowerPoint 原生 Chart/Table 对象是可选功能。默认导出保留 SVG fal
 |---|---|---|---|---|
 | 演讲者备注 | `notes/<slide>.md` sidecar | Notes Slide part 与 relationship | `Sidecar/package` | 备注不是 SVG 文本，不影响页面几何 |
 | 幻灯片切换 | CLI 选项或 `animations.json` | `p:transition` | `Sidecar/package` | 未知效果或非法时长失败；不默默 fallback 到 `fade` |
-| 对象进入动画 | `animations.json`，目标为稳定的顶层 SVG group ID | 根 `p:timing` 动画树 | `Sidecar/package`；group ID 仅为目标锚点 | 静态结构层与占位符不可动画 |
+| 对象动画（进入 / 强调 / 动作路径 / 退出） | `animations.json`，目标为稳定的顶层 SVG group ID；`effects[]` 可让一个锚点拥有多条记录 | 根 `p:timing` 动画树 | `Sidecar/package`；group ID 仅为 shape target 锚点 | 静态结构层与占位符不可动画 |
 | 旁白音频 | `audio/` 资产加 recorded-narration 导出选项 | media relationship、audio carrier 与 timing | `Sidecar/package` | 必须校验资产、Slide 关联与时序 |
 | 幻灯片自动换页 | 显式 transition timing 或旁白派生时长 | `advTm`/换页行为 | `Sidecar/package` | 单击驱动动画与录制旁白不兼容 |
 | 超链接或动作 | 无主 SVG 编译器映射 | 不由页面 SVG 创建 | 原生路线保留源 OOXML 时为 `Direct preservation` | action-button preset 只提供可见几何 |
 | 批注或审阅线程 | 无 SVG 或生成侧映射 | 不编写 | 仅在其他路线明确拥有时为 `Direct preservation` | 不自动将审阅 metadata 转为可见 Slide 内容 |
 | 不属于已映射功能的 relationship | 无通用 SVG 逃生口 | 不生成 | 适用时为 `Direct preservation` | 不支持任意 relationship 注入 |
+
+对于一个目标 group，完全兼容的旧对象表示一条效果记录，非空 `effects[]` 表示
+多条记录；两种形式互斥。每条记录都可独立设置 `trigger`、序列 `order`、
+`delay`、`duration` 与 `trigger_shape`，页面动画 trigger 只提供继承的 Start
+值。`auto`、`mixed` 与 `random` 只解析通用进入效果；显式规范效果覆盖进入、
+强调、PowerPoint 原生动作路径预设和退出。该映射不会推导段落/文字范围 build、
+自定义自由动作路径、原生 Chart/SmartArt build 序列或媒体播放命令。
 
 sidecar 工作流见[转场与动画](./animations.md)（技术规范源为 [`references/animations.md`](../../skills/ppt-master/references/animations.md)）与 [`audio-narration.md`](./audio-narration.md)。
 

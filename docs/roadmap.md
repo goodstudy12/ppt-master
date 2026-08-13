@@ -12,7 +12,7 @@
 
 The defining axis is **native depth**: author or preserve more of PowerPoint's own object model, behavior, and reusable structure, release after release — converging with PowerPoint itself. The [positioning charter](./project-positioning.md) states the full thesis; the [PowerPoint ↔ SVG Mapping Guide](./powerpoint-svg-mapping.md) records the current boundary honestly, feature by feature.
 
-Today that axis is expressed through four explicit artifact routes: **Generate PPTX** authors newly designed slides through constrained SVG → DrawingML; **Create Template** produces reusable Brand / Layout / Deck workspaces; **Fill Native PPTX** and **Enhance Native PPTX** preserve existing packages through scoped OOXML operations.
+Today that axis is expressed through four explicit artifact routes: **Generate PPTX** authors newly designed slides through constrained SVG → DrawingML; **Create Template** produces reusable Brand / Style / Layout / Deck workspaces; **Fill Native PPTX** and **Enhance Native PPTX** preserve existing packages through scoped OOXML operations.
 
 ---
 
@@ -70,7 +70,7 @@ The Generate PPTX route is built around full control of newly authored shapes, t
 
 Pixel-fidelity across the four renderers (PowerPoint / Keynote / LibreOffice / WPS) is the project's spine. Switching the default route to native PowerPoint charts breaks that — the same PPTX renders different chart layouts across renderers. Charts as SVG is **by design**, not a capability gap.
 
-The narrow exception is the `data-pptx-replace-with` marker: independently planned supported data charts and pure text-grid tables can carry a PowerPoint-native Chart/Table replacement payload when their Design Spec §VII row says `Native-ready: yes`; `no` / `n/a` and incidental microvisuals remain ordinary shapes. Exporting with `--native-charts-and-tables` activates prepared markers for users who deliberately trade cross-renderer fidelity for a data-backed object and its chart/table-specific editing model — the activated objects preserve the deck's chart-area / plot / axis / gridline / label colors and native table formatting rather than snapping to PowerPoint's default theme (see the [v4.0.0 release notes](https://github.com/hugohe3/ppt-master/releases/tag/v4.0.0)). The default export path and editable SVG-derived shape system are unchanged.
+The narrow exception is the `data-pptx-replace-with` marker: independently planned supported data charts and pure text-grid tables can carry a PowerPoint-native Chart/Table replacement payload when their semantic object key is recorded as `<object-key>=yes` in the Design Spec §IX `Native-ready` map; `no` and incidental microvisuals remain ordinary shapes. §VII only records selected reusable references. Exporting with `--native-charts-and-tables` activates prepared markers for users who deliberately trade cross-renderer fidelity for a data-backed object and its chart/table-specific editing model — the activated objects preserve the deck's chart-area / plot / axis / gridline / label colors and native table formatting rather than snapping to PowerPoint's default theme (see the [v4.0.0 release notes](https://github.com/hugohe3/ppt-master/releases/tag/v4.0.0)). The default export path and editable SVG-derived shape system are unchanged.
 
 ### uv as default / required dependency
 
@@ -85,9 +85,19 @@ The narrow exception is the `data-pptx-replace-with` marker: independently plann
 In the cost / speed / quality triangle this project picks **quality**. ~20 minutes for a high-quality PPTX is the current reasonable point.
 
 Will do: indirect improvements via prompt slimming / cache hit rate.
-Won't do: trading quality for "throw a few pages together" speed.
 
-If speed-sensitive and quality-tolerant, a zero-setup browser SaaS tool is a better fit.
+Explicit `quick-generate` is a user-selected workflow shortcut: it skips
+Strategist, confirmation, and the first-page gate, then authors SVG, runs one
+lockless final quality gate, and exports the final PPTX. Because the whole
+planning phase no longer happens — the Strategist reference load, the
+`design_spec.md` / `spec_lock.md` artifacts, and the staged confirmation round
+trip — its token cost disappears with it, while per-page SVG authoring is
+unchanged. It keeps the same visual/resource capabilities and final blocking
+standard, but without a confirmed design contract, first-page calibration, or
+resumable decision history it does not promise the same design decisions or
+wall-clock time as Default.
+
+The default Generate pipeline continues to prefer quality over speed.
 
 ### Standalone CLI / hosted SaaS / desktop app form factors
 

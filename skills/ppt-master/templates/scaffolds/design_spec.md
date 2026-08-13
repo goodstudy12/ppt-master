@@ -21,6 +21,9 @@
 | AI Image Acquisition Path | [fill or not applicable] |
 | Generation Mode | [fill] |
 | Spec Refinement | [fill] |
+| Speaker Notes | [fill enabled/disabled plus provenance] |
+| Custom Animations | [fill enabled/disabled plus provenance] |
+| Narration Audio | [fill enabled/disabled plus provenance] |
 | Created Date | {{CREATED_DATE}} |
 
 ## II. Canvas Specification
@@ -55,17 +58,14 @@
 
 ### Font Plan
 
-| Role | Chinese | English | Fallback tail |
-| --- | --- | --- | --- |
-| Title | [fill] | [fill] | [fill] |
-| Body | [fill] | [fill] | [fill] |
-| Emphasis | [fill] | [fill] | [fill] |
-| Code | [fill] | [fill] | [fill] |
+| Role | Character (Reference) | Primary | English if non-English | Fallback tail |
+| --- | --- | --- | --- | --- |
+| Title | [fill] | [fill] | [fill] | [fill] |
+| Body | [fill] | [fill] | [fill] | [fill] |
 
-- Title: [fill]
-- Body: [fill]
-- Emphasis: [fill or same as Body]
-- Code: [fill]
+- **Typography upgrade (Reference)**: [fill post-export substitution by role after target installation, or omit]
+- **Title stack**: [fill]
+- **Body stack**: [fill]
 
 ### Font Size Hierarchy
 
@@ -95,14 +95,9 @@
 
 ## VI. Icon Usage Specification
 
-| Purpose | Icon Path | Page |
-| --- | --- | --- |
-| [fill] | [fill] | [fill] |
-
-## VII. Visualization Reference List
-
-| Page | Template | Path | Summary-quote | Native-ready | Usage |
-| --- | --- | --- | --- | --- | --- |
+| Icon Path | Suitable Scenarios |
+| --- | --- |
+| [fill] | [fill] |
 
 ## VIII. Image Resource List
 
@@ -123,5 +118,6 @@
 
 ## X. Speaker Notes Requirements
 
+- **Generation**: [fill enabled or disabled]
 - **Filename**: match each SVG filename under `notes/`
 - **Content**: [fill]

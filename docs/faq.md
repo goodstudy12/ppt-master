@@ -61,6 +61,8 @@ Yes. The full repository is large (Git history plus bundled example decks and th
 
 Either way, run `pip install -r requirements.txt` from the installed location so the post-processing scripts work.
 
+Neither path carries a `.git` directory, so `git describe` cannot report the version. The installed release is recorded in the `metadata.version` field of the skill's own `SKILL.md` frontmatter.
+
 ## Q: Can I use AI-generated images in my presentation?
 
 Yes. PPT Master includes a built-in image generation script that supports multiple providers (Gemini, OpenAI, FLUX, Qwen, Zhipu, etc.). During the Strategist phase, if you choose "AI generation" for the image approach, the pipeline will automatically generate images based on your content. You can also provide your own images — just place them in the project's `images/` folder.
@@ -75,25 +77,29 @@ Be clear on what this buys you: **web search only finds *a* relevant, downloadab
 
 ## Q: Can I edit the generated presentations?
 
-Yes. The only PPTX export route in the SVG pipeline is PPT Master's own `svg_output/` → DrawingML conversion. It saves a timestamped native PowerPoint deck to `exports/`, with text, graphics, and colors directly editable as PowerPoint objects. A copy of `svg_output/` (the Executor's raw SVG source) is always written to `backup/<timestamp>/svg_output/` so you can rebuild via `finalize_svg → svg_to_pptx` without re-running the LLM.
+Yes. The only PPTX converter in the SVG pipeline is PPT Master's own `svg_output/` → DrawingML conversion. It saves a timestamped native PowerPoint deck to `exports/`, with text, graphics, and colors directly editable as PowerPoint objects. With the default output path, both Default Generate and Quick Generate copy the authored `svg_output/` to `backup/<timestamp>/svg_output/`, so the same authored deck can be re-exported without re-running the LLM. For Quick this is package reconstruction, not a recoverable record of the AI's design decisions.
 
-`finalize_svg.py` remains a mandatory Step 7 operation even though native PPTX export reads `svg_output/`. It produces self-contained files in `svg_final/` for visual inspection and for manual insertion into another deck as SVG pictures. PowerPoint's manual **Convert to Shape** command is not a supported round-trip path; use the generated native PPTX when you need editable shapes.
+`finalize_svg.py` remains a mandatory Step 7 operation in the default Generate flow even though native PPTX export reads `svg_output/`. It produces self-contained files in `svg_final/` for visual inspection and for manual insertion into another deck as SVG pictures. The explicit quick-generate profile skips this preview artifact, but still retains the normal postflight report and default-path backup after its lockless final quality check. PowerPoint's manual **Convert to Shape** command is not a supported round-trip path; use the generated native PPTX when you need editable shapes.
 
-## Q: Why is one paragraph split into multiple text boxes? Can I get one text box per paragraph instead?
+## Q: How does multiline text export? Can PowerPoint reflow it?
 
-By default, mergeable body-text paragraphs export as one editable PowerPoint text frame with multiple paragraphs. Resizing the box reflows text inside it.
+By default, a mergeable multiline block exports as one editable PowerPoint text frame. Authored line breaks are retained and PowerPoint automatic wrapping is disabled, so resizing the frame does not rewrite the authored line layout. An ordinary generated frame uses PowerPoint's native **Resize shape to fit text** behavior: deleting a retained break expands the frame instead of leaving text outside it. Imported exact frames and structured multiline placeholder carriers retain their fixed-size behavior.
 
-If you need strict line-layout fidelity, re-export with `--no-merge`:
+To let PowerPoint reflow eligible body text, use `--reflow-text`:
+
+```bash
+python3 skills/ppt-master/scripts/svg_to_pptx.py <project_path> --reflow-text
+```
+
+This restores automatic paragraph reflow and may change the line count. The legacy `--merge-paragraphs` flag is a compatibility alias for `--reflow-text`.
+
+Use `--no-merge` only when every visual line must be an independent PowerPoint text frame:
 
 ```bash
 python3 skills/ppt-master/scripts/svg_to_pptx.py <project_path> --no-merge
 ```
 
-With `--no-merge`, every visual line becomes its own PowerPoint text frame. This preserves the SVG's exact line layout pixel-for-pixel, which matters for covers, charts, tables, and any page with tight typographic alignment.
-
-**Trade-off**: default merging keeps one editable frame and preserves authored line boundaries. Use `--no-merge` only when every visual line must also remain an independently movable text box. The detection is conservative — mixed-layout `<text>` falls through to the per-line path automatically.
-
-When you're chatting with the AI, you can also just ask for strict line fidelity on layout-sensitive pages — the AI will add `--no-merge` when re-exporting.
+That mode preserves independent per-line object placement, but a 12-line paragraph becomes 12 textboxes. When chatting with the AI, ask for "automatic text reflow" or "one independent text box per visual line" to select the corresponding export mode.
 
 ## Q: Why are font sizes in px, not pt? Do they change on export?
 
@@ -136,13 +142,19 @@ If your workflow specifically requires Excel-driven data editing or PowerPoint's
 
 ## Q: Can I change page transitions and element animations?
 
-Yes. Page transitions are on by default (`fade` 0.4s); per-element entrance animation is **off by default** — a page appears as a whole instead of having elements auto-cascade in one by one (that unsolicited cascade is the strongest "AI deck" tell). Both are controlled by `svg_to_pptx.py` flags — `-t/--transition` for page-level and `-a/--animation` for element-level. Turn element animation on explicitly when you want it:
+Yes. Page transitions are on by default (`fade` 0.4s); per-element object
+animation is **off by default**—a page appears as a whole instead of having
+elements auto-cascade in one by one. Both are controlled by `svg_to_pptx.py`
+flags: `-t/--transition` for page-level and `-a/--animation` for element-level.
+The object registry includes entrance, emphasis, motion-path, and exit effects.
 
 ```bash
 python3 skills/ppt-master/scripts/svg_to_pptx.py <project> -t push       # different transition
 python3 skills/ppt-master/scripts/svg_to_pptx.py <project> -t none       # disable transitions
 python3 skills/ppt-master/scripts/svg_to_pptx.py <project> -a auto       # enable per-element entrance (effect mapped from group id)
-python3 skills/ppt-master/scripts/svg_to_pptx.py <project> --animation fade        # enable with a single effect
+python3 skills/ppt-master/scripts/svg_to_pptx.py <project> --animation entrance_fade # enable with one canonical effect
+python3 skills/ppt-master/scripts/svg_to_pptx.py <project> --animation emphasis_spin # native emphasis
+python3 skills/ppt-master/scripts/pptx_animations.py --list             # complete categorized effect list
 python3 skills/ppt-master/scripts/svg_to_pptx.py <project> -a auto --animation-trigger on-click   # presenter-paced reveals
 ```
 
@@ -169,7 +181,7 @@ No. PPT Master is a presentation workflow, not a model or a complete agent. It s
 
 If the results you've seen look mediocre, check your setup before concluding anything about the tool: What model? What context size? Was image generation enabled? PPT Master + Claude Opus at 1M context + `gpt-image-2` images is a genuinely different experience from PPT Master + a small open-source model with no image API configured.
 
-> **No Claude access?** Project sponsor [PackyCode](https://www.packyapi.com/register?aff=ppt-master) provides pay-as-you-go access to Claude and other models — no subscription, no overseas card required. Use promo code **`ppt-master`** for 10% off.
+> **No Claude access?** Project sponsor [PackyCode](https://www.packyapi.ai/register?aff=ppt-master) provides pay-as-you-go access to Claude and other models — no subscription, no overseas card required. Use promo code **`ppt-master`** for 10% off.
 
 One last thing: this is a free, solo-maintained open-source project. If it fits your needs, use it — I'm glad it helps; if it doesn't, pick another tool. Sincere feedback and suggestions are always welcome, because that's how the project gets a little better over time.
 
@@ -189,11 +201,58 @@ A typical 10–15 page presentation takes about **10–20 minutes** with a fast 
 
 If generation feels slow, check your model's token throughput. The bottleneck is usually the model's output speed, not the scripts.
 
+If what you want is less process rather than a different model, explicitly ask
+for quick generation: it skips the Strategist analysis and the confirmation
+stop, so the planning phase costs nothing, but per-page SVG authoring takes the
+same time. See the next question, "I don't want to confirm a design spec first
+— can I generate directly?".
+
+## Q: I don't want to confirm a design spec first — can I generate directly?
+
+Yes. Explicitly request **quick generation**, and the Generate route uses the
+[`quick-generate` profile](../skills/ppt-master/workflows/profiles/quick-generate.md).
+
+**What it skips is the Strategist analysis, the `design_spec.md` /
+`spec_lock.md` artifacts, and the staged confirmation stop: whatever you state
+explicitly is followed, and whatever you leave unspecified the current agent
+decides directly and continues, without coming back for approval.** State
+nothing, and the agent decides everything. It also skips `finalize_svg.py`, so
+Quick creates no `svg_final/` preview.
+
+It does not skip preparation or design capability. Source conversion, research
+on identified factual gaps, shared aesthetic references, and every resource the
+deck needs still run when required: supplied or extracted images,
+AI/web/sliced images, project icons, native shapes, charts/tables, rendered
+formulas, and the required operational manifests or provenance records. If a
+required asset is not ready, it still stops and asks you for it instead of
+substituting unrelated material. After preparation, the current agent
+hand-authors `svg_output/` to the shared standards, runs the lockless Quick
+final quality checker, fixes every blocking error, and only then exports the
+final PPTX.
+
+Ordinary exporter capabilities remain available as needed, including native
+chart/table replacement, notes, motion, narration, and diagnostics. Notes,
+custom object animation, and narration start off; the agent may enable them when
+the request or deck needs them, without opening a confirmation flow. A
+default-path export writes the normal postflight report and snapshots
+`svg_output/` under `backup/`; an explicit output path keeps the ordinary
+no-backup behavior. Page count alone neither activates nor blocks quick
+generation.
+
+Because the whole planning phase no longer happens, token usage is materially
+lower than the default flow; per-page SVG authoring is the dominant cost of a
+run and it does not shrink. Quick keeps the same visual/resource authoring
+capabilities and final blocking standard. It does not promise the same design
+decisions or wall-clock time as Default because it has no confirmed design
+contract, first-page calibration, or resumable decision history.
+
 ## Q: Will long decks blow out the context window in one shot?
 
 Default recommendation: **continuous one-shot generation**. 10–15 page decks fit comfortably in a 200K window, and cross-page visual consistency is best when the Executor can see prior pages in the same session (it actively aligns style, font sizes, and rhythm).
 
-Only when signals are heavy (≥ 18 pages, thick source material, or `topic-research` ran with substantial web-fetch accumulation) does the AI surface an optional **split mode** hint at the Strategist phase: the planning session (Strategist confirmation stage + image acquisition) ends in the current chat; you open a fresh chat window and type `resume execution projects/<project_name>` to enter the execution session (SVG generation + export). The new session reloads `design_spec` / `spec_lock` / `sources` / `images` from disk and continues from there.
+When the current AI editor supports an isolated research worker, `topic-research` keeps raw fetches there and the main chat reads only the saved research supplement and fact-provenance file.
+
+Only when signals are heavy (≥ 18 pages, thick source material, or substantial research material remains in the main chat after a local fallback or unusually large imported supplement) does the AI surface an optional **split mode** hint at the Strategist phase: the planning session (Strategist confirmation stage + image acquisition) ends in the current chat; you open a fresh chat window and type `resume execution projects/<project_name>` to enter the execution session (SVG generation + export). The new session reloads `design_spec` / `spec_lock` / `sources` / `images` from disk and continues from there.
 
 Split mode is a **compromise** — the fresh session pays the fixed cost of reloading the Generate authority and required execution references, but drops the planning-session noise and reuses the freed budget to re-read `sources/` for richer slide content. **Not needed when signals are normal**; the hint won't appear, and you can always ignore it and stay in continuous mode.
 
@@ -260,7 +319,7 @@ You don't need to supply every detail upfront — the AI agent will ask follow-u
 
 **Step 3 — Wait for the Result**
 
-The AI agent will handle the rest — analyzing your references, building the layout definitions, and validating the template. If you request PowerPoint review, it also generates `exports/<id>_template_preview.pptx` on demand. Both scopes require `templates/` and use optional `images/`, `icons/`, and `exports/`: library scope writes `skills/ppt-master/templates/<kind>/<id>/` and registers it; project scope writes `projects/<name>/` and skips registration. Empty optional directories are omitted. Give that workspace root to Step 3; it never copies `exports/`, and library review exports are Git-ignored. A flat workspace with `design_spec.md` at the root remains compatible only when its SVGs already satisfy the current contract; semantic-legacy packages must be replaced through `create-template` rather than upgraded in place.
+The AI agent will handle the rest — analyzing your references, writing the kind-specific specification, building structured layout definitions only for Layout/Deck, and validating the workspace. Brand/Style never create a preview PPTX; Layout/Deck generate `exports/<id>_template_preview.pptx` on request and require it for multiple Masters. Both scopes require `templates/`; Brand/Layout/Deck may use package-owned `images/` and `icons/`, while Style contains only `templates/design_spec.md`. Library scope writes `skills/ppt-master/templates/<kind>/<id>/` and registers it; project scope writes `projects/<name>/` and skips registration. Empty optional directories are omitted. Give that workspace root to Step 3; it never copies `exports/`, and library review exports are Git-ignored. A compatible legacy-flat Brand/Layout/Deck workspace remains readable only when it satisfies the current kind contract; Layout/Deck also require current structured SVGs. Style has no legacy-flat form, and semantic-legacy packages must be replaced through `create-template` rather than upgraded in place.
 
 > **Tip**: The more specific you are about the style and use case, the better the generated template will match your expectations.
 

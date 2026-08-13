@@ -74,11 +74,10 @@ Begin substantive paragraphs with a bolded short label. Reuse this fixed vocabul
 
 ✅ Good (from `executor-base.md`):
 ```
-**Hard rule**: Before generating **each** SVG page, run:
-`python3 skills/ppt-master/scripts/project_manager.py page-context <project_path> P<NN> --record-usage`.
+**Hard rule**: Reuse the complete Design Spec and lock while the active context remains valid. After compaction or fresh/resumed execution, read both once before continuing.
 
 **Forbidden — unresolved asset references**:
-- Icons MUST come from `icons.inventory`
+- Icons MUST resolve to prepared project-local assets
 - Images MUST resolve to declared project assets
 ```
 
@@ -98,21 +97,23 @@ Boundary cases go by this test, not by how strong the verb feels: "never split a
 
 ### 4.1 Ownership Contract: Ingredients → Plan + Preparation → Realization
 
-Constraint strength and decision ownership are independent. Preserve this chain whenever writing, compressing, or reviewing multi-role prompts:
+Constraint strength and decision ownership are independent. Preserve this chain whenever writing, compressing, or reviewing the default multi-role Generate prompts:
 
 | Layer | Owns |
 |---|---|
 | User / initial materials | Supplied facts/assets, desired outcome, exclusions, and permission boundaries remain authoritative |
-| Strategist / plan + preparation | Assess material sufficiency; trigger permitted fact research; decide the approved content, resources, keys, identity anchors, and exact page roster; materialize the planned project-local inventory or record an explicit `Needs-Manual` dependency before execution |
-| Executor / realization | Use only the prepared inventory and realize the approved selections through geometry, composition, hierarchy, and treatment; sparse local font/color garnish is allowed only while non-structural and non-recurring |
+| Strategist / plan + preparation | Assess material sufficiency; trigger permitted fact research; decide the approved content, resources, keys, identity anchors, and exact page roster; record optional capability/expression recommendations; materialize the planned project-local inventory or record an explicit `Needs-Manual` dependency before execution. For icons, prepare a curated project pool with broad semantic fit rather than assigning files to pages |
+| Executor / realization | Use only prepared project-local assets; preserve approved content, resources, and identity anchors; realize them through geometry, composition, hierarchy, and treatment. Fields explicitly labeled `suggestion` or Reference are preferred expression rather than binding selections: Executor may adapt or decline them when content and explicit constraints remain intact. For icons, the complete `<project>/icons/` pool is prepared material; `icons.inventory` is a curated bundled-pool index, not a page-use plan or whitelist, and Executor chooses prepared icons per page without a coverage quota. Sparse local font/color garnish is allowed only while non-structural and non-recurring |
 
-**Preparation timing**: Fact research required for planning may run before final confirmation. AI / web / slice acquisition runs only from the completed `design_spec.md §VIII` and `spec_lock.md`, after final confirmation and before Executor. Image_Generator, Image_Searcher, and icon-sync tooling execute Strategist-owned preparation; they are not independent decision owners.
+**Preparation timing**: In the default pipeline, fact research required for planning may run before final confirmation. AI / web / slice acquisition runs only from the completed `design_spec.md §VIII` and `spec_lock.md`, after final confirmation and before Executor. Image_Generator, Image_Searcher, and icon-sync tooling execute Strategist-owned preparation; they are not independent decision owners.
 
-**Hard rule**: downstream freedom exists only in dimensions left open upstream. A named outcome retains identity; a broad semantic request permits in-class choice. Once the plan resolves that choice, execution cannot reopen or substitute it. Executor never searches, generates, downloads, syncs, invents, or replaces a resource; missing material returns to Strategist-owned preparation or upstream repair.
+**Hard rule — default pipeline**: downstream freedom exists only in dimensions left open upstream, including fields explicitly labeled `suggestion` or Reference. A named binding outcome retains identity; a broad semantic request or expression recommendation permits in-class choice. Once the plan resolves a binding choice, execution cannot reopen or substitute it. For icons, library/stroke and the prepared-project boundary bind, while per-page choice within the prepared pool is realization. Executor never searches, generates, downloads, syncs, invents, or replaces a resource; missing material returns to Strategist-owned preparation or upstream repair.
+
+**Explicit Quick Generate exception**: [`quick-generate`](../../skills/ppt-master/workflows/profiles/quick-generate.md) removes the separate Strategist/confirmation handoff. The current main agent therefore owns both its active-context decisions and the preparation of project-local sources, images, icons, formulas, and provenance before it begins SVG realization. This exception does not move acquisition into a default-pipeline Executor and does not permit resource reselection while a page is being realized. Explicit user facts, choices, exclusions, and permissions remain upstream authority; unspecified routine choices are resolved automatically without a confirmation stop.
 
 > Mnemonic — restaurant contract: the customer supplies initial ingredients and the desired dish; Strategist plans the dish and prepares the complete mise en place; Executor cooks from that prepared inventory. “Mapo tofu” cannot become tomato-and-eggs or tofu soup, while “a tofu dish” leaves deliberate in-class freedom.
 
-**Review gate**: treat any prompt refactor that erases this ownership chain, moves acquisition into Executor, turns a permission into a quota, or turns flexible realization into silent reselection as a semantic regression even when the compressed wording is shorter.
+**Review gate**: treat any prompt refactor that erases the selected profile's ownership chain, moves acquisition into the default-pipeline Executor, turns a permission into a quota, or turns flexible realization into silent resource/identity reselection as a semantic regression even when the compressed wording is shorter.
 
 ---
 

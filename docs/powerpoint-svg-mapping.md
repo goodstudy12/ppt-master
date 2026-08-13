@@ -95,6 +95,7 @@ Internal identifiers and PowerPoint display names are separate concerns: Master 
 | Arrowhead line | `<line>` or supported path with registered triangle, stealth, arrow, diamond, or oval start/end markers | Native DrawingML line head/tail ends | `Native-normalized`; marker size is approximate | Marker definitions must follow the conditional marker contract |
 | Native connector | Compact project-authored preset group with connector metadata and direct visible paths | `p:cxnSp` | Imported connectors retain the expanded round-trip evidence needed for source topology | `Native-stable` for the registered preset/connector schema |
 | Freeform shape | `<path>` | `p:sp` with `a:custGeom` | Imported custom geometry reconstructs as a path | `Native-normalized`; SVG arcs are converted to cubic segments |
+| Materialized Merge Shapes result | Ordinary `<path>` output from `shape_boolean_svg.py`; Fragment returns sibling paths | One `p:sp` with `a:custGeom` per returned path | `Native-normalized`; imports as final freeform geometry, not replayable operation history | Supported closed geometry or horizontal implicit-LTR direct text with an exact resolvable font face; text becomes glyph geometry, the first source owns style/order, and no clip, mask, or explicit fill rule is emitted |
 | Polygon | `<polygon>` | Closed custom geometry | `Native-normalized` | Points must be finite and valid |
 | Polyline | `<polyline>` | Open custom geometry | `Native-normalized` | Points use the same finite, registered grammar as other generated geometry |
 | PowerPoint preset shape | Registry-generated compact `<g>` with preset intent/base paint and direct visible `<path>` children | One editable preset `p:sp` | Preset identity and adjustments can survive import/export | Quality check and export rerender the registry dynamically; canonical authoring has no hidden carrier, preview wrapper, or stored preview hash |
@@ -118,7 +119,7 @@ preset selection and authoring behavior are documented in
 |---|---|---|---|---|
 | Text box | `<text>` | Editable `p:sp` with `p:txBody` | Reconstructed as `<text>` and, when needed, `<tspan>` | Text must be well-formed XML and use registered attributes |
 | Mixed formatting within a line | Non-positioned `<tspan>` runs | DrawingML runs in one text frame | `Native-normalized`; registered run formatting remains editable | Positioning that changes frame geometry may split the result |
-| Multiple paragraphs | Mergeable text/tspan structure | Multiple `a:p` paragraphs in one text frame | `Native-normalized` | Strict independently positioned lines may remain separate text boxes |
+| Authored multiline and paragraph text | One `<text>` with positioned direct `<tspan>` lines | By default, one no-wrap text frame retains authored line breaks; ordinary generated frames resize to fit later edits, while exact frames and structured multiline placeholder carriers retain fixed-size behavior; semantic paragraph boundaries remain `a:p` | `Native-normalized` | `--reflow-text` permits PowerPoint reflow; `--no-merge` emits one shape per visual line |
 | Significant text whitespace | Exact `xml:space="default"` or `xml:space="preserve"` on `<text>`/`<tspan>` | Normalized or preserved U+0020 text in editable DrawingML runs | `Native-normalized`; inline run ownership is retained | Uses the project Chromium/SVG2 contract: LF/TAB become spaces, `default` collapses across runs, `preserve` retains them, and Unicode spacing characters remain literal; CSS `white-space` and legacy SVG 1.1 newline deletion are outside the mapping |
 | Font family | Canonical `font-family` resolved as a structural lock role or contextual export-safe choice | Direct typeface or registered theme font | `Native-stable` within installed/font-substitution limits | Unavailable/unsafe fonts are reported; a contextual safe family is informational, not a lock failure |
 | Font size | Finite unitless SVG pixels, for example `font-size="24"` | DrawingML hundredths of a point; `1 px = 0.75 pt` | `Native-stable` after unit conversion | Generated authoring uses only unitless px; registered legacy units are compatible input and warn, while unknown units error; DrawingML minimum is 1 pt |
@@ -144,9 +145,10 @@ preset selection and authoring behavior are documented in
 | Crop picture to fill | One registered alignment plus explicit `slice` | Native `a:srcRect` crop | `Native-stable` when source dimensions are readable | Alignment is case-sensitive; unknown modes and extra tokens are errors |
 | Fit picture inside frame | Omitted default, or one registered alignment plus explicit `meet` | Native fitted picture frame | `Native-normalized` | Alignment-only shorthand is compatible input that receives a normalization recommendation |
 | Picture transparency | Atomic image `opacity` | Native `a:alphaModFix` | `Native-stable` | Value must be finite and within the accepted opacity grammar |
+| Picture shadow or glow | One registered effect filter directly on an unclipped `<image>`; a clipped image or imported crop uses its exact single-picture outer carrier | Native `p:pic/p:spPr/a:effectLst` | `Approximate`; one effect round-trips as one editable picture, including a direct Master/Layout atom | `filter` and `clip-path` cannot share one `<image>`; only a direct fixed atom may put `data-pptx-layer="master|layout"` on the carrier, while Placeholder/Binding/replacement ownership stays outside; ordinary group filters, other primitives, effect DAGs, and multiple independent effects remain unsupported |
 | Picture clipped to a shape | Registered image/crop-wrapper `clip-path` with one SVG-namespace shape | Picture preset or custom geometry | `Native-normalized` | Circle/ellipse/rect presets must cover the complete picture frame; use path/polygon for partial or offset contours; masks and winding-rule-dependent contours are not accepted |
 | Imported cropped picture | Exact SVG-namespace nested crop wrapper produced by import, containing one direct unit-frame image in the visual root/`g` tree | Native signed `a:srcRect` on re-export | `Native-stable` within the crop contract, including negative crop values | Any generalized nested viewport, non-visual/render-only owner, extra visual child, unrepresentable crop window, redundant uncropped wrapper, or unresolved clip-marker pair is rejected |
-| Picture recolor, artistic filter, blur, or complex mask | No general authoring mapping | Rebuild with supported overlays or pre-render | `Bake-required` | Arbitrary SVG filters and blend modes fail the main contract |
+| Picture recolor, artistic filter, blur, or complex mask | No general authoring mapping | Rebuild with supported overlays or pre-render | `Bake-required` | Unregistered SVG filters and blend modes fail the main contract |
 
 ## 6. PowerPoint fill, line, and effect features
 
@@ -156,7 +158,7 @@ preset selection and authoring behavior are documented in
 | Solid fill | Canonical `fill="#RRGGBB"`, either a named lock anchor or contextual page paint | `a:solidFill`, with a theme token when an anchor role is exactly reusable | `Native-stable` | Compatible spellings may warn; malformed colors fail, while valid contextual colors are informational |
 | Fill transparency | Opaque fill plus `fill-opacity` | Native alpha | `Native-stable` | Generated values are finite unitless numbers from 0 to 1 |
 | Linear gradient fill | Registered `<linearGradient>` in `<defs>` | Native `a:gradFill` | `Native-normalized` | Stops, coordinates, transforms, and references must follow the closed contract |
-| Radial gradient fill | Registered `<radialGradient>` | Centered circular DrawingML gradient | `Approximate` | Review focal/radius-sensitive designs |
+| Radial gradient fill | Registered `<radialGradient>` | Point-focused circular DrawingML gradient | `Approximate`; an in-circle effective focus round-trips while outer center/radius normalize | Effective focus must lie inside the canonical centered radius-0.5 circle; import centers an outside focus with a diagnostic; review radius- or outer-center-sensitive designs |
 | Pattern fill | Annotated project pattern definition | Native `a:pattFill` | `Native-normalized` | Only registered PowerPoint preset patterns are supported |
 | No outline | `stroke="none"` or the registered absence of a line | `a:noFill` under `a:ln` | `Native-stable` | Do not simulate absence with zero-width ambiguous CSS |
 | Solid outline | Registered `stroke` and width | Native `a:ln` | `Native-stable` | Width and paint must use canonical units/grammar |
@@ -167,12 +169,12 @@ preset selection and authoring behavior are documented in
 | Dashed or dotted outline | Registered dash array | Preset or custom DrawingML dash | `Native-normalized` | Unsupported dash semantics are rejected |
 | Line cap and join | Registered cap/join values | Native line cap/join properties | `Native-stable` within the fixed join contract | Import accepts one join; miter requires exact `lim="800000"` |
 | Line arrowheads | Registered start/end markers | Native head/tail end properties | `Approximate` for marker size | Only triangle, stealth, arrow, diamond, and oval follow the conditional marker contract |
-| Outer shadow | One supported shadow filter graph | Native outer shadow in `a:effectLst` | `Approximate`; one imported shape/connector source `outerShdw` is reconstructed only when its non-zero offset remains classifiable | Zero-offset source shadows and unsupported graph shapes are not silently reclassified |
-| Glow | One supported glow filter graph | Native glow in `a:effectLst` | `Approximate`; one imported shape/connector source glow keeps the registered radius conversion | Review when the glow carries semantic emphasis |
+| Outer shadow | One supported shadow filter graph | Native outer shadow in `a:effectLst` | `Approximate`; one imported shape/connector/picture source `outerShdw` is reconstructed only when its non-zero offset is classifiable and its scale, skew, and rotation behavior are neutral or representable | Non-neutral `sx`/`sy`/`kx`/`ky`, rotate-with-shape behavior on a rotated target, zero offset, and unsupported attributes or graphs produce blocking diagnostics instead of silent simplification |
+| Glow | One supported glow filter graph | Native glow in `a:effectLst` | `Approximate`; one imported shape/connector/picture source glow keeps the registered radius conversion | Review when the glow carries semantic emphasis |
 | Imported text-run effect | Unchanged `metadata[data-pptx-part="txbody"]` on a logical shape; import-only blocking effect status for inherited Layout/Master list styles plus vertical, relationship-bearing, and table-cell fallback routes | Original slide-local native run effect inside `p:txBody` | `Native-stable` only while the raw slide-local payload remains usable; inherited effects, edits, or fallback routes that would drop a non-empty run `effectLst` / `effectDag` block | Not public authoring syntax; a table-cell run effect also disables the native Table replacement payload |
 | Whole-object transparency | Atomic element `opacity` | Alpha distributed into supported native channels | `Native-normalized` | Prefer channel-specific alpha unless the whole atomic object fades |
 | Group transparency | Compatible `<g opacity>` | Descendant-normalized approximation | `Approximate` with a warning | Generated SVG should prefer descendant alpha |
-| Inner shadow, soft edge, reflection, blur, turbulence, blend mode, or arbitrary mask | No registered native mapping | Explicit geometry alternative or raster asset | `Bake-required`; PPTX import keeps the base object and emits blocking diagnostics for unsupported shape/connector effects, picture/group effect DAGs, and non-empty picture/group effect lists | Handled object effects cannot be reclassified or omitted; text-run safety follows the unchanged-`txBody` row above |
+| Inner shadow, soft edge, reflection, blur, turbulence, blend mode, or arbitrary mask | No registered native mapping | Explicit geometry alternative or raster asset | `Bake-required`; PPTX import keeps the base object and emits blocking diagnostics for unsupported effects, effect DAGs, and picture/group lists outside the single registered effect | Handled object effects cannot be reclassified or omitted; text-run safety follows the unchanged-`txBody` row above |
 
 ## 7. PowerPoint tables
 
@@ -210,12 +212,22 @@ These capabilities belong to PPTX package semantics. Their absence from page SVG
 |---|---|---|---|---|
 | Speaker notes | `notes/<slide>.md` sidecar | Notes Slide part and relationship | `Sidecar/package` | Notes are not SVG text and do not affect page geometry |
 | Slide transition | CLI options or `animations.json` | `p:transition` | `Sidecar/package` | Unknown effects or invalid durations fail; no silent `fade` fallback |
-| Object entrance animation | `animations.json` targeting stable top-level SVG group IDs | Root `p:timing` animation tree | `Sidecar/package`; the group ID is only the target anchor | Static structural layers and placeholders cannot be animated |
+| Object animation (entrance / emphasis / motion path / exit) | `animations.json` targeting stable top-level SVG group IDs; `effects[]` may assign several rows to one anchor | Root `p:timing` animation tree | `Sidecar/package`; the group ID is only the shape-target anchor | Static structural layers and placeholders cannot be animated |
 | Narration audio | `audio/` asset plus recorded-narration export option | Media relationship, audio carrier, and timing | `Sidecar/package` | Asset, slide association, and timing must validate |
 | Automatic slide advance | Explicit transition timing or narration-derived duration | `advTm`/advance behavior | `Sidecar/package` | Click-driven animation is incompatible with recorded narration |
 | Hyperlink or action | No main SVG compiler mapping | Not created by page SVG | `Direct preservation` where a native route retains source OOXML | An action-button preset supplies visual geometry only |
 | Comment or review thread | No SVG or generation-side mapping | Not authored | `Direct preservation` only when explicitly owned by another route | Do not convert review metadata into visible slide content automatically |
 | Relationship not owned by a mapped feature | No generic SVG escape hatch | Not generated | `Direct preservation` where applicable | Arbitrary relationship injection is unsupported |
+
+For one target group, the fully compatible legacy object represents one
+effect row, while a non-empty `effects[]` represents several; the two forms are
+mutually exclusive. Every row may set its own `trigger`, sequence `order`,
+`delay`, `duration`, and `trigger_shape`, with the slide animation trigger used
+only as an inherited Start value. `auto`, `mixed`, and `random` resolve generic
+entrances only; explicit canonical effects cover entrance, emphasis, native
+motion-path presets, and exit. This mapping does not infer paragraph/text-range
+builds, custom freeform motion paths, native Chart/SmartArt build sequences, or
+media playback commands.
 
 See [Animations & Transitions](./animations.md) (technical source: [`references/animations.md`](../skills/ppt-master/references/animations.md)) and [`audio-narration.md`](./audio-narration.md) for the sidecar workflows.
 

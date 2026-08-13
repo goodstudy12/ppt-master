@@ -6,7 +6,7 @@ description: Optional quality-gate stage for per-page rubric-based visual review
 
 > Optional Generate-PPTX quality stage. Goal: reduce human iteration by letting AI subagents visually self-check each rendered slide against a fixed rubric and apply atomic position/spacing fixes.
 >
-> Reads `<project>/svg_output/<page>.svg` and a pre-rendered PNG of each slide, then either applies a fix or flags `needs_human`. **Never touches** brand decisions, layout structure, or other files.
+> Reads `<project>/svg_output/<page>.svg` and a pre-rendered PNG of each slide, then either applies a fix or flags `needs_human`. When an installed Style exists, it also reads that workspace's `Review Focus` as supplemental acceptance context. **Never touches** brand decisions, layout structure, or other files.
 >
 > This stage is **context-independent** — invokable in a fresh chat session with only `<project_path>` as input. No upstream conversation context required.
 
@@ -14,7 +14,7 @@ description: Optional quality-gate stage for per-page rubric-based visual review
 
 This is an **optional auxiliary loop**, opt-in only. The [`generate-pptx`](../generate-pptx.md) Step 1–7 pipeline does not invoke it; trigger only when the user explicitly asks for a visual re-pass on the generated SVGs before export.
 
-**Token cost**: each batch subagent re-reads the rubric + `design_spec.md` + `spec_lock.md` and processes K SVG+PNG pairs. For a 20-page deck with K=5, expect on the order of 100–150K additional input tokens on top of the main generation run.
+**Token cost**: each batch subagent re-reads the rubric + `design_spec.md` + `spec_lock.md` + the short Style Review Focus when present, and processes K SVG+PNG pairs. For a 20-page deck with K=5, expect on the order of 100–150K additional input tokens on top of the main generation run.
 
 ## When to Run
 
@@ -46,7 +46,7 @@ python3 skills/ppt-master/scripts/svg_editor/server.py <project_path> --no-brows
 # (single instance per project — if it's already running, skip)
 ```
 
-The renderer (`visual_review.py`) does **not** auto-start the live-preview server. It expects the server to be reachable at `http://localhost:5050` (override with `--server-url`).
+The renderer (`visual_review.py`) does **not** auto-start the live-preview server. Without `--server-url`, it discovers the actual port from the target project's `live_preview/lock.json`; an explicit `--server-url` overrides discovery. In either case it validates `/api/health` against the resolved target project before rendering and rejects a server for another project.
 
 > **Why playwright, not cairosvg**: cairo's text API has no font-fallback chain, so CJK characters render as tofu boxes for any deck whose font-family list relies on system fallback (Microsoft YaHei / PingFang SC / etc.). Playwright drives a real chromium and produces output identical to what the live-preview browser shows — the only fidelity-preserving option for bilingual decks.
 
@@ -63,7 +63,7 @@ This writes one PNG per page to `<project_path>/.preview/<page>.png` at 1280×72
 Exit codes:
 
 - `0` — all pages rendered
-- `2` — live-preview server unreachable (start it per Prerequisites)
+- `2` — live-preview server unreachable or serving a different project (start the target project's server per Prerequisites)
 - `3` — playwright python / chromium not installed (or browser failed to launch)
 - `4` — one or more page-level render failures (see stderr; partial output is on disk)
 
@@ -73,7 +73,9 @@ If any page comes back with `"all_background": true` in the JSON summary, that p
 
 ## Step 2 — Spawn the review team
 
-Create a team and dispatch one orchestrator agent. The orchestrator partitions the N pages into batches of ≤ K pages (default **K = 5**) and spawns one subagent per batch **in parallel** (single message, `ceil(N/K)` parallel `Agent` calls). Each batch subagent reads the fixed inputs (rubric + `design_spec.md` + `spec_lock.md`) **once**, then iterates over its assigned pages sequentially.
+Create a team and dispatch one orchestrator agent. The orchestrator partitions the N pages into batches of ≤ K pages (default **K = 5**) and spawns one subagent per batch **in parallel** (single message, `ceil(N/K)` parallel `Agent` calls). Each batch subagent reads the fixed inputs (rubric + `design_spec.md` + `spec_lock.md` + conditional Style Review Focus) **once**, then iterates over its assigned pages sequentially.
+
+Before dispatch, look for `<project>/templates/design_spec.style.*.md`. For each one found, read only its `## VII. Review Focus` once and include those checks in every batch prompt. Otherwise pass no Style supplement. This lookup never triggers visual review; it runs only after the user has already activated this stage. The supplement cannot weaken the fixed rubric or widen edit permissions.
 
 ```text
 TeamCreate(team_name="visual-review-<project>", agent_type="orchestrator")
@@ -92,8 +94,9 @@ The orchestrator prompt must be self-contained and is the **single** place where
 - Batch size `K` (default 5; raise to 10 for token-sensitive runs on large decks, lower to 3 for high-fidelity short decks — see rubric §6.1)
 - Iteration budget per page (default 1; 2 only for high-stakes / final-cut runs — see [Appendix: Iteration loop](#appendix-iteration-loop-opt-in))
 - Path to the rubric: `skills/ppt-master/references/visual-review.md`
+- Style Review Focus excerpt, only when the conditional lookup above found one; preserve its wording and source path
 - Dispatch contract reference: rubric [§6](../../references/visual-review.md#6-dispatch--messaging-contract) (batched parallel spawn, self-contained prompts, mandatory `SendMessage` on idle, anonymous-name tolerance)
-- Subagent forbid list: do not edit any other page, `design_spec.md`, `spec_lock.md`, `animations.json`, `image_prompts.json`, or `images/`
+- Subagent forbid list: do not edit any other page, `design_spec.md`, `spec_lock.md`, anything under `templates/`, `animations.json`, `image_prompts.json`, or `images/`
 
 **Host compatibility**: `TeamCreate` and `SendMessage` are Claude-Code-specific multi-agent primitives. On hosts without those primitives (Cursor, VS Code + Copilot, Codebuddy, etc.) the main agent processes batches sequentially — same partitioning, same per-batch prompts, no parallel dispatch. Token savings from shared fixed inputs still apply; wall-clock time grows roughly N/K-fold.
 

@@ -12,7 +12,7 @@
 
 项目的主轴是**原生深度**：逐版本创作或保留更多 PowerPoint 自身的对象模型、行为与可复用结构——持续向 PowerPoint 本身靠拢。完整论述见[项目定位章程](./project-positioning.md)；[PowerPoint ↔ SVG 映射指南](./powerpoint-svg-mapping.md)逐特性诚实记录当前边界。
 
-这条主轴今天体现为四条显式产物路线：**Generate PPTX** 通过受约束的 SVG → DrawingML 创作全新设计的页面；**Create Template** 产出可复用的 Brand / Layout / Deck 模板工作区；**Fill Native PPTX** 与 **Enhance Native PPTX** 通过限定范围的 OOXML 操作保留既有文件包。
+这条主轴今天体现为四条显式产物路线：**Generate PPTX** 通过受约束的 SVG → DrawingML 创作全新设计的页面；**Create Template** 产出可复用的 Brand / Style / Layout / Deck 模板工作区；**Fill Native PPTX** 与 **Enhance Native PPTX** 通过限定范围的 OOXML 操作保留既有文件包。
 
 ---
 
@@ -70,7 +70,7 @@ Generate PPTX 路线围绕完全可控的新形状、文字与版式创作。结
 
 跨四渲染器（PowerPoint / Keynote / LibreOffice / WPS）的位置保真是项目主轴。把默认路线改成 PowerPoint 原生图表会让「像素级一致性」破功——同一个 PPTX 在不同渲染器里图表会显示不同布局。图表默认用 SVG 是 **by design**，不是能力缺失。
 
-窄例外是 `data-pptx-replace-with` marker：Design Spec §VII 中独立规划、且写明 `Native-ready: yes` 的受支持数据图表与纯文本网格表格可以携带 PowerPoint 原生 Chart/Table 替换 payload；`no` / `n/a` 与零星微型图形保持普通 shape。导出加 `--native-charts-and-tables` 才激活已准备的 marker——供主动用跨渲染器保真换取带数据源对象及图表/表格专属编辑模型的用户使用；激活后的对象会保留 deck 的 chart-area / plot / 轴线 / 网格线 / 标签颜色与原生表格格式，不再塌回 PowerPoint 默认主题（见 [v4.0.0 发布说明](https://github.com/hugohe3/ppt-master/releases/tag/v4.0.0)）。默认导出路径与可编辑的 SVG 派生形状系统不变。
+窄例外是 `data-pptx-replace-with` marker：Design Spec §IX `Native-ready` 映射中以 `<object-key>=yes` 点名的受支持独立数据图表与纯文本网格表格可以携带 PowerPoint 原生 Chart/Table 替换 payload；`no` 与零星微型图形保持普通 shape。§VII 只记录真正选中的可复用参考。导出加 `--native-charts-and-tables` 才激活已准备的 marker——供主动用跨渲染器保真换取带数据源对象及图表/表格专属编辑模型的用户使用；激活后的对象会保留 deck 的 chart-area / plot / 轴线 / 网格线 / 标签颜色与原生表格格式，不再塌回 PowerPoint 默认主题（见 [v4.0.0 发布说明](https://github.com/hugohe3/ppt-master/releases/tag/v4.0.0)）。默认导出路径与可编辑的 SVG 派生形状系统不变。
 
 ### uv 作为默认 / 必需依赖
 
@@ -84,10 +84,11 @@ Generate PPTX 路线围绕完全可控的新形状、文字与版式创作。结
 
 成本 / 速度 / 质量三角下，本项目选择**质量优先**。20 分钟生成一个高质量 PPTX 是当前的合理点。
 
-会做：通过 prompt 精简 / 缓存命中率提升带来的间接改善；
-不会做：以牺牲质量为代价的「随便几页应付交差」式提速。
+会做：通过 prompt 精简 / 缓存命中率提升带来的间接改善。
 
-如果对速度敏感且能接受质量下降，零配置的浏览器 SaaS 工具更合适。
+显式 `quick-generate` 是用户主动选择的工作流短路：它跳过 Strategist、确认和首屏 gate，随后创作 SVG、运行一次无锁最终质量门，再导出最终 PPTX。由于整个规划阶段不再发生——Strategist 系 reference 的加载、`design_spec.md` / `spec_lock.md` 的写入、分步确认往返——这部分 token 开销随之消失，而逐页 SVG 创作的开销不变。它保留同一套视觉 / 资源能力和最终阻塞标准，但没有已确认的设计契约、首屏校准或可恢复的决策历史，因此不承诺与 Default 作出相同设计，也不承诺具体耗时。
+
+默认 Generate 流程仍坚持质量优先。
 
 ### 独立 CLI / 托管 SaaS / 桌面 App 形态
 

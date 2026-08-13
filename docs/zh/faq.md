@@ -61,6 +61,8 @@ python3 skills/ppt-master/scripts/update_repo.py
 
 两种方式装好后，都要在安装目录跑 `pip install -r requirements.txt`，后处理脚本才能工作。
 
+这两条路径都不带 `.git` 目录，`git describe` 查不到版本。已安装的版本记录在 skill 自身 `SKILL.md` frontmatter 的 `metadata.version` 字段里。
+
 中国大陆地区访问 GitHub 下载不便的话，完整仓库在 [AtomGit](https://atomgit.com/hugohe3/ppt-master) 也有镜像（clone 或下载 ZIP）；1 GB 出头的体积在中国大陆地区网络下载一般没问题。
 
 ## Q: 能用 AI 生成配图吗？
@@ -77,25 +79,29 @@ python3 skills/ppt-master/scripts/update_repo.py
 
 ## Q: 生成的 PPT 可以编辑吗？
 
-可以。唯一受支持的 PPTX 产物路线，是由项目转换器读取 `svg_output/` 并生成原生 DrawingML `.pptx`；文字、图形和颜色无需额外转换即可编辑，文件以时间戳命名保存至 `exports/`。Executor 的原始 SVG 源（`svg_output/` 副本）始终镜像到 `backup/<timestamp>/svg_output/`，便于归档或基于该版重跑 `finalize_svg → svg_to_pptx` 重建 PPTX，无需再走 LLM。
+可以。SVG 管线统一由项目转换器读取 `svg_output/` 并生成原生 DrawingML `.pptx`；文字、图形和颜色无需额外转换即可编辑，文件以时间戳命名保存至 `exports/`。使用默认输出路径时，Default Generate 与 Quick Generate 都会把作者源 `svg_output/` 镜像到 `backup/<timestamp>/svg_output/`，便于归档或基于该版重新导出 PPTX，无需再走 LLM。对 Quick 而言，这只是包重建，不是可恢复的 AI 设计决策记录。
 
-Step 7 仍会强制生成 `svg_final/`。其中每页都是自包含的视觉预览 SVG，可直接在浏览器或 IDE 中打开，也可作为 SVG 图片手动插入 PowerPoint；项目只保证其作为预览或图片显示，不保证 PowerPoint 手工“转换为形状”后的结果。需要可编辑形状时，请使用 `exports/` 中由项目转换器生成的原生 PPTX。
+默认 Generate 流程的 Step 7 仍会强制生成 `svg_final/`。其中每页都是自包含的视觉预览 SVG，可直接在浏览器或 IDE 中打开，也可作为 SVG 图片手动插入 PowerPoint；显式快速生成会跳过这项预览产物，但在无锁最终质量检查通过后，仍保留普通 postflight 报告和默认输出路径下的备份。项目只保证 `svg_final/` 作为预览或图片显示，不保证 PowerPoint 手工“转换为形状”后的结果。需要可编辑形状时，请使用 `exports/` 中由项目转换器生成的原生 PPTX。
 
-## Q: 为什么一段正文被拆成了好几个文本框？能不能一段一个文本框？
+## Q: 多行文本会怎样导出？可以让 PowerPoint 自动重排吗？
 
-默认会把可合并的正文段落导出成一个可编辑的 PowerPoint 文本框，内部保留多个段落。**拉伸框时文字会在框内自动重排**。
+默认会把可合并的多行文本块导出成一个可编辑的 PowerPoint 文本框，保留作者断行并禁用 PowerPoint 自动换行，因此拉伸文本框不会重写作者排好的行。普通生成文本框使用 PowerPoint 原生的“根据文字调整形状大小”：删除保留的换行后，文本框会随文字扩展，不会让文字留在框外。导入的精确文本框和结构化多行占位符 carrier 保持原有的固定尺寸行为。
 
-如果你需要严格保持逐行版式，重新导出时加上 `--no-merge`：
+如果需要让 PowerPoint 自动重排适合流动的正文，请使用 `--reflow-text`：
+
+```bash
+python3 skills/ppt-master/scripts/svg_to_pptx.py <project_path> --reflow-text
+```
+
+该模式会恢复段落自动重排，最终行数可能改变。旧参数 `--merge-paragraphs` 是 `--reflow-text` 的兼容别名。
+
+只有每一视觉行都必须成为独立的 PowerPoint 文本框时，才使用 `--no-merge`：
 
 ```bash
 python3 skills/ppt-master/scripts/svg_to_pptx.py <project_path> --no-merge
 ```
 
-使用 `--no-merge` 时，SVG 里的每一视觉行都会变成一个独立的 PowerPoint 文本框。这样能**逐像素保留 SVG 的版式**，适合封面、图表、表格、以及任何对版式精度敏感的页面。
-
-**代价**：默认合并会保留一个可编辑文本框和原始视觉行边界；只有需要让每一视觉行都能单独移动时才使用 `--no-merge`。判定足够保守——非段落型 `<text>` 会自动落回按行拆框路径。
-
-跟 AI 对话时也可以直接说："这个页面要严格保持逐行版式" —— AI 重新导出时会加上 `--no-merge`。
+该模式保留逐行独立的对象位置，但 12 行正文会变成 12 个文本框。与 AI 对话时，可以直接说“允许文字自动重排”或“每一视觉行使用独立文本框”，由它选择对应的导出模式。
 
 ## Q: 字号为什么用 px 不是 pt？导出后字号会变吗？
 
@@ -138,13 +144,18 @@ PPT Master 本身免费开源，唯一的成本来自你自己的 AI 模型用�
 
 ## Q: 页面切换和元素动画可以调吗？
 
-可以。页间转场默认开（`fade` 0.4s），页内元素入场动画**默认关**——翻到一页时整页一次性呈现，不会有元素一个个自动级联出来（那种没人要的自动连播正是「AI 味」最重的地方）。两者都通过 `svg_to_pptx.py` 的参数控制——`-t/--transition` 控制页级，`-a/--animation` 控制元素级。想要页内动画时显式开启即可：
+可以。页间转场默认开（`fade` 0.4s），页内元素对象动画**默认关**——翻到
+一页时整页一次性呈现，不会自动逐个级联。两者都通过 `svg_to_pptx.py` 的
+参数控制：`-t/--transition` 控制页级，`-a/--animation` 控制元素级。对象
+注册表已经包含进入、强调、动作路径和退出效果。
 
 ```bash
 python3 skills/ppt-master/scripts/svg_to_pptx.py <project> -t push       # 换转场效果
 python3 skills/ppt-master/scripts/svg_to_pptx.py <project> -t none       # 关闭转场
 python3 skills/ppt-master/scripts/svg_to_pptx.py <project> -a auto       # 开启页内元素入场（按 group id 自动映射效果）
-python3 skills/ppt-master/scripts/svg_to_pptx.py <project> --animation fade        # 开启并改用单一效果
+python3 skills/ppt-master/scripts/svg_to_pptx.py <project> --animation entrance_fade # 开启并改用单一规范效果
+python3 skills/ppt-master/scripts/svg_to_pptx.py <project> --animation emphasis_spin # 原生强调效果
+python3 skills/ppt-master/scripts/pptx_animations.py --list             # 完整分类效果清单
 python3 skills/ppt-master/scripts/svg_to_pptx.py <project> -a auto --animation-trigger on-click   # 单击触发，演讲者控制节奏
 ```
 
@@ -171,7 +182,7 @@ python3 skills/ppt-master/scripts/svg_to_pptx.py <project> -a auto --animation-t
 
 如果你看到的效果差强人意，先对照以下几点检查你的配置，再下结论：用的什么模型？上下文开了多大？有没有接入图片生成 API？同样的工作流，Claude Opus 配 100 万 token 上下文配 `gpt-image-2` 的结果，和小参数开源模型配零配置的结果，是截然不同的体验。
 
-> **没有 Claude 渠道？** 本项目赞助商 [PackyCode](https://www.packyapi.com/register?aff=ppt-master) 提供 Claude 及其他主流模型的按量付费接入——无需订阅，无需境外信用卡，支持国内支付，开箱即用。充值时填写优惠码 **`ppt-master`** 享 9 折。
+> **没有 Claude 渠道？** 本项目赞助商 [PackyCode](https://www.packyapi.ai/register?aff=ppt-master) 提供 Claude 及其他主流模型的按量付费接入——无需订阅，无需境外信用卡，支持国内支付，开箱即用。充值时填写优惠码 **`ppt-master`** 享 9 折。
 
 最后再说一句：这是一个免费、个人维护的开源项目。合用就用，能帮到你我很高兴；不合用，换个工具就好。真诚的反馈与建议始终欢迎——这也是项目一点点变好的方式。
 
@@ -191,11 +202,27 @@ python3 skills/ppt-master/scripts/svg_to_pptx.py <project> -a auto --animation-t
 
 如果感觉生成很慢，检查一下模型的 token 吞吐速度。瓶颈通常在模型的输出速度，而不是脚本本身。
 
+如果你想要的是少走流程、而不是换模型，可以显式要求快速生成：它跳过策略师分析与确认停顿，规划阶段的开销随之消失，但逐页 SVG 生成的时间不变。见下一问「不想先确认设计规格，能直接生成吗？」。
+
+## Q: 不想先确认设计规格，能直接生成吗？
+
+可以。请显式要求**快速生成**，Generate 路线会启用 [`quick-generate` profile](../../skills/ppt-master/workflows/profiles/quick-generate.md)。
+
+**它跳过的是策略师分析、`design_spec.md` / `spec_lock.md` 落盘和分步确认停顿：你明确提出的要求照做；你没提的，当前 Agent 直接决定并继续，不再回来征求同意。** 什么都不提，才是全部由 Agent 决定。它同时跳过 `finalize_svg.py`，因此不生成 `svg_final/` 预览。
+
+它不跳过备料或设计能力：来源转换、已识别事实缺口的研究、共享美学参考，以及生成 deck 所需的资源仍按需准备——用户提供或源文件抽取的图片、AI / 网络 / 切片图片、项目图标、原生形状、图表 / 表格、渲染公式，以及对应的必要运行 manifest 或来源记录。必需素材未就绪时它仍会停下来跟你要，不会拿无关材料顶替。备料完成后，当前 Agent 按共享规范手写 `svg_output/`，运行无锁的 Quick 最终质量检查并修复所有阻塞错误，之后才导出最终 PPTX。
+
+原生图表 / 表格替换、讲稿、动效、旁白和诊断等普通导出能力仍可按需使用；讲稿、自定义对象动画和旁白默认关闭，Agent 可在用户要求或 deck 确有需要时自动启用，不会打开确认流程。使用默认输出路径时会生成普通 postflight 报告，并把 `svg_output/` 备份到 `backup/`；显式指定输出路径时沿用普通流程不创建备份的行为。页数本身既不会自动触发，也不会阻止快速生成。
+
+由于整个规划阶段不再发生，token 消耗明显低于默认流程；逐页 SVG 生成是一次 run 的主要开销，这部分并不减少。Quick 保留同一套视觉 / 资源创作能力和最终阻塞标准，但没有已确认的设计契约、首屏校准或可恢复的决策历史，因此不承诺与 Default 作出相同设计，也不承诺具体耗时。
+
 ## Q: 长 PPT 一次生成会不会上下文爆掉？
 
 默认推荐**一次性连续生成**——10–15 页的 deck 在 200K 上下文窗口下完全够用，跨页视觉一致性也最好（Executor 看到前几页 SVG 后会主动对齐风格、字号、节奏）。
 
-只有信号偏重的场景（页数 ≥ 18 / 源材料很厚 / 走过 topic-research 累积大量 web 抓取），AI 才会在策略师阶段给出**拆分模式**的可选提示：规划会话（策略师确认阶段 + 图片获取）结束后停止当前对话；你新开聊天窗口，输入 `继续生成 projects/<项目名>` 进入执行会话（SVG 生成 + 导出）。新会话从磁盘重新加载 `design_spec` / `spec_lock` / `sources` / `images` 继续执行。
+当前 AI 编辑器若支持隔离研究子代理，`topic-research` 会把原始网页抓取留在该上下文，主会话只读取落盘的研究摘要和事实来源文件。
+
+只有信号偏重的场景（页数 ≥ 18 / 源材料很厚 / 本地回退研究后主会话仍保留大量研究材料，或导入的研究摘要本身异常庞大），AI 才会在策略师阶段给出**拆分模式**的可选提示：规划会话（策略师确认阶段 + 图片获取）结束后停止当前对话；你新开聊天窗口，输入 `继续生成 projects/<项目名>` 进入执行会话（SVG 生成 + 导出）。新会话从磁盘重新加载 `design_spec` / `spec_lock` / `sources` / `images` 继续执行。
 
 两段式是**折中方案**——新会话需付出重载 Generate 权威文档与必需执行引用的固定成本，但可丢弃规划会话噪声，并把节省下来的窗口空间用于主动重读 `sources/` 做内容增稠。**信号正常时不需要**，提示也不会出现；用户随时可以忽略提示，走默认连续模式。
 
@@ -262,7 +289,7 @@ beautify 和主管线的一句话判别：**原来的分页是要保留的信息
 
 **第三步 — 等待完成**
 
-AI 代理会自动完成后续工作——分析参考、构建布局定义并验证模板。如果你明确需要 PowerPoint 审阅文件，它还会按需生成 `exports/<id>_template_preview.pptx`。两种范围都要求 `templates/`，并使用可选的 `images/`、`icons/` 与 `exports/`：`library` 写入 `skills/ppt-master/templates/<kind>/<id>/` 并完成全局注册；`project` 写入 `projects/<name>/` 并跳过注册；空的可选目录直接省略。把这个工作区根目录交给 Step 3 即可，Step 3 不会复制 `exports/`，全局库的预览导出也由 Git 忽略。根目录平铺 `design_spec.md` 的工作区只有在 SVG 已满足当前合同时才兼容；语义旧包必须通过 `create-template` 替换，不能原地升级。
+AI 代理会自动完成后续工作——分析参考、写入 kind 专属规范，仅为 Layout/Deck 构建结构定义，并验证工作区。Brand/Style 不生成预览 PPTX；Layout/Deck 可按请求生成 `exports/<id>_template_preview.pptx`，多 Master 时必须生成。两种范围都要求 `templates/`；Brand/Layout/Deck 可使用包自有 `images/` 和 `icons/`，Style 则只包含 `templates/design_spec.md`。`library` 写入 `skills/ppt-master/templates/<kind>/<id>/` 并完成全局注册；`project` 写入 `projects/<name>/` 并跳过注册；空的可选目录直接省略。把这个工作区根目录交给 Step 3 即可，Step 3 不会复制 `exports/`，全局库的预览导出也由 Git 忽略。兼容的旧平铺 Brand/Layout/Deck 工作区只有在满足当前 kind 合同时才可读取，Layout/Deck 还必须满足当前 structured SVG 合同；Style 不存在旧平铺形态，语义旧包必须通过 `create-template` 替换，不能原地升级。
 
 > **提示**：对风格和使用场景描述得越具体，生成的模板就越符合你的预期。
 

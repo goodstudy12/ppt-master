@@ -6,23 +6,25 @@ Conditional Executor authority for `template_reuse_scope: mirror|layout` with `p
 
 **Trigger**: load only when the lock selects structured template reuse.
 
+**Hard rule — package structure, not information structure**: this branch owns reusable PowerPoint Master/Layout atoms, placeholders, slots, and prototype topology. [`executor-structure.md`](./executor-structure.md) independently owns Slide-local qualitative shape composition. Neither one activates or implies the other.
+
 ## 1. Template Reuse Rules
 
 ### 1.0 Template Context Load
 
 | Context | Load policy |
 |---|---|
-| `templates/design_spec.md` | Strategist reads once; continuous Executor reuses it, fresh Executor reads it once |
-| Current page delta | Run [`executor-base.md`](./executor-base.md) §2.1 immediately before that page |
-| Selected prototype SVG | Read once on an absent/changed `reference_set` path + SHA; otherwise reuse it |
+| `templates/design_spec.md` | Reuse it in a valid active context; after context invalidation, read it once with the project planning artifacts |
+| Current page mapping | Read the retained `spec_lock.md page_layouts` row; a page change does not require another file load |
+| Selected prototype SVG | Read the complete `templates/<basename>.svg` once per valid context and reuse it until a known change or context invalidation |
 
-**Hard rule**: Page-context carries no prototype payload. `reference_set` identifies the authoritative complete SVG; never author from a roster, manifest, sidecar, filename, or summary alone.
+**Hard rule**: The complete prototype SVG is authoritative. An on-demand page-context result may fingerprint it but carries no prototype payload; never author from a roster, manifest, sidecar, filename, or summary alone.
 
 Manifest/text-slot files are derived tool metadata, not model inputs. Missing metadata neither invalidates a legacy workspace nor permits text-topology changes.
 
-**Mapping change**: stop and return to Strategist to update the owning plan; regenerate that page's delta before resuming, then load only a new/changed prototype fingerprint.
+**Mapping change**: stop and return to Strategist to update the owning plan, read back and validate the affected planning fragments, then load the new prototype before resuming.
 
-Resolve the per-page template SVG from `page_context.template.prototype`; the owning `spec_lock.md page_layouts` row remains authoritative. There is no filename/page-type fallback.
+Resolve the per-page template SVG directly from the owning `spec_lock.md page_layouts` row. There is no filename/page-type fallback.
 
 **Resolution order (per page):**
 
@@ -34,17 +36,17 @@ Resolve the per-page template SVG from `page_context.template.prototype`; the ow
 
 **Default — re-skin `layout` (may override when the application plan keeps template visuals and the lock reflects them)**: inherit geometry, label/legend placement, and series encoding; otherwise repaint template gradients, shadows, fills, and strokes from the current style/lock. Template font sizes remain placeholders. `mirror` preserves visuals under §1.1.
 
-**Font size is skin, not geometry (non-mirror).** A chart / layout template's hardcoded `font-size` values (often 11–16px, sized for the template's own dense placeholder text) are NOT inherited — classify each text into its `spec_lock.md` role and use that role's locked size, exactly as you re-skin color. **Structural roles (page title / body / subtitle / annotation / footnote) hold their one deck-wide size on every page** — the template's placeholder px never overrides it; same-role text drifting page to page is what makes a deck look unprofessional.
+**Font size is skin, not geometry (non-mirror).** A chart / layout template's hardcoded `font-size` values (often 11–16px, sized for the template's own dense placeholder text) are NOT inherited. Structural text and reusable slots start from their `spec_lock.md` role and stay within anchor `±2`px; only a qualifying Slide-local Hero/Display element follows the sparse exception in `executor-base.md`. Template placeholder px supplies neither a role anchor nor a sparse display value.
 
 **Typography execution order (mandatory):**
 
 1. Build a per-page text inventory from `design_spec.md §IX` + the current `notes/<NN>_*.md`.
-2. Classify each text item before drawing. **Structural roles** (`title`, `subtitle` / `lead`, `body`, `annotation`, `footnote` / `page_number`) must map to their declared `spec_lock.typography` slot. A **one-off feature element** (a single hero number, an isolated emphasis label) may take an in-ramp intermediate value — the ramp is anchored on `body`, not a closed menu — but a feature size that **recurs** must be promoted to a declared slot. The failure mode this guards against is structural text silently inheriting the template's compact px, not legitimate feature sizing.
-3. Copy the role's locked px value into `font-size` verbatim. Do this before placing the text; never start from a template `font-size` and then "adjust".
-4. Layout from those locked sizes: compute line-height, wrapped line count, child `y` / `dy`, card padding, card height, column gaps, and available image/chart area from the chosen px values.
-5. Only after this reflow may you inspect fit. If fit fails, move / resize containers or simplify local geometry first; do not reduce the role size merely because the inherited template slot was smaller.
+2. Classify each text item before drawing. **Structural roles and reusable feature slots** (`title`, `subtitle` / `lead`, `body`, `annotation`, `footnote` / `page_number`, reusable hero or emphasis slots) map to a declared `spec_lock.typography` size role. A missing semantic role returns upstream; do not borrow an unrelated size because it is numerically close. Only a Slide-local, non-slot Hero/Display element may use the sparse-size exception in [`executor-base.md`](./executor-base.md); reusable Layout slots never do.
+3. For every mapped role or reusable slot, choose the role anchor or one contextual value within anchor `±2`px before placing the text. A qualifying Slide-local sparse display follows `executor-base.md` directly. Never start from a template `font-size` and then adjust it.
+4. Layout from those chosen sizes: compute line-height, wrapped line count, child `y` / `dy`, card padding, card height, column gaps, and available image/chart area.
+5. Reflow containers and local geometry together with the bounded role treatment; an inherited template slot never justifies leaving the declared band.
 
-**Geometry adapts to the type, never the reverse**: when the locked size is larger than the template's placeholder text, widen or heighten the card, open spacing, and recompute child `y` / `dy`; do not shrink text to inherit a smaller container. Recompute line-height and downstream coordinates, and allocate wrapped-line height plus padding. Page count and density remain the confirmed Strategist decision: do not repaginate, split, or drop content. If a fully reflowed block still fails, apply the single bounded body-fit exception in [`executor-base.md`](./executor-base.md) §2.1. Mirror instead preserves source typography under §1.1.
+**Geometry and bounded type co-adapt**: widen or heighten the card, open spacing, recompute child `y` / `dy`, and choose within the mapped role's anchor `±2`px instead of inheriting the template's compact size. Page count and density remain the confirmed Strategist decision: do not repaginate, split, or drop content. If structural text or a reusable slot still needs a value outside the band, return upstream under [`executor-base.md`](./executor-base.md) §2.1; only qualifying Slide-local display text uses its sparse exception. Mirror instead preserves source typography under §1.1.
 
 ### 1.1 Mirror reuse — literal page replacement
 
@@ -56,11 +58,11 @@ When `spec_lock.md` records the AI-derived `template_reuse_scope: mirror`, Execu
 4. **What you must not touch** — element positions, sizes, fonts, colors, fills, strokes, gradients, **which image each `<image>` points at**, `<g>` grouping, sprite-sheet `<svg viewBox>` wrappers, decorative `<rect>` / `<path>` / `<circle>` / `<polygon>` shapes, `<use data-icon="...">` markers, embedded chart data structures. Mirror's value is preserving the source deck's visual identity — any geometric / decorative drift defeats the purpose. **The `href` path is not the image**: normalizing a bare `href="cover_bg.png"` to `href="../images/<name>"` (when Step 3 relocated the asset to `images/`) points at the *same* image and changes nothing visual — that is an allowed path fix, not a fidelity edit. Leaving the bare href as-is is also fine; the exporter and live preview resolve bare hrefs against `images/` either way.
 5. **Content fit** — if the replacement needs a different number of text segments/items, do not merge/split nodes, drop sourced content, or restructure the grid. Report `warning: P<NN> content does not fit mirror reference <basename>; choose another prototype or change template_reuse_scope to layout/style`, then return to Strategist to select the prototype or scope and update the planning mappings.
 6. **Visible text editing** — mirror SVGs may keep literal source text rather than `{{...}}` authoring markers. Edit values in place while retaining imported semantic `data-pptx-placeholder` identity and exact text topology.
-7. **Output filename** — follow the standard project SVG naming convention (`<NN>_<page_name>.svg` where `<NN>` matches the project page index, not the mirror source index). The mirror filename is the *reference*, not the *output*.
+7. **Output filename** — follow the standard project SVG naming convention (`<index>_<page_name>.svg` where `<index>` matches the project page index, not the mirror source index). The mirror filename is the *reference*, not the *output*.
 
-**Detecting mirror mode**: read `page_context.template.reuse_scope` from the current page delta. `replication_mode: mirror` in the installed template only determines whether that derived scope is legal; it must never force mirror behavior when the lock records `layout` or `style`.
+**Detecting mirror mode**: read `template_reuse_scope` from the retained lock. `replication_mode: mirror` in the installed template only determines whether that scope is legal; it must never force mirror behavior when the lock records `layout` or `style`.
 
-**Mirror + chart pages**: chart structures inside a mirror SVG are already drawn (axis, series, labels). Treat them as visual references — replace the data labels and series text content to match the project's chart spec, but do not redraw the chart from a `templates/charts/<name>.svg` baseline. A mirror template's `page_charts` entries are normally absent for this reason.
+**Mirror + visualization pages**: Chart, Table, and qualitative topology inside a mirror SVG are already drawn. Replace only permitted text while preserving prototype geometry; do not redraw from a catalog SVG or runtime grammar. A mirror template normally omits `page_visualizations`, and legacy `page_charts` never overrides fidelity.
 
 **Legacy template boundary**: A template with missing root Master identity, direct atomic placeholders, `data-pptx-layout-kind`, unmapped `baseline`, `preserve`, or `layout_strategy: distill` is not a fallback input. Stop and create a new current workspace through [`create-template`](../workflows/create-template.md) before generation.
 
@@ -106,7 +108,7 @@ This section applies only when a deck/layout template's AI-derived lock records 
 
 **Layout identity**: Different keys differ in fixed Layout atoms or slot topology/default bounds/binding modes. Identical contracts should share one key. Current wording, imagery, crop, and Slide-local geometry never define identity.
 
-**Template adherence**: Strict preserves reusable Master/Layout atoms and slot ids/types/indices/default bounds/bindings. Under `layout`, the application plan may still change current text/tspans, line height, crop, and carrier-local geometry inside those bounds; `mirror` remains topology-frozen. Adaptive keeps the prototype Master and changes reusable atoms or slots only under a new explicit Layout key/name, written to `spec_lock.md pptx_layouts` while authoring the first affected page. Changing only content is not a new Layout.
+**Template adherence**: Strict preserves reusable Master/Layout atoms and slot ids/types/indices/default bounds/bindings. Under `layout`, the application plan may still change current text/tspans, line height, crop, and carrier-local geometry inside those bounds; `mirror` remains topology-frozen. Adaptive keeps the prototype Master and realizes only the Layout definition and page assignment already declared in `spec_lock.md`. If reusable atoms or slot topology/default bounds/bindings must change, stop before completing the page and return to Strategist to declare a new Layout key/name, update its definition and affected assignments, then read back and validate those planning fragments before resuming. Changing only content is not a new Layout.
 
 **Layout-content boundary**: Mark only genuinely reusable fixed framing as a Master/Layout atom. Concrete titles, body copy, metrics, chart marks, images, and page-specific groups remain inside slot groups or ordinary Slide-local content groups. The exporter never infers or clusters structure.
 
@@ -126,7 +128,7 @@ The exporter writes these solid fills as real Master/Layout/Slide `p:bg`, not se
 
 **Per-page template lookup — `page_layouts` section (`mirror` / `layout` only)**:
 
-Before drawing each page, use `page_context.template.prototype` to identify the inherited basename. Its matching `reference_set` entry supplies the complete SVG's path and SHA; §1.0 owns whether that file must be read or can be reused from the active context:
+Before drawing each page, use its retained `spec_lock.md page_layouts` row to identify the inherited basename. Resolve the complete SVG from the selected template directory; §1.0 owns whether that file must be read or can be reused from the active context. An on-demand `reference_set` fingerprint may diagnose an uncertain path/SHA but is not required for normal lookup:
 
 - Entry present (e.g., `P04: 03a_content_image_text`) → inherit the corresponding full SVG. The basename **must match** an actual file in the chosen template directory. If it does not, stop before drawing and report the invalid mapping; neither `strict` nor `adaptive` may fall back to free design inside a structured template deck.
 - No entry for this page with `template_reuse_scope: mirror|layout` → stop before drawing and report the missing Strategist mapping. Adaptive mode still requires one selected complete template SVG; flexibility applies to the post-design output Layout, not to whether an input prototype exists.
@@ -142,7 +144,7 @@ Do **not** invent a prototype entry, and do **not** assume a structured template
 - Read the current page assignment as `P<NN>: <layout_key>`. Resolve the assigned Layout key in `pptx_layouts`, then resolve its Master key in `pptx_masters`. Missing, malformed, or partial mappings stop before drawing.
 - Write matching root Master/Layout key and picker names. Do not write `data-pptx-layout-kind` or `data-pptx-page-role`.
 - On strict template use, the row and SVG contract match the selected prototype exactly.
-- On adaptive template use, retain the prototype Master and realize the Layout key/name already declared for this page. If construction proves that fixed Layout atoms or slot topology/bounds must change, stop before completing the page and return to Strategist to declare the revised definition and assignment; regenerate the current page context before resuming.
+- On adaptive template use, retain the prototype Master and realize the Layout key/name already declared for this page. If construction proves that fixed Layout atoms or slot topology/bounds must change, stop before completing the page and return to Strategist to declare, read back, and validate the revised definition and assignment before resuming.
 - A Layout key may repeat across non-adjacent pages only when its fixed atoms and slot contracts are identical.
 
 **Structured template-page scaffold**:
