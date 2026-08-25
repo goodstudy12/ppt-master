@@ -23,13 +23,14 @@ Editable is already table stakes — exporting each slide as an editable `.pptx`
 - **Slide masters & layouts** — real `p:sldMaster` / `p:sldLayout` structure with inheritance (on template / structured routes), not the same chrome pasted onto every page
 - **Native shapes** — preset geometry with working adjustment handles (block arrows, chevrons, callouts, flowchart nodes…), connectors, and freeform paths, not just rectangles
 - **Native charts & tables, on demand** — data-backed chart and table objects with an Edit-Data workbook when you want them (trade-off note below)
+- **Native equations, block or inline** — every explicitly documented Microsoft 365 LaTeX / mhchem input compiles forward to editable PowerPoint OMML instead of a formula picture; out-of-profile input fails closed
 - **The full text, picture, fill, and effect model** — run/paragraph formatting, picture crop and shape-clip, gradients, patterns, outer shadow, glow
 - **Transitions, entrance / emphasis / path / exit animation, and speaker notes → voice narration** — real OOXML timing and package parts, not baked-in video
 - **Template distillation on top** — hand it reference material and it extracts a reusable brand / style / layout / deck template; a layer of reuse built *above* the native primitives
 
 And this depth is a **direction of travel, not a fixed list.** The project's north star is to keep converging with PowerPoint itself — an ongoing effort to build and integrate more of its native capabilities, release after release, narrowing the gap between what an AI can generate for you and what you could build by hand in PowerPoint.
 
-So the boundary is honest, and it moves. Some things are out of scope today — **SmartArt** (a closed, brittle object model, deliberately left out and better rebuilt from ordinary native shapes), a few decorative effects (WordArt, reflection, soft edges), and embedded or legacy objects (OLE, video, macros, native equations). What's in and what's out is never hand-waved: the exact, feature-by-feature boundary — native / approximate / bake-required / unsupported — is published in the [PowerPoint ↔ SVG Mapping Guide](./powerpoint-svg-mapping.md).
+So the boundary is honest, and it moves. Some things are deliberately outside it — **SmartArt** (a closed, brittle object model, better rebuilt from ordinary native shapes), native WordArt and warped text (AI-generated decorative lettering plus ordinary editable text already cover the use case), a few other decorative effects (reflection, soft edges), and embedded or legacy objects (OLE, video, macros). Native equations cover standalone blocks and same-paragraph inline math, with an executable input profile pinned to the documented Microsoft 365 versions and a PowerPoint 2010+ package target; repository verification is compiler/OMML/package-level rather than complete Microsoft 365 UI certification. Matrices and multiline derivations remain block-level. PPTX import can rebuild only PPT Master-owned, validator-clean OMML into normalized formula markers; it does not recover arbitrary third-party Office Math or the author's original LaTeX spelling. Cross-client rendering/editability is not promised. What's in and what's out is never hand-waved: the exact, feature-by-feature boundary — native / approximate / bake-required / unsupported — is published in the [PowerPoint ↔ SVG Mapping Guide](./powerpoint-svg-mapping.md).
 
 And out of scope rarely means *can't* — more often it means *not yet* (the timing isn't right) or *not worth it* (for a niche effect, a quick manual tweak in PowerPoint beats the engineering cost). That call is easy to make precisely because PPT Master's output is a high-quality **draft you keep editing, not a sealed final deck** — the last mile is yours by design.
 
@@ -81,7 +82,7 @@ The choice is yours — and it doesn't stop at editors and models. Native chart 
 
 A deck's design is set by two independent axes you combine freely: the **narrative skeleton** (mode, see the section above) decides how it argues, and the **visual style** decides how it looks — 18 built-ins from `swiss-minimal` and `editorial` to `dark-tech`, `brutalist`, and `ink-wash`, each with a `custom` option. Any one pairs with any other, locked once at confirmation and held stable across the deck.
 
-The [examples/](../examples/) directory spans government fiscal analysis, AI architecture, editorial magazine, data journalism, Swiss grid, Memphis pop, risograph zine, and more.
+The [PPT Master examples site](https://hugohe3.github.io/ppt-master-examples/) spans government fiscal analysis, AI architecture, editorial magazine, data journalism, Swiss grid, Memphis pop, risograph zine, and more.
 
 ### Full Source-Document Input
 

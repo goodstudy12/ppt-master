@@ -33,6 +33,8 @@ from image_backends.backend_common import (
     MAX_RETRIES,
     decode_data_uri,
     find_data_uri,
+    http_error,
+    is_permanent_error,
     is_rate_limit_error,
     normalize_image_size,
     resolve_output_path,
@@ -51,9 +53,9 @@ VALID_ASPECT_RATIOS = [
     "4:5", "5:4", "8:1", "9:16", "16:9", "21:9"
 ]
 
-VALID_IMAGE_SIZES = ["1K", "2K", "4K", "0.5K"]
+VALID_IMAGE_SIZES = ["512px", "1K", "2K", "4K"]
 
-DEFAULT_MODEL = "google/gemini-3.1-flash-image-preview"
+DEFAULT_MODEL = "google/gemini-3.1-flash-image"
 DEFAULT_ENDPOINT = "https://openrouter.ai/api/v1"
 
 # ╔══════════════════════════════════════════════════════════════════╗
@@ -108,7 +110,7 @@ def _generate_image(api_key: str, prompt: str,
         "modalities": ["image", "text"],
         "image_config": {
             "aspect_ratio": aspect_ratio,
-            "image_size": image_size
+            "image_size": "512" if image_size == "512px" else image_size
         }
     }
 
@@ -136,7 +138,10 @@ def _generate_image(api_key: str, prompt: str,
     hb_thread.start()
 
     try:
-        result = requests.post(url, headers=headers, json=payload, timeout=300).json()
+        response = requests.post(url, headers=headers, json=payload, timeout=300)
+        if response.status_code != 200:
+            raise http_error(response, "OpenRouter image generation")
+        result = response.json()
     finally:
         heartbeat_stop.set()
         hb_thread.join(timeout=1)
@@ -172,7 +177,7 @@ def generate(prompt: str,
       OPENROUTER_MODEL (optional override)
     """
     api_key = os.environ.get("OPENROUTER_API_KEY")
-    base_url = os.environ.get("OPENROUTER_BASE_URL")
+    base_url = os.environ.get("OPENROUTER_BASE_URL") or DEFAULT_ENDPOINT
 
     if not api_key:
         raise ValueError(
@@ -198,6 +203,8 @@ def generate(prompt: str,
                                    filename, model, base_url)
         except Exception as e:
             last_error = e
+            if is_permanent_error(e):
+                raise
             if attempt < max_retries and is_rate_limit_error(e):
                 delay = retry_delay(attempt, rate_limited=True)
                 print(f"\n  [WARN] Rate limit hit (attempt {attempt + 1}/{max_retries + 1}). "

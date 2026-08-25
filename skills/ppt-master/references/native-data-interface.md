@@ -43,14 +43,16 @@ this enum.
 [`executor-base.md`](./executor-base.md) remains the single Shape-first authoring authority: the complete visible SVG fallback is required regardless of native eligibility. This section only adds dormant replacement metadata to independently selected objects and defines how export may activate it.
 
 **Hard rule — selected-object authoring**: write the marker and JSON metadata in
-the same edit only for a supported chart or pure text-grid table independently
-selected as native-ready. Default reads the exact semantic object key from §IX
+the same edit for every supported chart and pure text-grid table; both are
+native-ready by default. An unactivated marker changes no export, so never skip
+an eligible object because the current request did not ask for native output.
+The Default route reads the exact semantic object key from §IX
 `Native-ready: <object-key>=yes|no; ...`; Quick assigns the same page-local
 `kebab-case` key in active context before drawing. Use that key as the marker
 group `id` and metadata `name`. A catalog `family/key`, family name, §VII row,
 numeric content, or another ready object on the page never implies eligibility.
-Default `<object-key>=no`, Quick `no`, and unlisted incidental microvisuals stay
-on the SVG fallback route. Canonical rectangular merged text cells may use the narrow
+A `<object-key>=no` entry and unlisted incidental microvisuals stay on the SVG
+fallback route. Canonical rectangular merged text cells may use the narrow
 `row_span` / `col_span` contract below; graphical cells stay unmarked. The
 marker group supplies visible fallback children for browser rendering and JSON
 metadata for `svg_to_pptx` native export.
@@ -91,6 +93,11 @@ bound is inferred. `x`, `y`, `width`, and `height` must be finite and resolve
 inside PowerPoint's 32-bit DrawingML coordinate range; `width` and `height`
 must resolve to at least one EMU. Native table frames must additionally resolve
 to at least one EMU per resolved row and column.
+
+**Classic plot-area layout**: supported classic charts accept root `plot_area`;
+ChartEx rejects it. It contains only finite `x`, `y`, `width`, `height` in
+absolute slide px and forms a positive rectangle inside the chart frame. Export
+writes `c:manualLayout`; omission keeps automatic layout.
 
 **Validation**: `svg_quality_checker.py` validates replacement marker kind, JSON
 metadata, bounds/fallback availability, table rows/columns, supported chart
@@ -211,6 +218,8 @@ with `unsupported-merge-topology`.
 `series[].values`. Pie-family charts (`pie`, `doughnut`, `pieOfPie`, and
 `barOfPie`) must have exactly one series; the exporter assigns per-category
 slice colors so single-series charts do not collapse into one solid color.
+Root `hole_size` is doughnut-only, integer `10..90`, default `75`;
+no pie-family rotation or angle field exists.
 Column and bar charts may set per-point colors with `series[].point_colors`
 or `series[].pointColors`; the list must match `series[].values` length.
 Classic category charts may set native PowerPoint data labels with
@@ -259,6 +268,8 @@ area charts and OHLC stock charts; arbitrary date-axis source families are not.
 This contract is not a full `AxisSpec`: logarithmic scales, minor units/gridlines,
 crossing values, display units, tick skipping, and other unlisted OOXML semantics
 remain unsupported and fail closed on import.
+Single-plot `bar` accepts `category` at left/right and `value` at bottom/top;
+`pie`, `doughnut`, and `pieOfPie` / `barOfPie` reject `axes`.
 
 **Narrow XY-axis schema**: `scatter` and `bubble` may use a closed `axes` object
 with only `x` and `y` roles. Both roles have `kind: "value"`; `x.position`
@@ -285,19 +296,15 @@ imply full visual-axis parity.
 required only when the native object must preserve typography that cannot be
 inferred unambiguously from the visible fallback.
 
-**Chart chrome metadata**: Text that is visually part of the chart must be in
-metadata, not only in SVG fallback children; metadata MUST still match visible
-fallback chrome. `title` becomes the native chart title on classic charts; it
-is not an object name, so use `name` for semantic object naming. `subtitle`
-becomes the second rich-text line of that classic chart title. `title`,
-`subtitle`, and axis-title values may be strings or objects with `text`,
-`font_size`, `font_family`, and `color` when the fallback uses local role
-typography. `svg_quality_checker.py` rejects `title`, `subtitle`, or axis-title
-metadata whose text is not visible inside the replacement marker's fallback. Direct
-`--native-charts-and-tables` export keeps the chart native but omits that inconsistent
-chrome with a warning. chartEx keeps PowerPoint's empty `<cx:title>` and emits
-the title / subtitle as companion editable text boxes until chartEx rich titles
-are validated. Axis
+**Chart chrome metadata**: Metadata MUST match fallback chrome. For classic
+charts, a string or unbounded-object `title` becomes native `c:title`;
+`subtitle` is line two. A title object with complete `x`, `y`,
+`width`, and `height` becomes a companion editable text box at those absolute
+slide-px bounds; partial bounds or `subtitle` fail. Use `name`, not
+`title`, for object naming. `title`, `subtitle`, and axis-title objects may set
+`text`, `font_size`, `font_family`, and `color`. The checker rejects title/axis
+text absent from the fallback; export omits it with a warning. ChartEx keeps an empty `<cx:title>` and
+emits title/subtitle as companion editable text boxes. Axis
 titles are optional and explicit: use `axis_titles` with
 `category`, `value`, `x`, `y`, or `secondary_value` keys, or the root aliases
 `category_axis_title`, `value_axis_title`, `x_axis_title`, `y_axis_title`, and

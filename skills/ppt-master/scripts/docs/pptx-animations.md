@@ -44,7 +44,7 @@ One resolved row contains these fields:
 | Order | Positive integer sidecar order; ties retain stable SVG group order, then `effects[]` index |
 | Effect options | Effect-specific `direction`, `amount`, `color`, `font_name` (one installed PowerPoint face, required for Change Font; not a CSS list), `relative`, or `size` values from PowerPoint `EffectParameters` |
 | Timing options | Repeat count/span, auto-reverse, rewind, accelerate/decelerate, bounce-end ratio, and restart policy |
-| Completion | Optional dim/hide behavior and packaged `.m4a`/`.mp3`/`.wav` sound |
+| Completion / cue | Optional dim/hide behavior and packaged `.m4a`/`.mp3`/`.wav` sound |
 
 Modes resolve before XML writing:
 
@@ -61,6 +61,15 @@ can be audited without replaying the resolver.
 
 `animation_config.py scaffold` is neutral: object defaults are `none`, and
 empty `{}` group placeholders inherit no motion until populated.
+
+Bundled sound discovery/materialization is a workflow concern, not part of the
+animation core. After the SVG and object-motion solution are complete,
+`sound_sync.py` may copy only selected namespaced ids into
+`<project>/sounds/`; new sidecars then reference those project-relative WAV
+paths. Existing low-level project-relative/absolute `.m4a`, `.mp3`, and `.wav`
+inputs remain compatible. The core never resolves a library id or reads
+`templates/sounds/` directly; see [`animations.md`](../../references/animations.md)
+§2.2.
 
 ---
 
@@ -132,8 +141,9 @@ start/end remain derived rather than duplicated.
 ## 4. Target Resolution
 
 Generated object animation targets top-level SVG content groups. Explicit SVG
-semantics are authoritative; the group-id chrome heuristic is only a fallback
-for marker-free legacy SVGs.
+semantics are authoritative; the group-id chrome heuristic applies only to a
+top-level group that itself lacks `data-pptx-layer`, `data-pptx-role`, and
+`data-pptx-placeholder` semantics.
 
 | Target state | Behavior |
 |---|---|
@@ -226,6 +236,15 @@ After packaging, validation scans every slide part for root timing placement,
 duplicate or malformed `p:cTn` ids, missing `p:spTgt` shapes, invalid build
 targets, and unsupported generated effect tuples. A mismatch fails export
 before the requested output file replaces an existing deck.
+
+`pptx_to_svg.py` reuses that semantic reader and behavior-tree validator for a
+finite reverse projection. A row enters `animations.json` only when its current
+registry effect/options, pane order, Start trigger, exact behavior duration,
+relative delay, and target/optional trigger shape can be represented by unique
+top-level slide SVG groups. Repeated targets become `effects[]`. Duration-less
+native rows, advanced timing modifiers, sounds, build/media commands, unknown
+trees, and unmapped targets remain explicit import diagnostics. This is not a
+general PowerPoint timing-tree normalizer.
 
 Narration injection parses and merges the slide DOM. It adds audio timing under
 the existing `tmRoot`, allocates fresh ids, and preserves object animation.

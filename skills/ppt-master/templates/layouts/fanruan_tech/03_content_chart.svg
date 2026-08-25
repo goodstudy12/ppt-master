@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" data-pptx-master="fanruan_tech_master" data-pptx-master-name="FanRuan Tech" data-pptx-layout="fanruan_theme_canvas" data-pptx-layout-name="FanRuan Theme Canvas">
+  <rect id="slide-background" width="1280" height="720" fill="#FFFFFF"/>
+  <rect x="430" y="0" width="850" height="720" fill="#EEF7FF"/>
+  <rect x="782" y="274" width="498" height="446" fill="#D8EBFE" fill-opacity="0.18"/>
+  <rect x="0" y="0" width="660" height="280" fill="#FFFFFF" fill-opacity="0.92"/>
+  <circle cx="1120" cy="130" r="118" fill="#66B3FF" fill-opacity="0.08"/>
+  <rect x="1016" y="28" width="208" height="52" rx="26" fill="#FFFFFF" fill-opacity="0.92" stroke="#C7DCF7" stroke-width="1"/>
+  <rect x="1016" y="28" width="208" height="52" rx="26" fill="#EEF7FF" fill-opacity="0.72"/>
+  <image x="1047" y="30" width="146" height="48" href="fanruan_logo.png" preserveAspectRatio="xMidYMid meet"/>
+  <g id="page-header" data-pptx-bounds="60 58 820 92">
+    <rect x="60" y="62" width="4" height="54" rx="2" fill="#3399FF"/>
+    <text x="84" y="88" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="26" font-weight="bold" fill="#035DCF">{{PAGE_TITLE}}</text>
+    <text x="84" y="120" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="15" fill="#566280">{{PAGE_SUBTITLE}}</text>
+    <rect x="84" y="138" width="176" height="4" rx="2" fill="#3399FF" fill-opacity="0.18"/>
+    <rect x="84" y="138" width="86" height="4" rx="2" fill="#035DCF"/>
+  </g>
+  <g id="trend-chart" data-pptx-bounds="44 164 820 492">
+    <rect x="44" y="164" width="820" height="492" rx="26" fill="#FFFFFF" fill-opacity="0.94" stroke="#D9EAFB" stroke-width="1.2"/>
+    <text x="78" y="208" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="20" font-weight="bold" fill="#17346E">{{CHART_TITLE}}</text>
+    <rect x="610" y="594" width="12" height="12" rx="3" fill="#035DCF"/>
+    <text x="630" y="605" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="12" fill="#566280">{{LEGEND_1}}</text>
+    <rect x="714" y="594" width="12" height="12" rx="3" fill="#66B3FF"/>
+    <text x="734" y="605" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="12" fill="#566280">{{LEGEND_2}}</text>
+    <line x1="104" y1="272" x2="824" y2="272" stroke="#DDEBFA" stroke-width="1"/>
+    <line x1="104" y1="352" x2="824" y2="352" stroke="#DDEBFA" stroke-width="1"/>
+    <line x1="104" y1="432" x2="824" y2="432" stroke="#DDEBFA" stroke-width="1"/>
+    <line x1="104" y1="512" x2="824" y2="512" stroke="#C7DCF7" stroke-width="1.4"/>
+    <rect x="142" y="400" width="54" height="112" rx="8" fill="#D8EBFE"/>
+    <rect x="158" y="364" width="54" height="148" rx="8" fill="#035DCF"/>
+    <rect x="278" y="362" width="54" height="150" rx="8" fill="#D8EBFE"/>
+    <rect x="294" y="324" width="54" height="188" rx="8" fill="#3399FF"/>
+    <rect x="414" y="332" width="54" height="180" rx="8" fill="#D8EBFE"/>
+    <rect x="430" y="286" width="54" height="226" rx="8" fill="#035DCF"/>
+    <rect x="550" y="298" width="54" height="214" rx="8" fill="#D8EBFE"/>
+    <rect x="566" y="252" width="54" height="260" rx="8" fill="#3399FF"/>
+    <rect x="686" y="276" width="54" height="236" rx="8" fill="#D8EBFE"/>
+    <rect x="702" y="228" width="54" height="284" rx="8" fill="#035DCF"/>
+    <text x="185" y="348" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#035DCF" text-anchor="middle">{{VALUE_1}}</text>
+    <text x="321" y="308" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#035DCF" text-anchor="middle">{{VALUE_2}}</text>
+    <text x="457" y="270" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#035DCF" text-anchor="middle">{{VALUE_3}}</text>
+    <text x="593" y="236" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#035DCF" text-anchor="middle">{{VALUE_4}}</text>
+    <text x="729" y="212" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#035DCF" text-anchor="middle">{{VALUE_5}}</text>
+    <text x="185" y="548" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280" text-anchor="middle">{{PERIOD_1}}</text>
+    <text x="321" y="548" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280" text-anchor="middle">{{PERIOD_2}}</text>
+    <text x="457" y="548" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280" text-anchor="middle">{{PERIOD_3}}</text>
+    <text x="593" y="548" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280" text-anchor="middle">{{PERIOD_4}}</text>
+    <text x="729" y="548" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#566280" text-anchor="middle">{{PERIOD_5}}</text>
+  </g>
+  <g id="management-insight" data-pptx-bounds="892 164 344 492">
+    <rect x="892" y="164" width="344" height="492" rx="26" fill="#FFFFFF" fill-opacity="0.9" stroke="#D9EAFB" stroke-width="1.2"/>
+    <rect x="892" y="164" width="344" height="72" rx="26" fill="#035DCF"/>
+    <rect x="892" y="210" width="344" height="26" fill="#035DCF"/>
+    <text x="926" y="208" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="19" font-weight="bold" fill="#FFFFFF">{{INSIGHT_TITLE}}</text>
+    <text x="926" y="310" font-family="Arial, sans-serif" font-size="34" font-weight="bold" fill="#035DCF">{{KEY_VALUE}}</text>
+    <text x="926" y="342" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="14" fill="#566280">{{KEY_LABEL}}</text>
+    <rect x="926" y="378" width="4" height="42" rx="2" fill="#33BBFF"/>
+    <text x="946" y="404" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="15" fill="#17346E">{{INSIGHT_1}}</text>
+    <rect x="926" y="450" width="4" height="42" rx="2" fill="#3399FF"/>
+    <text x="946" y="476" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="15" fill="#17346E">{{INSIGHT_2}}</text>
+    <rect x="926" y="522" width="4" height="42" rx="2" fill="#035DCF"/>
+    <text x="946" y="548" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-size="15" fill="#17346E">{{INSIGHT_3}}</text>
+  </g>
+  <g id="page-footer" data-pptx-bounds="84 670 1134 40">
+    <text x="84" y="689" font-family="Arial, sans-serif" font-size="12" fill="#8F99B3" letter-spacing="1.6">FANRUAN LIGHT TECH FRAME</text>
+    <rect x="1144" y="670" width="74" height="28" rx="14" fill="#035DCF" fill-opacity="0.09"/>
+    <text x="1181" y="689" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#035DCF" text-anchor="middle">{{PAGE_NUMBER}}</text>
+  </g>
+</svg>

@@ -6,7 +6,11 @@ description: Generate profile for 1:1, content-faithful re-layout of an existing
 
 > Generate profile, not a top-level route. [`template-fill-pptx.md`](../template-fill-pptx.md) reuses a deck's design and swaps in new content; this profile keeps a deck's content and redoes its layout.
 
-Re-lays-out an existing `.pptx`: the text is preserved **verbatim**, the source deck's visual identity (palette / fonts) is **inherited as truth**, and only layout, hierarchy, and whitespace are redesigned. Output is a brand-new native deck generated through the standard SVG pipeline — not a patch over the original.
+Re-lays-out an existing `.pptx`: text is preserved **verbatim** and source
+palette / fonts are the preselected recommendation. Only explicit user
+requirements or final confirmation may override them; never deviate silently.
+It rebuilds layout, hierarchy, whitespace, and effective visual treatment into
+a new native deck through the SVG pipeline — not a patch over the original.
 
 **Trigger**: the user supplies a `.pptx` and asks to beautify / re-layout / 重新排版 / 美化 while keeping the content. Explicit intent + a provided file only; never auto-infer.
 
@@ -30,7 +34,14 @@ Beautify constraints in this file apply in either runtime.
 
 **Hard rule — not a patch, not a fill**: this regenerates a native deck through the selected Default or Quick SVG → PPTX runtime. It does **not** edit the source file in place, and it is **not** [`template-fill-pptx`](../template-fill-pptx.md) (which clones source slides and replaces text). It also does not parse an arbitrary third-party template for text-only substitution (the rejected #53 direction) — it builds every page from scratch.
 
-**Distinct from mirror templates**: `replication_mode: mirror` ([`executor-structured.md`](../../references/executor-structured.md) §1.1) keeps layout + visuals verbatim and edits text. Beautify is the inverse — content verbatim, layout redone, identity inherited.
+**Distinct from mirror templates**: `replication_mode: mirror` ([`executor-structured.md`](../../references/executor-structured.md) §1.1) keeps layout + visuals verbatim and edits text. Beautify is the inverse — content verbatim, layout redone, source identity recommended unless the user overrides it.
+
+**Distinct from page-image reconstruction**: when the authoritative input is
+an ordered raster page roster and the user wants its visible layout preserved,
+activate the Codex-supported, Quick-only
+[`image-to-pptx.md`](./image-to-pptx.md) instead.
+Beautify requires a semantic source PPTX and deliberately redesigns layout; the
+two fidelity profiles never compose.
 
 **When this profile is wrong — re-architecture belongs to ordinary Generate**: this profile preserves the source's page count and page order 1:1. It is for "keep this deck, just lay it out better". When the user instead wants the original page breakdown reconsidered — merge / split / reorder pages, re-outline the structure, build a *better deck* from the same content rather than a prettier version of the same pages — do not activate this profile. This includes re-pagination for fit: "keep every word but split a crowded page so it reads better" changes page count. Convert the deck with [`ppt_to_md`](../../scripts/source_to_md/ppt_to_md.py) and use ordinary Quick when Quick was explicit, otherwise the Default main pipeline. The deciding question: is the source's page split information to preserve, or just the previous author's structure to improve? Preserve → activate this profile; improve → ordinary Generate in the selected runtime.
 
@@ -95,16 +106,9 @@ python3 ${SKILL_DIR}/scripts/pptx_intake.py <project_path>/sources/<source.pptx>
 | `layout_sizes_pt` (pt, frequency-ranked) | **reference fact only**, NOT an auto-seed — the level-1 sizes that the in-use slide layouts' body placeholders declare. Usually empty (decks rely on runs / master) and ambiguous when present; use it as a hint when judging the body size, never as the authoritative seed |
 | `canvas.aspect` | drives the Step 3 format choice |
 
-> Note: `theme` is what the deck declares; `observed` is a frequency sample of run-level overrides (not a complete style resolution — it misses `schemeClr` and master/layout inheritance, and counts chart/gradient fills). A hand-edited deck can diverge from `theme` — Step 5 recommends which to inherit and the user confirms.
+> Note: `theme` is what the deck declares; `observed` is a frequency sample of run-level overrides (not a complete style resolution — it misses `schemeClr` and master/layout inheritance, and counts chart/gradient fills). A hand-edited deck can diverge from `theme` — Step 5 resolves which to use.
 
-**Chart + table data (for regeneration)**: read `<project_path>/analysis/<stem>.slide_library.json`. It contains the source chart and table *data* so they can be redrawn natively in the inherited style:
-
-| `<stem>.slide_library.json` field | Use |
-|---|---|
-| `slides[].charts[]` (`chart_type` / `categories` / `series[].values`) | regenerate as a native SVG chart; use the §VII catalog key only when recall selects a real reference, otherwise plan the custom chart in §IX |
-| `slides[].tables[]` (`row_count` / `column_count` / cell text) | regenerate as a native SVG table |
-
-**Hard rule — regenerate visuals, do not carry them over**: charts / tables / images are rebuilt from their data in the inherited style, never spliced in byte-for-byte. This keeps the deck style-consistent and natively editable. **Data values are frozen** (categories / series / cell text / numbers unchanged); only their rendering is the deck's own. Pictures (`ppt_to_md`-extracted files) are reused but re-laid-out — position / crop / size follow the new layout, not the source slot. A user who wants an original element verbatim copies it across themselves.
+**Hard rule — regenerate visuals, do not carry them over**: charts / tables / images are rebuilt from their data in the effective style, never spliced in byte-for-byte. This keeps the deck style-consistent and natively editable. **Data values are frozen** (categories / series / cell text / numbers unchanged); only their rendering is the deck's own. Pictures (`ppt_to_md`-extracted files) are reused but re-laid-out — position / crop / size follow the new layout, not the source slot. A user who wants an original element verbatim copies it across themselves.
 
 **Optional source-SVG visual reference**: when the source deck has complex vector decoration, distinctive page chrome, or a visual language that cannot be captured by `<stem>.identity.json` colors/fonts alone, create a read-only SVG reference package under `analysis/`. This is for understanding style only; it is not a carry-over asset path.
 
@@ -120,9 +124,15 @@ Use the cleaned `analysis/source_svg_import/svg-flat/slide_*.svg` files plus `an
 
 Default: do **not** copy these candidates into the project `icons/`, do **not** list them as reusable output assets, and do **not** preserve original vector decorations byte-for-byte in the beautified deck. The Executor still regenerates fresh native shapes from the confirmed plan.
 
-Optional reuse gate: if a candidate is a non-text brand/logo/motif/decorative asset that should survive the beautification, list it in the Step 5 plan with source slide, candidate filename, intended reuse, and dependency notes from the inventory. Wait for user confirmation. Only confirmed candidates may be promoted into `<project_path>/icons/imported/` and referenced from generated SVGs with `<use data-icon="imported/<name>"/>`; `finalize_svg.py` then re-inlines them as native shapes. Never promote text-bearing groups, charts/tables, source page layouts, or dense slide composites as reusable assets.
+**Optional reuse gate**: retain source slide, filename, use, and dependencies
+for a non-text brand/logo/motif/decorative candidate. Default lists it in Step 5
+and waits; only confirmed candidates are promoted. Quick's current main agent
+decides directly and stops only when frozen facts lack a lossless preservation
+path. Promote to `<project_path>/icons/imported/` and reference with
+`<use data-icon="imported/<name>"/>`; Quick never runs `finalize_svg.py`. Never
+promote text-bearing groups, charts/tables, page layouts, or dense composites.
 
-**Assemble the inventory** — the deterministic join into one per-slide ledger, `analysis/beautify_inventory.json`, the contract Step 5 confirms and Step 7 verifies against:
+**Assemble the inventory** — the deterministic join into one per-slide ledger, `analysis/beautify_inventory.json`, the contract Step 5 resolves and Step 7 verifies against:
 
 ```bash
 python3 ${SKILL_DIR}/scripts/beautify_inventory.py <project_path>/analysis/<stem>.slide_library.json \
@@ -135,6 +145,21 @@ If `images/image_manifest.json` does not exist because the source deck has no ex
 |---|---|
 | `ignored` | hidden slides / shapes, master-only text, image crop / opacity / rotation / mask (not captured upstream) |
 | `needs_confirmation` | unreadable SmartArt data; combo / dual-axis / waterfall charts; merged-cell or multi-header tables; density-outlier pages — **either** overcrowded **or** near-empty / title-only |
+
+**Mandatory — bounded inventory reads**: the complete inventory is the Step 7
+validation ledger, not the default authoring prompt. Read its compact roster,
+then the current page; add geometry only for structural ambiguity:
+
+```bash
+python3 ${SKILL_DIR}/scripts/beautify_inventory.py \
+  <project_path>/analysis/beautify_inventory.json --summary
+python3 ${SKILL_DIR}/scripts/beautify_inventory.py \
+  <project_path>/analysis/beautify_inventory.json --page <N>
+python3 ${SKILL_DIR}/scripts/beautify_inventory.py \
+  <project_path>/analysis/beautify_inventory.json --page <N> --with-geometry
+```
+
+During authoring, do not bulk-read either complete file.
 
 **SmartArt output boundary**: Preserve its extracted wording and semantic relationships, then redraw it through SVG as ordinary editable PowerPoint shapes. Do not attempt to regenerate a native SmartArt object or reuse persisted-drawing text as a second content source.
 
@@ -162,8 +187,22 @@ active context. Explicit user requirements remain authoritative; otherwise use
 the source identity as the default. Resolve `ignored` and `needs_confirmation`
 without creating a confirmation payload, Design Spec, lock, or substitute
 plan. If a flagged complex object cannot be regenerated without losing frozen
-facts, stop as a hard prerequisite instead of simplifying it. Then continue to
-the Quick branch in §6.
+facts, stop as a hard prerequisite instead of simplifying it.
+
+**Mandatory — close the transient Quick state before authoring**: before
+entering §6 and [`quick-generate.md`](./quick-generate.md) §3, resolve every
+row below in the active context:
+
+| Transient state | Required closure |
+|---|---|
+| Roster and message | Exact source-order roster and one core message per page |
+| Identity and type | Source identity, palette, fonts, body size, and type-role anchors |
+| Page geometry | Per-page density, body frame, primary zone, and composition direction |
+| Meaning and rhythm | Frozen relationships, reading path, neighbor/section rhythm, and ending |
+| Resources and capabilities | Required local resources are usable; triggered notes, motion, audio, image, icon, formula, Chart/Table, and verification outcomes are decided |
+
+Keep it transient: create no page/resource plan, Design Spec, lock,
+confirmation payload, or substitute artifact. Then continue to §6 Quick.
 
 ### Default branch — Recommend & Confirm
 
@@ -188,7 +227,7 @@ This step has two halves:
 | Item | What v1 delivers |
 |---|---|
 | Overcrowded source page | layout / hierarchy / whitespace improve **within the page as-is** — v1 does **not** relieve information overload (that needs re-pagination / rewrite, deferred). Flag such pages; the user may accept or note them for manual split |
-| Paste-back into the original | regenerated elements share the inherited palette + fonts, so they **blend visually** when pasted. v1 does **not** guarantee a seamless coordinate-level drop-in (slide coordinates, master placeholders, font availability are the original deck's, not ours) |
+| Paste-back into the original | regenerated elements retain confirmed palette + font declarations; v1 does **not** guarantee coordinate alignment or font availability in the original deck |
 | Complex charts / merged-cell tables | best-effort from the captured data; combo / dual-axis / waterfall lose the un-captured plots — flagged for the user |
 
 **Visual re-confirm — full confirmation seeded from the source**:
@@ -205,7 +244,7 @@ the inherited / source-derived default so the user sees the recommendation and
 keeps the place to change it. Schema →
 [`scripts/docs/confirm_ui.md`](../../scripts/docs/confirm_ui.md).
 
-The typography rows below show the non-English shape; omit `english` for an English source.
+Rows are abbreviated; follow Confirm UI's four-locale contract and omit `english` for English sources.
 
 ```json
 {
@@ -265,6 +304,12 @@ its source order, hand-author every page, run the lockless Quick final checker,
 and export with `--quick-generate`. Do not run Confirm UI, write a Design Spec
 or lock, run the Default first-page gate, or call `finalize_svg.py`.
 
+**Quick — lightweight long-deck review cadence (may adapt for a short deck or
+semantic boundary)**: after about five pages or at a section
+boundary, reread only the inventory summary/current-page views and cross-page
+anchors. Do not run a checker; this is neither a gate nor an approval stop. Send
+one `authored/total` status after each batch.
+
 **Default**: run the standard pipeline as follows.
 
 Run the standard pipeline ([`generate-pptx`](../generate-pptx.md) Steps 6–7). The Executor re-lays-out each page — hierarchy, spacing, alignment, page rhythm — using the semantic anchors in `spec_lock.md` plus current page/source/template context; valid page-local colors, gradients, effects, and export-safe display faces need not be added to the lock. It regenerates charts / tables as native SVG from the extracted data and re-lays-out the source pictures.
@@ -285,17 +330,17 @@ python3 ${SKILL_DIR}/scripts/source_to_md/ppt_to_md.py <project_path>/exports/<o
 | Text fidelity | every source text string appears in the output, unaltered |
 | Data fidelity | chart categories / series / table cells match the source exactly |
 | Page count | output slide count equals the source slide count |
-| Regenerated visuals | charts / tables are native SVG re-themed to the inherited palette |
-| Identity | generated text / shapes use only `<stem>.identity.json` colors + fonts |
-| Paste-back | copying a beautified element into the original deck looks native |
+| Regenerated visuals | charts / tables are native SVG re-themed to the effective palette |
+| Identity | text / shapes use effective colors + fonts, seeded from `<stem>.identity.json` |
+| Paste-back | copied elements retain effective palette + font declarations; alignment and font availability are not guaranteed |
 
 ```markdown
 ## ✅ Beautify Complete
 
 - [x] Content + data values verbatim (read-back Markdown matches the source)
 - [x] 1:1 page count preserved
-- [x] Source-derived or explicitly overridden colors + fonts applied consistently
-- [x] Charts / tables regenerated as native SVG in the inherited style
+- [x] Effective colors + fonts applied consistently
+- [x] Charts / tables regenerated as native SVG in the effective style
 - [x] Native PPTX exported to `exports/`
 ```
 
@@ -306,11 +351,11 @@ python3 ${SKILL_DIR}/scripts/source_to_md/ppt_to_md.py <project_path>/exports/<o
 | Capability | Status |
 |---|---|
 | Re-layout with verbatim text | Supported |
-| Inherit source palette / fonts as truth | Supported |
+| Source palette / fonts as preselected recommendation, with user-approved overrides | Supported |
 | Strict 1:1 page mapping | Supported |
 | Regenerate charts / tables as native SVG from extracted data | Supported |
 | Re-lay-out source pictures | Supported |
 | Re-pagination (split dense / merge sparse) | Not in v1 |
 | Carry source charts / tables / images over byte-for-byte | Out of scope — user copies originals manually if wanted |
-| Free visual-style application / cleanup deviating from source identity | Not in v1 |
+| Silent visual-style / identity deviation | Out of scope |
 | Batch / multi-deck beautification | Not in v1 |

@@ -28,6 +28,20 @@ Construct the chart in this order:
 4. Add data labels, axis/category labels, annotations, units, source notes, and visible exceptions from the active page contract.
 5. Apply project typography, palette, effects, and container treatment without changing the encoding.
 
+**Perceptual reading**: choose the least ambiguous presentation of the same
+authoritative data. Preserve source or semantic order when it carries meaning;
+otherwise sort categories for the page's comparison task. Prefer direct series
+labels when they remain legible, and keep legends, grid lines, ticks, and other
+decoding aids only when they materially reduce lookup or comparison effort.
+Comparable panels and small multiples use the same domain, scale, and category
+order unless a visibly disclosed difference is itself the message. Bars and
+columns whose length compares magnitude start from zero; schedule spans and
+other true interval marks retain their authoritative domain. Any non-zero
+baseline or axis break must be explicit and must not exaggerate the comparison.
+A dual-axis chart is valid only when both series share the exact time/category
+domain and the units and visual identities stay unambiguous; otherwise separate
+the views.
+
 **Per-object completeness**: preserve every authoritative series, category, point, label, unit, qualifier, source, and scale cue needed to read the chart. When the source cannot determine a required scale or derived value, return the ambiguity upstream in Default or resolve it from explicit source facts in Quick; never fabricate it at draw time.
 
 **Hard rule — schedule geometry**: A schedule is a Gantt chart when dates or
@@ -103,6 +117,12 @@ rg -n "chart-plot-area" <project_path>/svg_output/<current_page>.svg
 The number of markers must equal the number of promoted chart objects, and each
 marker must sit under its matching object wrapper. One marker somewhere on a
 multi-chart page is insufficient.
+
+**Native layout handoff**: for a native-ready classic chart whose authored plot
+rectangle must remain fixed, copy that final absolute slide rectangle into
+metadata `plot_area`; omit it only for PowerPoint automatic layout. The marker
+comment alone does not affect export; the closed schema stays in
+[`native-data-interface.md`](./native-data-interface.md) §2.
 
 Technical SVG/PPT constraints remain in [`shared-standards-core.md`](./shared-standards-core.md).
 

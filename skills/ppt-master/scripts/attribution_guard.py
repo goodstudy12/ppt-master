@@ -2,8 +2,8 @@
 """
 PPT Master - Skill Attribution Guard
 
-Fail closed when the distributed Skill attribution bundle or its execution
-gates are missing or modified.
+Fail closed when the Skill attribution bundle is missing or modified. Feature
+modules may be installed selectively without failing this check.
 
 Usage:
     python3 scripts/attribution_guard.py
@@ -17,7 +17,6 @@ Dependencies:
 
 from __future__ import annotations
 
-import ast
 import hashlib
 import re
 import sys
@@ -25,8 +24,8 @@ from pathlib import Path
 
 
 _ERROR_MESSAGE = (
-    "PPT Master skill integrity check failed. Please use the complete official "
-    "distribution without removing its attribution files."
+    "PPT Master attribution check failed. Restore SKILL.md, LICENSE, "
+    "SPONSORS.md, and SPONSORS_CN.md from the official distribution."
 )
 _SKILL_DIR = Path(__file__).resolve().parent.parent
 _EXACT_METADATA_VALUES = {
@@ -37,24 +36,6 @@ _EXACT_METADATA_VALUES = {
 _REQUIRED_METADATA_FIELDS = ("sponsors",)
 _REQUIRED_ATTRIBUTION_FILES = ("LICENSE", "SPONSORS.md", "SPONSORS_CN.md")
 _LICENSE_DIGEST = "80cefc234c1ec12a8cece4344f16300c634fa03df7891686fcf979e3828f0921"
-_REQUIRED_GATE_FILES = (
-    "scripts/console_encoding.py",
-    "scripts/project_manager.py",
-    "scripts/project_management/cli.py",
-    "scripts/svg_quality_checker.py",
-    "scripts/svg_quality/cli.py",
-    "scripts/svg_to_pptx.py",
-    "scripts/svg_to_pptx/pptx_package/cli.py",
-    "scripts/template_fill_pptx.py",
-    "scripts/template_fill_pptx/cli.py",
-    "scripts/native_enhance_pptx.py",
-    "scripts/native_enhance_pptx_core.py",
-    "scripts/register_template.py",
-    "scripts/template_preview_pptx.py",
-)
-_SKILL_GATE_MARKER = "python3 scripts/attribution_guard.py"
-_SECONDARY_GATE_FILE = "scripts/console_encoding.py"
-_SECONDARY_GATE_NAME = "_require_official_distribution_identity"
 
 
 def _normalized_bytes(path: Path) -> bytes:
@@ -92,7 +73,6 @@ def _metadata_is_valid() -> bool:
             len(re.findall(rf"(?m)^  {re.escape(field)}\s*:", metadata)) == 1
             for field in _REQUIRED_METADATA_FIELDS
         )
-        and skill_text.count(_SKILL_GATE_MARKER) == 1
     )
 
 
@@ -106,94 +86,9 @@ def _protected_files_are_valid() -> bool:
     return license_digest == _LICENSE_DIGEST
 
 
-def _is_zero_arg_call(node: ast.stmt, function_name: str) -> bool:
-    """Return whether one statement directly invokes the named function."""
-    return (
-        isinstance(node, ast.Expr)
-        and isinstance(node.value, ast.Call)
-        and isinstance(node.value.func, ast.Name)
-        and node.value.func.id == function_name
-        and not node.value.args
-        and not node.value.keywords
-    )
-
-
-def _is_gate_call(node: ast.stmt) -> bool:
-    """Return whether one statement directly invokes the primary integrity gate."""
-    return _is_zero_arg_call(node, "require_skill_integrity")
-
-
-def _execution_gate_is_valid(path: Path) -> bool:
-    """Require one live import and one live entry-point call."""
-    tree = ast.parse(_normalized_bytes(path).decode("utf-8"), filename=str(path))
-    has_import = any(
-        isinstance(node, ast.ImportFrom)
-        and node.module == "attribution_guard"
-        and any(alias.name == "require_skill_integrity" for alias in node.names)
-        for node in tree.body
-    )
-    has_entry_call = False
-    for node in tree.body:
-        if (
-            isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-            and node.name in {"configure_utf8_stdio", "main"}
-        ):
-            body = node.body[1:] if (
-                node.body
-                and isinstance(node.body[0], ast.Expr)
-                and isinstance(node.body[0].value, ast.Constant)
-                and isinstance(node.body[0].value.value, str)
-            ) else node.body
-            has_entry_call = bool(body and _is_gate_call(body[0]))
-        elif isinstance(node, ast.If) and any(_is_gate_call(statement) for statement in node.body):
-            has_entry_call = True
-    return has_import and has_entry_call
-
-
-def _execution_gates_are_valid() -> bool:
-    """Require every supported route to retain executable guard calls."""
-    for relative_path in _REQUIRED_GATE_FILES:
-        if not _execution_gate_is_valid(_SKILL_DIR / relative_path):
-            return False
-    return _secondary_execution_gate_is_valid(_SKILL_DIR / _SECONDARY_GATE_FILE)
-
-
-def _secondary_execution_gate_is_valid(path: Path) -> bool:
-    """Require the independent identity guard and its live bootstrap call."""
-    tree = ast.parse(_normalized_bytes(path).decode("utf-8"), filename=str(path))
-    has_guard = any(
-        isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-        and node.name == _SECONDARY_GATE_NAME
-        for node in tree.body
-    )
-    for node in tree.body:
-        if not (
-            isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-            and node.name == "configure_utf8_stdio"
-        ):
-            continue
-        body = node.body[1:] if (
-            node.body
-            and isinstance(node.body[0], ast.Expr)
-            and isinstance(node.body[0].value, ast.Constant)
-            and isinstance(node.body[0].value.value, str)
-        ) else node.body
-        return (
-            has_guard
-            and len(body) >= 2
-            and _is_gate_call(body[0])
-            and _is_zero_arg_call(body[1], _SECONDARY_GATE_NAME)
-        )
-    return False
-
-
 def _integrity_is_valid() -> bool:
-    """Validate every local attribution and execution invariant."""
-    return (
-        _metadata_is_valid()
-        and _protected_files_are_valid()
-        and _execution_gates_are_valid()
-    )
+    """Validate the local attribution invariants."""
+    return _metadata_is_valid() and _protected_files_are_valid()
 
 
 def require_skill_integrity() -> None:
@@ -209,7 +104,7 @@ def require_skill_integrity() -> None:
 
 
 def main() -> int:
-    """Run the fail-closed Skill integrity gate."""
+    """Run the fail-closed Skill attribution gate."""
     require_skill_integrity()
     return 0
 

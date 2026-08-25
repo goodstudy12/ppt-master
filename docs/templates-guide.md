@@ -174,7 +174,7 @@ Before generation, the workflow writes one concise natural-language proposal and
 
 | Field | Notes |
 |-------|-------|
-| **Output scope** | `library` (default) or `project`; both use the same portable workspace routing, while only library scope registers it globally |
+| **Output scope** | `library` (default) or `project`; both use the same spec schema, while the library uses a bare spec in a single-kind directory and a project uses a qualified spec in its shared root |
 | **Target project** | Required only for `project`; give the exact initialized project path |
 | **Selected child workflow** | Create Brand / Create Layout / Create Deck, fixed by the entry dispatch |
 | **Template ID** | Portable template identity; in library scope it is also the directory / index key. Prefer ASCII slug like `acme_consulting`; non-ASCII names work but must be filesystem-safe |
@@ -186,7 +186,7 @@ Before generation, the workflow writes one concise natural-language proposal and
 
 After confirmation the workflow echoes the finalized brief and emits the marker `[TEMPLATE_BRIEF_CONFIRMED]`. Subsequent steps only run after that marker. **This is a hard gate — no brief, no generation.**
 
-Before either scope writes final files, one hard preflight resolves the required `templates/` destination and any optional asset destinations, requires an empty `templates/` root, and rejects bitmap or imported-vector filename collisions in `images/` and `icons/imported/`. It checks `exports/` only when a review PPTX was requested. Project scope additionally requires an initialized target project. Existing empty scaffolding created by project initialization is allowed and left untouched; Create Template does not create optional directories merely to keep empty paths. A failed check stops before partial output; the workflow does not merge or overwrite.
+Before either scope writes final files, one hard preflight resolves the Design Spec and all real asset destinations. Library scope requires an empty `templates/` root. Project scope requires an initialized project and rejects a bare spec, an existing spec of the new kind, or invalid qualified naming; distinct kinds may coexist. Adding Deck beside Layout preserves the Layout roster, while adding Layout beside Deck uses isolated validation and an atomic structural replacement. Both scopes reject bitmap, imported-vector, review-export, and unrelated destination collisions before writing. Existing empty project scaffolding is left untouched, and optional directories are not created merely to retain empty paths. A failed check stops before partial output; the workflow does not overwrite.
 
 > Why so strict? A template is a structural contract, whether it is reused globally or only inside the current project. Confirming ownership and geometry first avoids partial or misplaced output.
 
@@ -208,15 +208,15 @@ For a PPTX-backed Type A mirror, that final step is one deterministic command:
 
 ```bash
 python3 skills/ppt-master/scripts/mirror_template_materialize.py \
-  "<import_workspace>" "<empty_template_workspace>"
+  "<import_workspace>" "<template_workspace>"
 ```
 
 It validates the IR manifest, immutable source hashes, complete native graph,
 visibility facts, and imported-vector closure before atomically publishing the
 source-ordered SVG roster and its `icons/imported/` / `images/` assets. It never
 requires or uses the opt-in `svg-flat/` verification tree as the template source
-and never generates `design_spec.md`;
-the designer writes that brief against the published roster.
+and never generates a Design Spec; the designer writes the resolved spec
+against the published roster.
 
 **Mirror graph boundary**: mirror preserves the complete supported source Master/Layout graph. It emits one complete prototype per source slide and one definition-only `layout_<layout_key>.svg` prototype for every source Layout unused by those slides. The latter registers in PowerPoint through the independent Layout roster without becoming a published page; its parent Master is retained with it. Preflight stops only when required source facts or supported geometry are missing, never merely because a Layout is unused.
 
@@ -255,7 +255,7 @@ Microsoft PowerPoint is the acceptance target for Master/Layout behavior. Keynot
 
 ### What a derived template workspace looks like
 
-Library and project scopes use the same core structure; substitute either `skills/ppt-master/templates/<kind>/<id>/` or `projects/<name>/` for `<template_workspace>`:
+Library and project scopes use the same spec schema and asset routing; a library workspace uses a bare spec while a shared project root uses qualified specs. Substitute either `skills/ppt-master/templates/<kind>/<id>/` or `projects/<name>/` for `<template_workspace>`:
 
 ```
 <template_workspace>/
@@ -287,7 +287,7 @@ nor allowed.
 ### Library registration vs project placement
 
 - **Library scope (`library`, default)** writes the workspace under `skills/ppt-master/templates/<kind>/<id>/` and registers it globally.
-- **Project scope (`project`)** writes the same portable workspace at `projects/<name>/` and skips registration.
+- **Project scope (`project`)** writes a qualified spec at `projects/<name>/templates/design_spec.<kind>.<id>.md` and skips registration, so one project root can accumulate one contribution of every kind over separate runs and hand the complete bundle to any project that points at that root. Layout owns the active roster when Layout and Deck coexist.
 
 The result is not a private or reduced project-only format. You can point Step 3 at either workspace root, copy `templates/` plus any existing `images/` and `icons/` between roots, or migrate a project result into the library without restructuring it. If it moves into the library, run registration so discovery reflects its new location.
 

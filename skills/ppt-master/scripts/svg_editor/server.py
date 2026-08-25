@@ -110,7 +110,9 @@ _SLIDE_CACHE: dict = {}  # path -> (mtime, (content, warnings))
 _LIST_CACHE_LOCK = threading.Lock()
 _LIST_CACHE: dict = {}  # path -> (mtime, annotation_count_on_disk)
 
-DEFAULT_PORT = 5050
+# Keep live preview on a separate range from Confirm UI so a stale preview tab
+# cannot send ``/api/shutdown`` to a later Confirm UI process.
+DEFAULT_PORT = 6060
 PUBLIC_HOST = '127.0.0.1'
 STARTUP_TIMEOUT = 15
 
@@ -927,6 +929,7 @@ def create_app(
         annotations = app.config['ANNOTATIONS']
         pending_edits = app.config['PENDING_EDITS']
         modified = []
+        failures = []
 
         filenames = sorted(set(annotations.keys()) | set(pending_edits.keys()))
         for filename in filenames:
@@ -937,20 +940,29 @@ def create_app(
             # need to write so the on-disk data-edit-* attributes are cleared.
 
             svg_file = _safe_svg_path(filename)
-            if svg_file is None or not svg_file.exists():
+            if svg_file is None:
+                failures.append(f'{filename}: Invalid slide path')
+                continue
+            if not svg_file.exists():
+                failures.append(f'{filename}: Slide not found')
                 continue
 
             try:
                 tree = ET.parse(str(svg_file))
                 root = tree.getroot()
-            except ET.ParseError:
+            except ET.ParseError as exc:
+                failures.append(f'{filename}: Failed to parse SVG: {exc}')
+                continue
+            except OSError as exc:
+                failures.append(f'{filename}: Failed to read SVG: {exc}')
                 continue
 
             assign_temp_ids(root)
 
             ok, reason = _apply_edit_records(root, edits)
             if not ok:
-                return jsonify({'error': f'Failed to apply edits in {filename}: {reason}'}), 400
+                failures.append(f'{filename}: Failed to apply edits: {reason}')
+                continue
 
             old_annotations = {
                 item['element_id']: item['annotation']
@@ -973,7 +985,11 @@ def create_app(
             annotated_ids = set(anns.keys())
             strip_unused_temp_ids(root, annotated_ids)
 
-            tree.write(str(svg_file), encoding='UTF-8', xml_declaration=True)
+            try:
+                tree.write(str(svg_file), encoding='UTF-8', xml_declaration=True)
+            except OSError as exc:
+                failures.append(f'{filename}: Failed to write SVG: {exc}')
+                continue
             ts = time.time()
             for element_id, annotation_text in anns.items():
                 old_text = old_annotations.get(element_id)
@@ -998,9 +1014,14 @@ def create_app(
                         'old': chg.get('old'), 'new': chg.get('new'),
                     })
             modified.append(filename)
+            annotations.pop(filename, None)
+            pending_edits.pop(filename, None)
 
-        app.config['ANNOTATIONS'] = {}
-        app.config['PENDING_EDITS'] = {}
+        if failures:
+            return jsonify({
+                'error': 'Failed to save: ' + '; '.join(failures),
+                'files_modified': modified,
+            }), 500
 
         return jsonify({'status': 'ok', 'files_modified': modified})
 

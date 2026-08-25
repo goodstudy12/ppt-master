@@ -130,9 +130,9 @@ _ICON_PREVIEW_SAMPLES = {
     'phosphor-duotone': ('house', 'chart-line', 'users', 'target'),
 }
 
-# Prefer the same memorable entry port as live preview. Normal single-project
-# execution releases it between Step 4 and Step 6; concurrent projects advance
-# from this base while explicit ``--port`` remains exact.
+# Keep the long-standing Confirm UI entry port. Live preview uses a separate
+# base range so stale preview tabs cannot address a later Confirm UI process.
+# Concurrent Confirm UI sessions advance while explicit ``--port`` remains exact.
 DEFAULT_PORT = 5050
 PUBLIC_HOST = '127.0.0.1'
 STARTUP_TIMEOUT = 10
@@ -198,22 +198,74 @@ def _safe_template_id(template_id: object) -> bool:
     )
 
 
-def _template_design_spec_path(workspace_root: Path) -> Path:
-    """Return the current or legacy Design Spec for one workspace root."""
-    current = workspace_root / 'templates' / 'design_spec.md'
+_TEMPLATE_SPEC_NAME_RE = re.compile(
+    r'design_spec\.(?P<kind>brand|style|layout|deck)\.(?P<id>[^/\\]+)\.md'
+)
+
+
+def _template_design_specs(workspace_root: Path) -> list[Path]:
+    """Return every Design Spec one template workspace root exposes.
+
+    A single-kind workspace keeps the exact ``templates/design_spec.md``, and a
+    compatible legacy-flat root keeps ``design_spec.md`` beside its pages. A
+    multi-kind workspace keeps one ``templates/design_spec.<kind>.<id>.md`` per
+    kind — the same shape the apply stage installs into a consuming project — so
+    one root can carry, for example, a Brand plus a Style. Order is stable so
+    candidate keys and the options digest do not depend on directory listing
+    order.
+    """
+    templates_dir = workspace_root / 'templates'
+    current = templates_dir / 'design_spec.md'
+    multi = sorted(
+        path
+        for path in templates_dir.glob('design_spec.*.md')
+        if _TEMPLATE_SPEC_NAME_RE.fullmatch(path.name)
+    ) if templates_dir.is_dir() else []
+    if current.is_file() and multi:
+        raise ValueError(
+            'template workspace mixes design_spec.md with kind-qualified specs '
+            f'({", ".join(path.name for path in multi)}): {workspace_root}; '
+            'rename the bare spec to design_spec.<kind>.<id>.md'
+        )
     if current.is_file():
-        return current
+        return [current]
+    if multi:
+        return multi
     legacy = workspace_root / 'design_spec.md'
     if legacy.is_file():
-        return legacy
+        return [legacy]
     raise ValueError(
-        'template workspace is missing templates/design_spec.md '
-        f'or legacy design_spec.md: {workspace_root}'
+        'template workspace is missing templates/design_spec.md, '
+        'templates/design_spec.<kind>.<id>.md, or legacy design_spec.md: '
+        f'{workspace_root}'
     )
 
 
 def _template_kind_from_spec(spec_path: Path) -> str:
-    """Read one supported top-level ``kind`` from Design Spec frontmatter."""
+    """Read one supported top-level ``kind`` from Design Spec frontmatter.
+
+    Frontmatter stays the single truth. When the filename also carries a kind,
+    both its kind and id must agree; a mismatch is a corrupt workspace rather
+    than a precedence question.
+    """
+    name_match = _TEMPLATE_SPEC_NAME_RE.fullmatch(spec_path.name)
+    if name_match is not None:
+        try:
+            from register_template import (
+                SpecParseError,
+                validate_qualified_spec_identity,
+            )
+            declared_kind, _filename_id, _frontmatter, _body = (
+                validate_qualified_spec_identity(spec_path)
+            )
+        except ImportError as exc:
+            raise ValueError(
+                f'Qualified Design Spec validator could not be imported: {exc}'
+            ) from exc
+        except (OSError, SpecParseError) as exc:
+            raise ValueError(str(exc)) from exc
+        return declared_kind
+
     try:
         lines = spec_path.read_text(encoding='utf-8-sig').splitlines()
     except OSError as exc:
@@ -313,7 +365,7 @@ def _read_template_options_input(confirm_dir: Path) -> tuple[dict, list[Path]]:
             )
         if not root.is_dir():
             raise ValueError(f'explicit workspace root is not a directory: {canonical}')
-        _template_design_spec_path(root)
+        _template_design_specs(root)
         seen.add(canonical)
         roots.append(root)
     return data, roots
@@ -404,25 +456,39 @@ def _build_template_options(confirm_dir: Path) -> tuple[dict, dict[str, dict]]:
             suggested_keys.append(registered['key'])
             continue
         digest = hashlib.sha256(canonical_root.encode('utf-8')).hexdigest()
-        key = f'explicit:{digest}'
-        if key in candidates:
-            raise ValueError(f'duplicate template candidate key: {key}')
-        kind = _template_kind_from_spec(_template_design_spec_path(root))
-        candidate = {
-            'key': key,
-            'source': 'explicit',
-            'kind': kind,
-            'label': root.name or canonical_root,
-            'workspace_root': canonical_root,
-        }
-        explicit.append(candidate)
-        candidates[key] = candidate
-        suggested_keys.append(key)
+        root_specs = [
+            (spec, _template_kind_from_spec(spec))
+            for spec in _template_design_specs(root)
+        ]
+        root_kinds = [kind for _spec, kind in root_specs]
+        duplicate_kinds = sorted({
+            kind for kind in root_kinds if root_kinds.count(kind) > 1
+        })
+        if duplicate_kinds:
+            raise ValueError(
+                'workspace root exposes the same kind more than once '
+                f'({", ".join(duplicate_kinds)}): {canonical_root}'
+            )
+        for spec, kind in root_specs:
+            key = f'explicit:{digest}:{kind}'
+            if key in candidates:
+                raise ValueError(f'duplicate template candidate key: {key}')
+            candidate = {
+                'key': key,
+                'source': 'explicit',
+                'kind': kind,
+                'label': root.name or canonical_root,
+                'workspace_root': canonical_root,
+            }
+            explicit.append(candidate)
+            candidates[key] = candidate
+            suggested_keys.append(key)
 
-    # One supplied exact root is an unambiguous convenience default. Multiple
-    # roots are candidates for the single-select controls, not an instruction
-    # to select all of them.
-    preselected_keys = suggested_keys if len(suggested_keys) == 1 else []
+    # One supplied exact root is an unambiguous convenience default, including
+    # a multi-kind root whose kinds compose rather than compete. Several roots
+    # are candidates for the single-select controls, not an instruction to
+    # select all of them.
+    preselected_keys = suggested_keys if len(explicit_roots) == 1 else []
 
     response = {
         'schema_version': TEMPLATE_SCHEMA_VERSION,
@@ -515,9 +581,9 @@ def _validate_template_selection(data: dict) -> None:
     if not isinstance(selection_sha256, str) or not re.fullmatch(r'[0-9a-f]{64}', selection_sha256):
         raise ValueError(f'{TEMPLATE_SELECTION_NAME} selection_sha256 is invalid')
 
-    seen_roots = set()
-    seen_library_kinds = set()
-    explicit_count = 0
+    seen_root_kinds = set()
+    seen_kinds: set[str] = set()
+    explicit_roots_seen: dict[str, set[str]] = {}
     for index, selection in enumerate(selections):
         if not isinstance(selection, dict):
             raise ValueError(
@@ -536,22 +602,16 @@ def _validate_template_selection(data: dict) -> None:
         expected_keys = {'source', 'kind', 'workspace_root'}
         if source == 'library':
             expected_keys.add('id')
-            if kind in seen_library_kinds:
-                raise ValueError(
-                    'template selection allows at most one library workspace '
-                    f'for kind {kind!r}'
-                )
-            seen_library_kinds.add(kind)
             if not _safe_template_id(selection.get('id')):
                 raise ValueError(
                     f'{TEMPLATE_SELECTION_NAME} selections[{index}] has invalid id'
                 )
-        else:
-            explicit_count += 1
-            if explicit_count > 1:
-                raise ValueError(
-                    'template selection allows at most one explicit workspace'
-                )
+        if kind in seen_kinds:
+            raise ValueError(
+                'template selection allows at most one workspace for kind '
+                f'{kind!r}'
+            )
+        seen_kinds.add(kind)
         if set(selection) != expected_keys:
             raise ValueError(
                 f'{TEMPLATE_SELECTION_NAME} selections[{index}] has invalid fields'
@@ -568,12 +628,20 @@ def _validate_template_selection(data: dict) -> None:
                 f'{TEMPLATE_SELECTION_NAME} selections[{index}] '
                 'workspace_root must be a canonical absolute path'
             )
-        if workspace_root in seen_roots:
+        if source == 'explicit':
+            # One explicit workspace root may contribute several kinds, so the
+            # cap counts roots rather than selections.
+            explicit_roots_seen.setdefault(workspace_root, set()).add(kind)
+            if len(explicit_roots_seen) > 1:
+                raise ValueError(
+                    'template selection allows at most one explicit workspace'
+                )
+        if (workspace_root, kind) in seen_root_kinds:
             raise ValueError(
-                f'{TEMPLATE_SELECTION_NAME} contains duplicate workspace root: '
-                f'{workspace_root}'
+                f'{TEMPLATE_SELECTION_NAME} contains duplicate workspace root '
+                f'for kind {kind!r}: {workspace_root}'
             )
-        seen_roots.add(workspace_root)
+        seen_root_kinds.add((workspace_root, kind))
     if not isinstance(data.get('confirmed_at'), str) or not data['confirmed_at']:
         raise ValueError(
             f'{TEMPLATE_SELECTION_NAME} confirmed_at must be a non-empty string'
@@ -585,6 +653,32 @@ def _validate_template_selection(data: dict) -> None:
     )
     if selection_sha256 != expected_selection_sha256:
         raise ValueError(f'{TEMPLATE_SELECTION_NAME} selection_sha256 does not match')
+
+
+def _validate_explicit_root_closure(
+    selections: list[dict],
+    candidates: dict[str, dict],
+) -> None:
+    """Require every selected explicit root to contribute all exposed kinds."""
+    exposed: dict[str, set[str]] = {}
+    for candidate in candidates.values():
+        if candidate['source'] == 'explicit':
+            exposed.setdefault(candidate['workspace_root'], set()).add(
+                candidate['kind']
+            )
+    chosen: dict[str, set[str]] = {}
+    for selection in selections:
+        if selection['source'] == 'explicit':
+            chosen.setdefault(selection['workspace_root'], set()).add(
+                selection['kind']
+            )
+    for root, kinds in chosen.items():
+        missing = sorted(exposed.get(root, set()) - kinds)
+        if missing:
+            raise ValueError(
+                f'{TEMPLATE_SELECTION_NAME} selects workspace root {root} '
+                f'without every kind it exposes; missing: {", ".join(missing)}'
+            )
 
 
 def _read_template_selection(selection_file: Path) -> dict:
@@ -611,6 +705,8 @@ def _read_template_selection(selection_file: Path) -> dict:
             raise ValueError(
                 f'{TEMPLATE_SELECTION_NAME} references an unavailable candidate'
             )
+
+    _validate_explicit_root_closure(data['selections'], candidates)
     return data
 
 
@@ -685,7 +781,7 @@ def _installed_template_specs(project_path: Path) -> list[Path]:
     return sorted(
         path
         for path in (project_path / 'templates').glob('design_spec.*.md')
-        if path.is_file()
+        if path.is_file() and _TEMPLATE_SPEC_NAME_RE.fullmatch(path.name)
     )
 
 
@@ -890,6 +986,7 @@ def _resolve_template_confirmation(
         'confirmed_at': time.strftime('%Y-%m-%dT%H:%M:%S'),
     }
     _validate_template_selection(receipt)
+    _validate_explicit_root_closure(selections, candidates)
     return receipt
 
 
@@ -1258,7 +1355,7 @@ def _localized_text_present(candidate: dict, field: str) -> bool:
     """Return whether a candidate carries non-empty localized prose."""
     return any(
         isinstance(candidate.get(key), str) and bool(candidate[key].strip())
-        for key in (field, f'{field}_zh', f'{field}_en', f'{field}_ja')
+        for key in (field, f'{field}_zh', f'{field}_zh_tw', f'{field}_en', f'{field}_ja')
     )
 
 
@@ -1286,13 +1383,12 @@ def _stage2_production_recommendations_error(
     recommend = recommendations.get('recommend')
     if not isinstance(recommend, dict):
         recommend = {}
-    for field in ('formula_policy', 'generation_mode'):
-        value = recommend.get(field)
-        if not isinstance(value, str) or not value.strip():
-            return (
-                'Stage 2 recommendations must include non-empty '
-                f'recommend.{field}'
-            )
+    generation_mode = recommend.get('generation_mode')
+    if not isinstance(generation_mode, str) or not generation_mode.strip():
+        return (
+            'Stage 2 recommendations must include non-empty '
+            'recommend.generation_mode'
+        )
     refine_spec = recommendations.get('refine_spec')
     if (
         not isinstance(refine_spec, dict)
@@ -1311,10 +1407,9 @@ def _stage2_production_recommendations_error(
 
 def _stage2_production_result_error(result: dict) -> Optional[str]:
     """Require every user-confirmed production control in the final payload."""
-    for field in ('formula_policy', 'generation_mode'):
-        value = result.get(field)
-        if not isinstance(value, str) or not value.strip():
-            return f'final Stage 2 payload must include non-empty {field}'
+    generation_mode = result.get('generation_mode')
+    if not isinstance(generation_mode, str) or not generation_mode.strip():
+        return 'final Stage 2 payload must include non-empty generation_mode'
     if not isinstance(result.get('refine_spec'), bool):
         return 'final Stage 2 payload must include refine_spec as a boolean'
     if _uses_ai_images(result):
@@ -1520,23 +1615,44 @@ def _stage2_design_directions_error(
     *,
     main_language: object = '',
 ) -> Optional[str]:
-    """Require three complete coordinated Stage 2 design systems."""
+    """Require three complete custom systems and a valid preferred direction."""
     main_language = main_language or _recommendation_language(recommendations)
     directions = recommendations.get('design_directions')
     if isinstance(directions, dict):
         candidates = _candidate_list(directions)
-        if len(candidates) < 3:
-            return 'Stage 2 design_directions must include at least 3 candidates'
+        if len(candidates) != 3:
+            return 'Stage 2 design_directions must include exactly 3 candidates'
+        selected = directions.get('selected', 0)
+        if type(selected) is not int or not 0 <= selected < len(candidates):
+            return 'Stage 2 design_directions.selected must be an integer from 0 to 2'
         typography_candidates = []
+        direction_ids = set()
         for index, candidate in enumerate(candidates, start=1):
             label = f'design_directions.candidates[{index - 1}]'
             if not isinstance(candidate, dict):
                 return f'{label} must be an object'
+            direction_id = str(candidate.get('id') or '').strip()
+            if not direction_id:
+                return f'{label}.id must be non-empty'
+            if direction_id in direction_ids:
+                return f'{label}.id must be unique'
+            direction_ids.add(direction_id)
             if not _localized_text_present(candidate, 'name'):
                 return f'{label} requires a non-empty localized name'
-            for field in ('visual_style', 'icons'):
+            for field in ('mode', 'visual_style', 'icons'):
                 if not isinstance(candidate.get(field), str) or not candidate[field].strip():
                     return f'{label}.{field} must be non-empty'
+            if candidate['mode'] != 'custom':
+                return f'{label}.mode must be custom'
+            if not _localized_text_present(candidate, 'mode_behavior'):
+                return f'{label}.mode=custom requires non-empty localized mode_behavior'
+            if candidate['visual_style'] != 'custom':
+                return f'{label}.visual_style must be custom'
+            if not _localized_text_present(candidate, 'visual_style_behavior'):
+                return (
+                    f'{label}.visual_style=custom requires non-empty localized '
+                    'visual_style_behavior'
+                )
             error = _palette_error(candidate.get('color'), f'{label}.color')
             if error:
                 return error
@@ -1549,12 +1665,25 @@ def _stage2_design_directions_error(
             if error:
                 return error
             typography_candidates.append(candidate['typography'])
-            if _uses_ai_images(recommendations):
-                image_strategy = candidate.get('image_strategy')
-                if not isinstance(image_strategy, dict) or not str(
-                    image_strategy.get('rendering') or ''
-                ).strip():
-                    return f'{label}.image_strategy.rendering must be non-empty'
+            image_strategy = candidate.get('image_strategy')
+            if not isinstance(image_strategy, dict):
+                return f'{label}.image_strategy must be an object'
+            rendering = str(image_strategy.get('rendering') or '').strip()
+            if not rendering:
+                return f'{label}.image_strategy.rendering must be non-empty'
+            if rendering != 'custom':
+                return f'{label}.image_strategy.rendering must be custom'
+            for prose_field in ('name', 'visual', 'mood'):
+                if not _localized_text_present(image_strategy, prose_field):
+                    return (
+                        f'{label}.image_strategy requires non-empty localized '
+                        f'{prose_field}'
+                    )
+            if not _localized_text_present(image_strategy, 'behavior'):
+                return (
+                    f'{label}.image_strategy.rendering=custom requires non-empty '
+                    'localized behavior'
+                )
         return _typography_candidates_fixed_error(
             typography_candidates,
             main_language=main_language,
@@ -1592,13 +1721,17 @@ def _stage2_design_directions_error(
 
 
 def _stage2_custom_candidates_error(recommendations: dict) -> Optional[str]:
-    """Require visible AI-authored custom alternatives in new Stage 2 files."""
+    """Validate optional legacy standalone custom alternatives."""
     candidates = recommendations.get('custom_candidates')
+    if candidates is None:
+        return None
     if not isinstance(candidates, dict):
-        return 'Stage 2 recommendations must include custom_candidates'
+        return 'custom_candidates must be an object when present'
 
     for field in ('mode', 'visual_style'):
         candidate = candidates.get(field)
+        if candidate is None:
+            continue
         if not isinstance(candidate, dict):
             return f'custom_candidates.{field} must be an object'
         for prose_field in ('name', 'behavior'):
@@ -1608,12 +1741,11 @@ def _stage2_custom_candidates_error(recommendations: dict) -> Optional[str]:
                     f'{prose_field}'
                 )
 
-    if not _uses_ai_images(recommendations):
-        return None
-
     image_candidate = candidates.get('image_strategy')
+    if image_candidate is None:
+        return None
     if not isinstance(image_candidate, dict):
-        return 'custom_candidates.image_strategy must be an object when image_usage includes ai'
+        return 'custom_candidates.image_strategy must be an object'
     if image_candidate.get('rendering') != 'custom':
         return 'custom_candidates.image_strategy.rendering must be custom'
     for prose_field in ('name', 'visual', 'mood', 'behavior'):
@@ -2170,6 +2302,11 @@ def _wait_result_status(
                 )
                 return 2
         logger.info('confirmation stage=%s received: %s', target_stage, result_file)
+        if target_stage == 'stage1':
+            logger.info(
+                '[NEXT] Stage 1 is intermediate: complete the template handoff, '
+                'author fresh Stage 2, then wait for final confirmation.'
+            )
         return 0
     if _result_stage_number(current_stage) > _result_stage_number(target_stage):
         logger.error(
@@ -2228,8 +2365,8 @@ def _build_catalogs() -> dict:
     """Return the static catalog set with the canvas list synced live from
     ``config.CANVAS_FORMATS`` — the single source of truth for canvas formats —
     so the confirm page can never drift from the pipeline's real formats. The
-    set of formats and their dimensions come from config; trilingual labels and
-    use text are kept from catalogs.json (with a plain fallback for any new id).
+    set of formats and their dimensions come from config; four-language labels
+    and use text are kept from catalogs.json (with a plain fallback for new ids).
     """
     data = json.loads(_CATALOGS_PATH.read_text(encoding='utf-8'))
     try:
@@ -2723,6 +2860,10 @@ def create_app(
             result_file,
             carry_previous=rec_stage_number > 1,
         )
+        # Formula realization is Executor-owned. Accept the retired field from
+        # older recommendations/clients, but never persist it in a new receipt.
+        result.pop('formula_policy', None)
+        locked_values.pop('formula_policy', None)
         if rec_stage_number == 1 or not template_required:
             result.pop('template_application', None)
             locked_values.pop('template_application', None)

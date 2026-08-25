@@ -99,7 +99,7 @@ PPTX import uses a two-level metadata model. The temporary lossless SVG keeps na
 
 Both scopes retain `kind: layout` or `kind: deck` in portable frontmatter. `output_scope` and `target_project` stay in the workflow brief and are not persisted into `design_spec.md`.
 
-Before any final write, resolve the selected workspace root, require an empty `templates/` root, and check all planned image and icon destination filenames for conflicts. Check a preview-PPTX destination when review was requested or the confirmed roster contains multiple Masters. Project scope additionally requires an initialized target project. Fail before writing anything; never merge or overwrite.
+Before any final write, resolve the Design Spec and every real destination. Library scope requires an empty `templates/` root. Project scope requires an initialized project and rejects a bare spec, a same-kind spec, or invalid qualified naming; distinct kinds may coexist. Adding Deck beside Layout preserves the Layout roster, while adding Layout beside Deck uses isolated validation and an atomic structural replacement. Both scopes reject unrelated asset and preview collisions before writing. Never leave partial output.
 
 ### Segment partition
 

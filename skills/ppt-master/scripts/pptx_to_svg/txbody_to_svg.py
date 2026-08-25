@@ -23,6 +23,7 @@ back to paragraph/list defaults, endParaRPr, or spec-default values.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Callable
 from xml.etree import ElementTree as ET
 
 from svg_to_pptx.drawingml.utils import detect_text_lang, is_cjk_char
@@ -64,6 +65,17 @@ class TextRun:
     strikethrough: bool = False
     letter_spacing_px: float = 0.0
     is_break: bool = False  # marks an a:br within a paragraph
+    hyperlink_href: str | None = None
+    formula_latex: str | None = None
+
+
+HyperlinkResolver = Callable[[str, str], str | None]
+InlineFormulaResolver = Callable[[ET.Element], tuple[str | None, str]]
+TextDiagnosticSink = Callable[[str, str, str], None]
+
+
+class TextImportError(ValueError):
+    """Report malformed DrawingML text in strict import mode."""
 
 
 @dataclass
@@ -92,6 +104,7 @@ class TextResult:
 
     svg: str = ""
     defs: list[str] = field(default_factory=list)
+    contains_inline_formula: bool = False
 
 
 VERTICAL_TEXT_MODES = {"eaVert", "vert", "wordArtVert", "wordArtVertRtl"}
@@ -114,6 +127,10 @@ def convert_txbody(
     fallback_run_props: tuple[ET.Element, ...] = (),
     id_prefix: str = "txt",
     id_seq: list[int] | None = None,
+    hyperlink_resolver: HyperlinkResolver | None = None,
+    inline_formula_resolver: InlineFormulaResolver | None = None,
+    strict: bool = False,
+    diagnostic_sink: TextDiagnosticSink | None = None,
 ) -> TextResult:
     """Convert <p:txBody> under the given shape geometry to SVG <text>(s)."""
     if tx_body is None:
@@ -126,6 +143,10 @@ def convert_txbody(
         fallback_lst_styles=fallback_lst_styles,
         fallback_run_props=fallback_run_props,
         slide_number=slide_number, id_prefix=id_prefix, id_seq=id_seq,
+        hyperlink_resolver=hyperlink_resolver,
+        inline_formula_resolver=inline_formula_resolver,
+        strict=strict,
+        diagnostic_sink=diagnostic_sink,
     )
     if not paragraphs or not _has_visible_text(paragraphs):
         return TextResult()
@@ -197,7 +218,12 @@ def convert_txbody(
         if cursor_y >= bottom_y:
             break
 
-    return TextResult(svg="\n".join(text_blocks), defs=_collect_text_defs(paragraphs))
+    svg = "\n".join(text_blocks)
+    return TextResult(
+        svg=svg,
+        defs=_collect_text_defs(paragraphs),
+        contains_inline_formula="data-pptx-inline-formula=" in svg,
+    )
 
 
 def is_vertical_txbody(tx_body: ET.Element | None, xfrm: Xfrm | None = None) -> bool:
@@ -224,6 +250,10 @@ def convert_vertical_txbody(
     fallback_run_props: tuple[ET.Element, ...] = (),
     id_prefix: str = "txt",
     id_seq: list[int] | None = None,
+    hyperlink_resolver: HyperlinkResolver | None = None,
+    inline_formula_resolver: InlineFormulaResolver | None = None,
+    strict: bool = False,
+    diagnostic_sink: TextDiagnosticSink | None = None,
 ) -> TextResult:
     """Render East Asian vertical text as upright stacked glyphs.
 
@@ -241,6 +271,10 @@ def convert_vertical_txbody(
         fallback_lst_styles=fallback_lst_styles,
         fallback_run_props=fallback_run_props,
         slide_number=slide_number, id_prefix=id_prefix, id_seq=id_seq,
+        hyperlink_resolver=hyperlink_resolver,
+        inline_formula_resolver=inline_formula_resolver,
+        strict=strict,
+        diagnostic_sink=diagnostic_sink,
     )
     runs = [
         run
@@ -280,12 +314,15 @@ def convert_vertical_txbody(
         if first_run is None:
             first_run = run
             first_baseline = baseline_y
-            spans.append(f"<tspan{tspan_attrs}>{_xml_escape(char)}</tspan>")
+            run_span = f"<tspan{tspan_attrs}>{_xml_escape(char)}</tspan>"
+            spans.append(_wrap_run_hyperlink(run_span, run))
         else:
             dy = baseline_y - (previous_baseline or baseline_y)
+            run_span = f"<tspan{tspan_attrs}>{_xml_escape(char)}</tspan>"
+            linked_span = _wrap_run_hyperlink(run_span, run)
             spans.append(
-                f'<tspan x="{fmt_num(center_x)}" dy="{fmt_num(dy)}"'
-                f"{tspan_attrs}>{_xml_escape(char)}</tspan>"
+                f'<tspan x="{fmt_num(center_x)}" dy="{fmt_num(dy)}">'
+                f"{linked_span}</tspan>"
             )
         previous_baseline = baseline_y
         cursor_y += advance
@@ -297,6 +334,7 @@ def convert_vertical_txbody(
     return TextResult(
         svg=f"<text{attrs}>{''.join(spans)}</text>",
         defs=_collect_text_defs(paragraphs),
+        contains_inline_formula=False,
     )
 
 
@@ -374,6 +412,10 @@ def _parse_paragraphs(
     slide_number: int | None = None,
     id_prefix: str = "txt",
     id_seq: list[int] | None = None,
+    hyperlink_resolver: HyperlinkResolver | None = None,
+    inline_formula_resolver: InlineFormulaResolver | None = None,
+    strict: bool = False,
+    diagnostic_sink: TextDiagnosticSink | None = None,
 ) -> list[TextParagraph]:
     """Walk <a:p> children producing TextParagraph objects."""
     paragraphs: list[TextParagraph] = []
@@ -393,6 +435,10 @@ def _parse_paragraphs(
             default_font_size_px=default_font_size_px,
             slide_number=slide_number,
             id_prefix=id_prefix, id_seq=id_seq,
+            hyperlink_resolver=hyperlink_resolver,
+            inline_formula_resolver=inline_formula_resolver,
+            strict=strict,
+            diagnostic_sink=diagnostic_sink,
         )
         paragraphs.append(para)
 
@@ -412,6 +458,10 @@ def _parse_paragraph(
     slide_number: int | None = None,
     id_prefix: str = "txt",
     id_seq: list[int] | None = None,
+    hyperlink_resolver: HyperlinkResolver | None = None,
+    inline_formula_resolver: InlineFormulaResolver | None = None,
+    strict: bool = False,
+    diagnostic_sink: TextDiagnosticSink | None = None,
 ) -> TextParagraph:
     para = TextParagraph()
 
@@ -452,6 +502,9 @@ def _parse_paragraph(
             default_fill=default_fill,
             default_font_size_px=default_font_size_px,
             id_prefix=id_prefix, id_seq=id_seq,
+            hyperlink_resolver=hyperlink_resolver,
+            strict=strict,
+            diagnostic_sink=diagnostic_sink,
         )
 
     for child in list(p_elem):
@@ -488,6 +541,20 @@ def _parse_paragraph(
                 text = str(slide_number)
             if text:
                 para.runs.append(resolved_run(text, rpr))
+        elif (
+            child.tag
+            == "{http://schemas.microsoft.com/office/drawing/2010/main}m"
+            and inline_formula_resolver is not None
+        ):
+            latex, preview = inline_formula_resolver(child)
+            if preview:
+                formula_rpr = next(
+                    child.iter(f"{{{NS['a']}}}rPr"),
+                    None,
+                )
+                run = resolved_run(preview, formula_rpr)
+                run.formula_latex = latex
+                para.runs.append(run)
 
     return para
 
@@ -517,6 +584,9 @@ def _build_run(
     default_font_size_px: float = DEFAULT_FONT_SIZE_PX,
     id_prefix: str = "txt",
     id_seq: list[int] | None = None,
+    hyperlink_resolver: HyperlinkResolver | None = None,
+    strict: bool = False,
+    diagnostic_sink: TextDiagnosticSink | None = None,
 ) -> TextRun:
     """Resolve a single <a:r> run from its rPr and fallback run properties."""
     style_chain = (
@@ -539,8 +609,19 @@ def _build_run(
     if spc is not None:
         try:
             letter_spacing_px = float(spc) / 100.0 * 4.0 / 3.0  # pt -> px
-        except ValueError:
-            pass
+        except ValueError as exc:
+            message = (
+                f"Invalid DrawingML a:rPr@spc value {spc!r}; expected a numeric "
+                "hundredths-of-a-point value"
+            )
+            if strict:
+                raise TextImportError(message) from exc
+            if diagnostic_sink is not None:
+                diagnostic_sink(
+                    "text-letter-spacing-normalized",
+                    message,
+                    "use zero letter spacing for this run",
+                )
 
     # Color
     fill = default_fill
@@ -605,6 +686,14 @@ def _build_run(
     )
 
     font_family = _build_font_stack(latin_face, ea_face, cs_face)
+    hyperlink_href: str | None = None
+    if rpr is not None and hyperlink_resolver is not None:
+        hyperlink = rpr.find("a:hlinkClick", NS)
+        if hyperlink is not None:
+            hyperlink_href = hyperlink_resolver(
+                hyperlink.attrib.get(f"{{{NS['r']}}}id", ""),
+                hyperlink.attrib.get("action", ""),
+            )
 
     return TextRun(
         text=text,
@@ -618,6 +707,7 @@ def _build_run(
         underline=underline,
         strikethrough=strikethrough,
         letter_spacing_px=letter_spacing_px,
+        hyperlink_href=hyperlink_href,
     )
 
 
@@ -1056,6 +1146,14 @@ def _wrap_paragraph_into_lines(
             continue
         if not run.text:
             continue
+        if run.formula_latex is not None:
+            width = _estimate_run_width(run.text, run)
+            if lines[-1] and cur_w + width > max_width:
+                lines.append([])
+                cur_w = 0.0
+            lines[-1].append(_copy_run(run, text=run.text))
+            cur_w += width
+            continue
         text = run.text
         i = 0
         while i < len(text):
@@ -1125,6 +1223,8 @@ def _copy_run(run: TextRun, *, text: str) -> TextRun:
         underline=run.underline,
         strikethrough=run.strikethrough,
         letter_spacing_px=run.letter_spacing_px,
+        hyperlink_href=run.hyperlink_href,
+        formula_latex=run.formula_latex,
     )
 
 
@@ -1238,18 +1338,39 @@ def _emit_paragraph(
                     f'dy="{fmt_num(line_advance)}"></tspan>'
                 )
             continue
+        line_has_hyperlink = any(run.hyperlink_href for run in line)
+        if line_has_hyperlink:
+            run_spans = ''.join(
+                _wrap_run_hyperlink(
+                    _run_tspan_markup(run),
+                    run,
+                )
+                for run in line
+            )
+            position_attrs = (
+                f' x="{fmt_num(anchor_x)}" dy="{fmt_num(line_advance)}"'
+                if line_advance is not None
+                else ''
+            )
+            spans.append(f'<tspan{position_attrs}>{run_spans}</tspan>')
+            continue
         for run_idx, run in enumerate(line):
             attrs = _run_tspan_attrs(run)
             if run_idx == 0 and line_advance is not None:
-                spans.append(
-                    f'<tspan x="{fmt_num(anchor_x)}" '
-                    f'dy="{fmt_num(line_advance)}"'
-                    f'{attrs}>{_xml_escape(run.text)}</tspan>'
-                )
+                if run.formula_latex is not None:
+                    spans.append(
+                        f'<tspan x="{fmt_num(anchor_x)}" '
+                        f'dy="{fmt_num(line_advance)}">'
+                        f'{_run_tspan_markup(run)}</tspan>'
+                    )
+                else:
+                    spans.append(
+                        f'<tspan x="{fmt_num(anchor_x)}" '
+                        f'dy="{fmt_num(line_advance)}"'
+                        f'{attrs}>{_xml_escape(run.text)}</tspan>'
+                    )
             else:
-                spans.append(
-                    f"<tspan{attrs}>{_xml_escape(run.text)}</tspan>"
-                )
+                spans.append(_run_tspan_markup(run))
 
     base_attrs = _text_base_attrs(first_run, anchor_x, first_baseline, text_anchor)
     return f"<text{base_attrs}>{''.join(spans)}</text>"
@@ -1316,6 +1437,27 @@ def _run_tspan_attrs(run: TextRun) -> str:
     if run.letter_spacing_px:
         parts.append(f'letter-spacing="{fmt_num(run.letter_spacing_px)}"')
     return " " + " ".join(parts)
+
+
+def _run_tspan_markup(run: TextRun) -> str:
+    formula_attr = ""
+    if run.formula_latex is not None:
+        formula_attr = (
+            ' data-pptx-inline-formula="'
+            + _xml_escape(run.formula_latex)
+            + '"'
+        )
+    return (
+        f"<tspan{_run_tspan_attrs(run)}{formula_attr}>"
+        f"{_xml_escape(run.text)}</tspan>"
+    )
+
+
+def _wrap_run_hyperlink(markup: str, run: TextRun) -> str:
+    """Wrap one visible SVG run in the canonical hyperlink carrier."""
+    if not run.hyperlink_href:
+        return markup
+    return f'<a href="{_xml_escape(run.hyperlink_href)}">{markup}</a>'
 
 
 def _xml_escape(text: str) -> str:

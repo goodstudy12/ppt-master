@@ -106,7 +106,7 @@ Layout 工作区：skills/ppt-master/templates/layouts/fanruan_tech/
 
 直接问“有哪些模板可以用？”即可得到带工作区路径的可读清单。索引是当前安装内容的真值，三类 README 负责定义合同。完整数据模型与三类的合成 / 冲突解决规则见 [`templates-architecture.md`](./templates-architecture.md)。
 
-### 自由设计 vs 模板
+### 自由设计与模板
 
 自由设计不是“没有结构”或“没有风格”——Strategist 仍会为这份 deck 规划叙事、层级与视觉系统，但生成页面使用 `pptx_structure.mode: flat`，所有可见对象都保留在 Slide 本地。仅使用 Brand 工作区时同样保持 `flat`，只是由 Brand 提供身份约束。Layout 与 Deck 工作区提供可复用 Master / Layout / slot 合同；Strategist 会读取真实原型和当前内容，自动判断是复用结构，还是只参考视觉语言。
 
@@ -168,7 +168,7 @@ Strategist 会把方向拆成两个彼此独立的选择：
 
 | 字段 | 说明 |
 |------|------|
-| **输出范围** | `library`（默认）或 `project`；两者使用相同的可移植工作区路由，只有 library 会进入全局索引 |
+| **输出范围** | `library`（默认）或 `project`；两者使用相同 spec schema，但 library 在单 kind 目录使用裸 spec，project 在共享根使用限定名 spec |
 | **目标项目** | 仅 `project` 必填；必须给出已初始化项目的精确路径 |
 | **已选子工作流** | Create Brand / Create Layout / Create Deck，由入口分派后固定 |
 | **模板 ID** | 模板的可移植身份；在 `library` 下同时也是目录名 / 索引键。优先 ASCII slug，如 `acme_consulting`；中文品牌名也行，但要文件系统安全 |
@@ -180,7 +180,7 @@ Strategist 会把方向拆成两个彼此独立的选择：
 
 确认后，工作流会回显一份完整简报并写入标记 `[TEMPLATE_BRIEF_CONFIRMED]`，从这一刻起后续步骤才会启动。**这是一个硬门——简报没确认，不会开始生成**。
 
-无论选择哪种范围，第一次写最终文件前都会做一次完整预检：解析必需的 `templates/` 和实际需要的可选素材目录，要求 `templates/` 为空，并检查 `images/` 与 `icons/imported/` 中计划写入的位图和导入向量文件名没有冲突；只有明确要求审阅 PPTX 时才检查 `exports/`。项目范围还要求目标项目已经初始化。项目初始化时已存在的空脚手架目录可以保留且不会被算作模板产物；Create Template 不会为了保留空路径而新建可选目录。任一检查失败都会在写入前停止，不合并、不覆盖，也不会留下半套输出。
+无论选择哪种范围，第一次写最终文件前都会做一次完整预检，解析 Design Spec 和全部真实素材目标。Library 范围要求 `templates/` 为空。Project 范围要求目标项目已初始化，并拒绝裸 spec、同 kind spec 或无效限定名集合；不同 kind 可以共存。新增 Deck 而项目已有 Layout 时，不改变 Layout roster；新增 Layout 而项目已有 Deck 时，先隔离校验，再原子替换 Deck 的结构载荷。两种范围都会在写入前拒绝位图、导入向量、审阅导出及其他计划目标冲突。已有空脚手架会原样保留，Create Template 不会只为保留空路径创建可选目录。任一检查失败都会在写入前停止且不覆盖。
 
 > 为什么这么严？无论模板进入全局库，还是只服务当前项目，它都是结构契约。先确认归属和几何，可避免半成品或资产落错目录。
 
@@ -202,13 +202,13 @@ frontmatter 仍会记录 `replication_mode: standard|fidelity|mirror` 以兼容�
 
 ```bash
 python3 skills/ppt-master/scripts/mirror_template_materialize.py \
-  "<import_workspace>" "<empty_template_workspace>"
+  "<import_workspace>" "<template_workspace>"
 ```
 
 它会先校验 IR manifest、不可变来源 hash、完整原生图谱、可见性事实和
 导入向量闭包，再原子发布按源顺序排列的 SVG roster 及
 `icons/imported/`、`images/` 素材。它不要求、也不会把按需生成的
-`svg-flat/` 校验视图当成模板来源，并且不会生成 `design_spec.md`；设计角色必须针对物化后的 roster 编写该简报。
+`svg-flat/` 校验视图当成模板来源，并且不会生成 Design Spec；设计角色必须针对物化后的 roster 写入已解析的 spec 路径。
 
 **Mirror 图谱边界**：mirror 保留完整且受支持的来源 Master/Layout 图谱。它为每张来源 Slide 输出一个完整原型，并为未被任何来源 Slide 使用的 Layout 额外输出一个定义专用的 `layout_<layout_key>.svg`。后者通过独立 Layout roster 注册进 PowerPoint，不会变成发布页面；其父 Master 也随之保留。预检只在必要来源事实或受支持几何缺失时停止，不会仅因 Layout 未使用而停止。
 
@@ -247,7 +247,7 @@ Master/Layout 行为以 Microsoft PowerPoint 为验收目标。Keynote、WPS 与
 
 ### 派生后的模板工作区长什么样
 
-全局库与项目范围使用相同的核心结构。把下面的 `<template_workspace>` 替换为 `skills/ppt-master/templates/<kind>/<id>/` 或 `projects/<name>/` 即可：
+全局库与项目范围使用相同的 spec schema 和素材路由；库工作区用裸 spec，项目共享根则用限定名 spec。把下面的 `<template_workspace>` 替换为 `skills/ppt-master/templates/<kind>/<id>/` 或 `projects/<name>/` 即可：
 
 ```
 <template_workspace>/
@@ -276,7 +276,7 @@ Master/Layout 行为以 Microsoft PowerPoint 为验收目标。Keynote、WPS 与
 ### 全局注册与项目放置
 
 - **全局库范围（`library`，默认）**把工作区写入 `skills/ppt-master/templates/<kind>/<id>/`，并完成全局注册。
-- **项目范围（`project`）**把同一份可移植工作区写入 `projects/<name>/`，并跳过注册。
+- **项目范围（`project`）**把限定名 spec 写入 `projects/<name>/templates/design_spec.<kind>.<id>.md` 并跳过注册，因此同一个项目根可以分多次积累四种 kind 各一份，并把整套 bundle 交给任何指向该 root 的项目。Layout 与 Deck 同时存在时，Layout 拥有有效 roster。
 
 项目范围不是私有或缩减格式。Step 3 可以直接接收任一工作区根目录；`templates/` 及实际存在的 `images/`、`icons/` 可以在两类根目录之间复制或迁移，无需改形。如果迁入全局库，再执行注册，让发现索引反映新位置。
 

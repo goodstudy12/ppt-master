@@ -124,6 +124,66 @@ spokes. Run
 categorized list. The four media playback commands are handled by the
 audio/video workflows because they require media or bookmark targets.
 
+## Add Sound After Choosing Motion
+
+Sound effects are off by default. PPT Master includes a global CC0 sound
+library, but it is not copied during strategy or ordinary project setup. First
+finish the SVG pages and choose the visual transition/object motion. Only when
+one of those resolved beats has a specific auditory job should you read the
+complete objective [sound vocabulary](../skills/ppt-master/templates/sounds/sound-vocabulary.md),
+select one exact id, and sync the cue:
+
+```bash
+python3 skills/ppt-master/scripts/sound_sync.py \
+  <project> bigsoundbank/1797 kenney-interface/click_001
+```
+
+The command copies only the selected files into
+`<project>/sounds/<namespace>/`. With no selected cue, PPT Master creates no
+project sound directory and copies nothing. After reviewing the vocabulary,
+the CLI may narrow an already-considered label, tag, or context without deciding
+fit:
+
+```bash
+python3 skills/ppt-master/scripts/sound_sync.py list --query whoosh
+```
+
+Configuration always references the copied project-local path, never the
+global `templates/sounds/` path or a library id:
+
+```json
+{
+  "version": 1,
+  "slides": {
+    "02_process": {
+      "transition": {
+        "effect": "push",
+        "sound": "sounds/bigsoundbank/1797.wav"
+      },
+      "groups": {
+        "next-step": {
+          "effect": "entrance_fade",
+          "sound": "sounds/kenney-interface/click_001.wav"
+        }
+      }
+    }
+  }
+}
+```
+
+`transition.sound` uses WAV. Object-animation `sound` also accepts an existing
+project-relative or absolute `.m4a`, `.mp3`, or `.wav` input; bundled choices
+are WAV and should use the copied project-relative path. A transition-only cue
+may use a sparse `animations.json`; a slide-level `transition.sound: null`
+clears an inherited default sound. Validate before export. Do not add sound
+merely to demonstrate that the feature exists.
+
+This validation proves the editable PPTX contains the native cue; it does not
+prove PowerPoint's MP4 audio track contains it. For direct narrated video with
+resolved cues, follow [Audio Narration & Video Export](./audio-narration.md)
+and choose either the verified native-export sound mix or an explicit
+PowerPoint slideshow capture with system audio. Do not combine the two paths.
+
 ## Customize Specific Objects
 
 Use `animations.json` only when deck-wide settings are not enough—for example,
@@ -182,7 +242,8 @@ Common row fields are:
 | `effect_options` | Set effect-specific `direction`, `amount`, `color`, `font_name`, `relative`, or `size` |
 | `trigger_shape` | Trigger this row when another top-level group is clicked (PowerPoint **On Click of**) |
 | Timing modifiers | `repeat_count`/`repeat_duration`, `auto_reverse`, `rewind`, `accelerate`, `decelerate`, `bounce_end`, and `restart` |
-| Completion | `after_effect` (dim/hide) and a `.m4a`/`.mp3`/`.wav` `sound` path |
+| Completion | `after_effect` (`none`, dim, hide, or hide on next click) |
+| Sound cue | Optional project-local `sound` path; bundled choices follow the on-demand sync above |
 
 `order`, `delay`, `duration`, `trigger`, and `trigger_shape` are resolved per
 row. The slide-level animation trigger is inheritance only. `trigger_shape`
@@ -212,6 +273,7 @@ PPT Master validates animation settings strictly: unknown effects or Start modes
 | Unsupported object builds | No paragraph/text-range builds, custom freeform motion-path authoring, native Chart/SmartArt build sequencing, or media playback commands are inferred from grouped SVG content |
 | Output route | Animation exists in the native PPTX generated from `svg_output/`; `svg_final/` is a static preview |
 | Existing PPTX routes | Template Fill and Native Enhance preserve source object animation rather than translating it into this generated-deck model |
+| PPTX-to-SVG import | Reconstructs only current-registry rows with exact native duration and unique top-level group targets; advanced/build/media timing remains diagnosed |
 | Playback compatibility | Microsoft PowerPoint desktop is the primary validation target; Keynote, WPS, LibreOffice, and older Office versions may remap or omit individual effects |
 
 For the full CLI reference, see [`svg-pipeline.md`](../skills/ppt-master/scripts/docs/svg-pipeline.md). For exact effect definitions, sidecar requirements, anchor fallback logic, and OOXML read-back rules, see the [animation execution reference](../skills/ppt-master/references/animations.md).

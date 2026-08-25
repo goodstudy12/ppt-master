@@ -113,6 +113,61 @@ Wipe 方向名统一映射到 `entrance_wipe`；方向会保留为参数，而�
 `python3 skills/ppt-master/scripts/pptx_animations.py --list` 可查看完整分类清单。
 4 个媒体播放命令需要媒体或书签目标，仍由音视频工作流负责。
 
+## 在确定动效后添加声音
+
+音效默认关闭。PPT Master 内置了全局 CC0 音效库，但不会在策略阶段或普通
+项目初始化时把它复制进项目。先完成 SVG 页面并确定视觉转场 / 对象动画；只有
+其中一个已确定的节拍确实需要听觉提示时，才完整读取客观的
+[声音词汇表](../../skills/ppt-master/templates/sounds/sound-vocabulary.md)，选定一个
+准确 id 并同步声音：
+
+```bash
+python3 skills/ppt-master/scripts/sound_sync.py \
+  <project> bigsoundbank/1797 kenney-interface/click_001
+```
+
+该命令只会把选中的文件复制到 `<project>/sounds/<namespace>/`。没有选中声音时，
+PPT Master 不创建项目 `sounds/` 目录，也不复制任何文件。完整阅读词汇表后，可以
+用 CLI 缩小已经考虑过的名称、标签或语境范围，但它不负责判断适配性：
+
+```bash
+python3 skills/ppt-master/scripts/sound_sync.py list --query whoosh
+```
+
+配置始终引用复制后的项目相对路径，不直接引用全局 `templates/sounds/` 路径，
+也不把声音库 id 写进 sidecar：
+
+```json
+{
+  "version": 1,
+  "slides": {
+    "02_process": {
+      "transition": {
+        "effect": "push",
+        "sound": "sounds/bigsoundbank/1797.wav"
+      },
+      "groups": {
+        "next-step": {
+          "effect": "entrance_fade",
+          "sound": "sounds/kenney-interface/click_001.wav"
+        }
+      }
+    }
+  }
+}
+```
+
+`transition.sound` 使用 WAV。对象动画 `sound` 仍兼容已有的项目相对或绝对
+`.m4a`、`.mp3`、`.wav` 输入；内置库统一为 WAV，应使用同步后的项目相对路径。
+只有转场声音时可以使用稀疏 `animations.json`；页面级
+`transition.sound: null` 可清除继承的默认转场声音。导出前仍须校验。
+不要为了展示项目具备音效能力而强行添加声音。
+
+上述校验只能证明可编辑 PPTX 含有原生 cue，不能证明 PowerPoint 导出的 MP4
+音轨含有它。直接交付带旁白且含音效 cue 的视频时，应按
+[音频旁白与视频导出](./audio-narration.md)选择验收后的原生导出混音，或显式采用
+捕获系统音频的 PowerPoint 实时放映录制；两条路径不能叠加。
+
 ## 自定义具体对象
 
 只有当整份 deck 的统一设置不够用时才需要 `animations.json`，例如让同一对象
@@ -166,7 +221,8 @@ shape target 锚点，不等同于 Animation Pane 中的一行。兼容的单效
 | `effect_options` | 设置效果适用的 `direction`、`amount`、`color`、`font_name`、`relative` 或 `size` |
 | `trigger_shape` | 单击另一个顶层内容组时触发本行（PowerPoint“单击下列对象时”） |
 | 计时修饰 | `repeat_count`/`repeat_duration`、`auto_reverse`、`rewind`、`accelerate`、`decelerate`、`bounce_end` 与 `restart` |
-| 播放完成 | `after_effect`（变暗/隐藏）和 `.m4a`/`.mp3`/`.wav` `sound` 路径 |
+| 播放完成 | `after_effect`（`none`、变暗、隐藏或下次单击时隐藏） |
+| 声音提示 | 可选的项目级 `sound` 路径；内置库声音按上面的流程按需同步 |
 
 `order`、`delay`、`duration`、`trigger` 与 `trigger_shape` 都按动画行独立解析。
 页面级动画 trigger 只负责提供继承值。`trigger_shape` 隐含 `on-click`；若同一行
@@ -193,6 +249,7 @@ PPT Master 会严格校验动画设置：未知效果或 Start 模式、非法�
 | 不支持的对象 build | 不会从分组 SVG 推导段落/文字范围 build、自定义自由动作路径、原生 Chart/SmartArt 分步 build 或媒体播放命令 |
 | 输出路线 | 动画存在于从 `svg_output/` 生成的原生 PPTX；`svg_final/` 只是静态预览 |
 | 现有 PPTX 路线 | Template Fill 与 Native Enhance 保留源对象动画，不把它翻译成生成路线的动画模型 |
+| PPTX-to-SVG 回导 | 只重建当前注册表内具有精确原生时长且可唯一映射到顶层 group 的记录；高级/build/media timing 保留诊断 |
 | 播放兼容性 | Microsoft PowerPoint 桌面版是主要验证目标；Keynote、WPS、LibreOffice 与较旧 Office 可能重新映射或忽略个别效果 |
 
 完整 CLI 说明见 [`svg-pipeline.md`](../../skills/ppt-master/scripts/docs/svg-pipeline.md)。精确效果定义、sidecar 要求、锚点回退逻辑与 OOXML 回读规则见[动画执行规范](../../skills/ppt-master/references/animations.md)。

@@ -55,7 +55,13 @@ from .emu_units import (
 )
 from .fill_to_svg import FillResult, resolve_fill
 from .ln_to_svg import resolve_stroke
-from .txbody_to_svg import _resolve_theme_typeface, convert_txbody
+from .txbody_to_svg import (
+    HyperlinkResolver,
+    TextDiagnosticSink,
+    TextImportError,
+    _resolve_theme_typeface,
+    convert_txbody,
+)
 
 
 BUILTIN_MEDIUM_STYLE_2_ACCENT_1 = "{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}"
@@ -279,6 +285,9 @@ def convert_tbl(
     id_prefix: str = "tbl",
     grad_seq: list[int] | None = None,
     marker_seq: list[int] | None = None,
+    hyperlink_resolver: HyperlinkResolver | None = None,
+    strict: bool = False,
+    diagnostic_sink: TextDiagnosticSink | None = None,
 ) -> TableResult:
     """Render an <a:tbl> at the given absolute xfrm into SVG markup."""
     grad_seq = grad_seq if grad_seq is not None else [0]
@@ -414,6 +423,9 @@ def convert_tbl(
                 slide_number=slide_number,
                 id_prefix=f"{id_prefix}txt",
                 id_seq=grad_seq,
+                hyperlink_resolver=hyperlink_resolver,
+                strict=strict,
+                diagnostic_sink=diagnostic_sink,
             )
             defs.extend(text_result.defs)
             if text_result.svg:
@@ -1549,6 +1561,9 @@ def _convert_cell_text(
     slide_number: int | None,
     id_prefix: str,
     id_seq: list[int] | None,
+    hyperlink_resolver: HyperlinkResolver | None,
+    strict: bool,
+    diagnostic_sink: TextDiagnosticSink | None,
 ):
     """Render cell text. PowerPoint's <a:tcPr> can override txBody insets via
     its own marL/marR/marT/marB attrs; convert_txbody reads from <a:bodyPr>,
@@ -1602,7 +1617,12 @@ def _convert_cell_text(
                 slide_number=slide_number,
                 id_prefix=id_prefix,
                 id_seq=id_seq,
+                hyperlink_resolver=hyperlink_resolver,
+                strict=strict,
+                diagnostic_sink=diagnostic_sink,
             )
+        except TextImportError:
+            raise
         except (AttributeError, OverflowError, TypeError, ValueError):
             plain_tx_body = _plain_table_text_body(render_tx_body, overrides)
             return convert_txbody(
@@ -1611,6 +1631,9 @@ def _convert_cell_text(
                 slide_number=slide_number,
                 id_prefix=id_prefix,
                 id_seq=id_seq,
+                hyperlink_resolver=hyperlink_resolver,
+                strict=strict,
+                diagnostic_sink=diagnostic_sink,
             )
     finally:
         if overrides and body_pr is not None:

@@ -89,7 +89,7 @@ native_structure_mode: structured
 
 两种范围都在可移植 frontmatter 中保留 `kind: layout` 或 `kind: deck`。`output_scope` 与 `target_project` 只属于工作流简报，不写入 `design_spec.md`。
 
-任何范围第一次写最终文件前，都必须解析工作区根目录、确认 `templates/` 为空，并检查全部计划写入的图片与图标文件名无冲突；用户要求预览或已确认 roster 含多个 Master 时检查预览 PPTX 目标。项目范围还必须确认目标项目已初始化。任一失败都在写入前停止，不合并、不覆盖。
+任何范围第一次写最终文件前，都必须解析 Design Spec 和全部真实目标。Library 范围要求 `templates/` 为空。Project 范围要求目标项目已初始化，并拒绝裸名、同 kind spec 或无效的限定名集合；不同 kind 可以共存。Layout 与 Deck 同时存在时，Layout 拥有有效 roster：新增 Deck 不改变已有 Layout roster，新增 Layout 则先隔离校验，再原子替换已有 Deck 结构载荷。两种范围都会检查计划素材和预览目标冲突。任一失败都在写入前停止，不覆盖、不留下半套输出。
 
 ### 三段的字段切分
 
@@ -111,13 +111,13 @@ Deck 编码的是**一类可重复演示**，而不只是预先组合好的 Bran
 
 ---
 
-## 二、各分类的 `design_spec.md` Schema
+## 二、各分类的 `design_spec.md` 结构定义
 
-字段集只规定**必须写**的部分。「非必要不表明」——当前 schema 没列出的字段，不写。
+字段集只规定**必须写**的部分。「非必要不表明」——当前结构定义没列出的字段，不写。
 
-### Brand schema
+### Brand 结构定义
 
-**Frontmatter**
+**前置元数据**
 
 ```yaml
 ---
@@ -143,7 +143,7 @@ primary_color: "<HEX>"
 
 ### Layout schema
 
-**Frontmatter**
+**前置元数据**
 
 ```yaml
 ---
@@ -173,16 +173,16 @@ page_types: [<cover, toc, chapter, content, ending, ...>]
 | IV | Signature Design Elements | 该 Layout 特有的网格、区域、图片行为、密度节奏、中性框架、语义文字角色、对齐/换行/容量行为和 slot 约定 |
 | V | Page Roster | 每个 SVG 文件、Layout key、picker name、适用内容与 slot 行为 |
 
-只有 Layout 改写规范占位词汇时才增加 `Placeholder Overrides`。frontmatter
+只有 Layout 改写规范占位词汇时才增加 `Placeholder Overrides`。前置元数据
 `summary` 承担简短的选型语境；Layout 不写 deck 独有的 Template Overview。
 
 `category: scenario` 只表示发现时的适配标签。Layout 可以针对某种内容形态或交付环境优化几何，但不能规定沟通目的、受众结果、必需叙事顺序、固定措辞或示例内容；如果这些规则也要重复使用，应创建 Deck。
 
 **不允许出现**：Color Scheme、品牌字体家族/字重身份、最终字号体系、品牌 logo、品牌 voice & tone、Icon Style 或官方真值色（`provenance: fact`）。Layout 可以保留语义文字角色、对齐、换行与容量规则，因为它们属于结构；SVG 中性 paint、字体和字号只用于审阅。最终色彩与字体由策略师确认阶段或其他模板 kind 解析。
 
-### Deck schema
+### Deck 结构定义
 
-**Frontmatter**
+**前置元数据**
 
 ```yaml
 ---
@@ -372,7 +372,7 @@ AI: 你给了两个 brand，检测到段级冲突：
 
 ---
 
-## 七、不做（与本文 framing 配套的拒绝列表）
+## 七、不做（与本文叙述框架配套的拒绝列表）
 
 - **不在 fusion 层支持字段级覆盖语法** —— 字段级微调走 策略师确认阶段这条已有路径
 - **不为同类三份及以上设计批量冲突解决** —— 用户先在 chat 里收敛到两份
