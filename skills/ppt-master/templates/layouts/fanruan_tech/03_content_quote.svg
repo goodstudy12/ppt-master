@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" data-pptx-master="fanruan_tech_master" data-pptx-master-name="FanRuan Tech" data-pptx-layout="content_quote" data-pptx-layout-name="Quote Content">
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" data-pptx-master="fanruan_tech_master" data-pptx-master-name="FanRuan Tech" data-pptx-layout="fanruan_theme_canvas" data-pptx-layout-name="FanRuan Theme Canvas">
   <!-- 全屏渐变蓝色背景（用多层叠加模拟） -->
   <rect id="slide-background" width="1280" height="720" fill="#E8F4FF"/>
   <g id="quote-tone-overlay" data-pptx-bounds="0 0 1280 720">

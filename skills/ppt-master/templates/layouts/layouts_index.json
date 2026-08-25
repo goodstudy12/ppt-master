@@ -1,8 +1,8 @@
 {
   "fanruan_tech": {
-    "summary": "帆软轻质感科技风——浅蓝通透的企业汇报 / BI 数据分析结构模板，含 21 页基础与扩展布局及品牌素材包（图标 / 章节数字 / 背景 / 插画）",
+    "summary": "帆软轻质感科技风——浅蓝通透的企业汇报 / BI 数据分析结构模板，含 23 页基础、业务表达与数据表达布局及品牌素材包",
     "canvas_format": "ppt169",
-    "page_count": 21,
+    "page_count": 23,
     "page_types": [
       "cover",
       "chapter",
@@ -16,6 +16,7 @@
       "content_architecture",
       "content_before_after",
       "content_case",
+      "content_chart",
       "content_comparison",
       "content_cycle",
       "content_image",
@@ -23,6 +24,7 @@
       "content_pyramid",
       "content_quote",
       "content_steps",
+      "content_table",
       "content_timeline",
       "ending"
     ]

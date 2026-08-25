@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" data-pptx-master="fanruan_tech_master" data-pptx-master-name="FanRuan Tech" data-pptx-layout="content_6col" data-pptx-layout-name="Six Column Content">
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" data-pptx-master="fanruan_tech_master" data-pptx-master-name="FanRuan Tech" data-pptx-layout="fanruan_theme_canvas" data-pptx-layout-name="FanRuan Theme Canvas">
   <!-- 底色 -->
   <rect id="slide-background" width="1280" height="720" fill="#FFFFFF"/>
   <rect x="430" y="0" width="850" height="720" fill="#EEF7FF"/>

@@ -2,7 +2,7 @@
 layout_id: fanruan_tech
 kind: layout
 category: brand
-summary: 帆软轻质感科技风——浅蓝通透的企业汇报 / BI 数据分析结构模板，含 21 页基础与扩展布局及品牌素材包（图标 / 章节数字 / 背景 / 插画）
+summary: 帆软轻质感科技风——浅蓝通透的企业汇报 / BI 数据分析结构模板，含 23 页基础、业务表达与数据表达布局及品牌素材包
 keywords: [帆软, 轻质感科技风, 科技蓝, BI汇报, 数据分析]
 primary_color: "#035DCF"
 canvas_format: ppt169
@@ -12,10 +12,10 @@ canvas_viewbox: "0 0 1280 720"
 source_canvas_width: 1280
 source_canvas_height: 720
 source_viewbox: "0 0 1280 720"
-page_count: 21
+page_count: 23
 replication_mode: fidelity
 native_structure_mode: structured
-page_types: [cover, chapter, toc, toc_cards, content, content_3col, content_4col, content_5col, content_6col, content_architecture, content_before_after, content_case, content_comparison, content_cycle, content_image, content_kpi, content_pyramid, content_quote, content_steps, content_timeline, ending]
+page_types: [cover, chapter, toc, toc_cards, content, content_3col, content_4col, content_5col, content_6col, content_architecture, content_before_after, content_case, content_chart, content_comparison, content_cycle, content_image, content_kpi, content_pyramid, content_quote, content_steps, content_table, content_timeline, ending]
 placeholders:
   01_cover: ["{{TITLE}}", "{{SUBTITLE}}", "{{AUTHOR}}", "{{COMPANY_NAME}}", "{{DATE}}"]
   02_chapter: ["{{SECTION_NUMBER}}", "{{SECTION_TITLE}}", "{{SECTION_DESC}}"]
@@ -29,6 +29,7 @@ placeholders:
   03_content_architecture: ["{{PAGE_TITLE}}", "{{PAGE_SUBTITLE}}", "{{LAYER1_TITLE}}", "{{LAYER2_TITLE}}", "{{LAYER3_TITLE}}", "{{LAYER4_TITLE}}", "{{APP_1}}", "{{APP_2}}", "{{APP_3}}", "{{APP_4}}", "{{APP_5}}", "{{APP_6}}", "{{PLATFORM1_TITLE}}", "{{PLATFORM1_DESC_1}}", "{{PLATFORM1_DESC_2}}", "{{PLATFORM2_TITLE}}", "{{PLATFORM2_DESC_1}}", "{{PLATFORM2_DESC_2}}", "{{PLATFORM3_TITLE}}", "{{PLATFORM3_DESC_1}}", "{{PLATFORM3_DESC_2}}", "{{PLATFORM4_TITLE}}", "{{PLATFORM4_DESC_1}}", "{{PLATFORM4_DESC_2}}", "{{DATA_1}}", "{{DATA_2}}", "{{DATA_3}}", "{{DATA_4}}", "{{DATA_5}}", "{{DATA_6}}", "{{BASE_1}}", "{{BASE_2}}", "{{BASE_3}}", "{{BASE_4}}", "{{BASE_5}}", "{{PAGE_NUMBER}}"]
   03_content_before_after: ["{{PAGE_TITLE}}", "{{PAGE_SUBTITLE}}", "{{LEFT_TAG_1}}", "{{LEFT_TEXT_1_1}}", "{{LEFT_TEXT_1_2}}", "{{LEFT_TEXT_1_3}}", "{{RIGHT_TAG_1}}", "{{RIGHT_TEXT_1_1}}", "{{RIGHT_TEXT_1_2}}", "{{RIGHT_TEXT_1_3}}", "{{LEFT_TAG_2}}", "{{LEFT_TEXT_2_1}}", "{{LEFT_TEXT_2_2}}", "{{LEFT_TEXT_2_3}}", "{{RIGHT_TAG_2}}", "{{RIGHT_TEXT_2_1}}", "{{RIGHT_TEXT_2_2}}", "{{RIGHT_TEXT_2_3}}", "{{LEFT_TAG_3}}", "{{LEFT_TEXT_3_1}}", "{{LEFT_TEXT_3_2}}", "{{LEFT_TEXT_3_3}}", "{{RIGHT_TAG_3}}", "{{RIGHT_TEXT_3_1}}", "{{RIGHT_TEXT_3_2}}", "{{RIGHT_TEXT_3_3}}", "{{PAGE_NUMBER}}"]
   03_content_case: ["{{PAGE_TITLE}}", "{{PAGE_SUBTITLE}}", "{{CASE_CLIENT}}", "{{CASE_CLIENT_DESC_1}}", "{{CASE_CLIENT_DESC_2}}", "{{PAIN1_TITLE}}", "{{PAIN1_DESC_1}}", "{{PAIN1_DESC_2}}", "{{PAIN2_TITLE}}", "{{PAIN2_DESC_1}}", "{{PAIN2_DESC_2}}", "{{PAIN3_TITLE}}", "{{PAIN3_DESC_1}}", "{{PAIN3_DESC_2}}", "{{CASE_SOLUTION_IMAGE}}", "{{VALUE1_TITLE}}", "{{VALUE1_DESC_1}}", "{{VALUE1_DESC_2}}", "{{VALUE2_TITLE}}", "{{VALUE2_DESC_1}}", "{{VALUE2_DESC_2}}", "{{VALUE3_TITLE}}", "{{VALUE3_DESC_1}}", "{{VALUE3_DESC_2}}", "{{RESULT1_TITLE}}", "{{RESULT1_IMAGE}}", "{{RESULT1_DESC}}", "{{RESULT2_TITLE}}", "{{RESULT2_IMAGE}}", "{{RESULT2_DESC}}", "{{RESULT3_TITLE}}", "{{RESULT3_IMAGE}}", "{{RESULT3_DESC}}", "{{RESULT4_TITLE}}", "{{RESULT4_IMAGE}}", "{{RESULT4_DESC}}", "{{PAGE_NUMBER}}"]
+  03_content_chart: ["{{PAGE_TITLE}}", "{{PAGE_SUBTITLE}}", "{{CHART_TITLE}}", "{{LEGEND_1}}", "{{LEGEND_2}}", "{{PERIOD_1}}", "{{PERIOD_2}}", "{{PERIOD_3}}", "{{PERIOD_4}}", "{{PERIOD_5}}", "{{VALUE_1}}", "{{VALUE_2}}", "{{VALUE_3}}", "{{VALUE_4}}", "{{VALUE_5}}", "{{INSIGHT_TITLE}}", "{{KEY_VALUE}}", "{{KEY_LABEL}}", "{{INSIGHT_1}}", "{{INSIGHT_2}}", "{{INSIGHT_3}}", "{{PAGE_NUMBER}}"]
   03_content_comparison: ["{{PAGE_TITLE}}", "{{PAGE_SUBTITLE}}", "{{LEFT_TITLE}}", "{{LEFT_ITEM_1}}", "{{LEFT_ITEM_2}}", "{{LEFT_ITEM_3}}", "{{LEFT_ITEM_4}}", "{{LEFT_ITEM_5}}", "{{LEFT_ITEM_6}}", "{{RIGHT_TITLE}}", "{{RIGHT_ITEM_1}}", "{{RIGHT_ITEM_2}}", "{{RIGHT_ITEM_3}}", "{{RIGHT_ITEM_4}}", "{{RIGHT_ITEM_5}}", "{{RIGHT_ITEM_6}}", "{{PAGE_NUMBER}}"]
   03_content_cycle: ["{{PAGE_TITLE}}", "{{PAGE_SUBTITLE}}", "{{CENTER_ICON}}", "{{CENTER_TITLE}}", "{{ITEM1_TITLE}}", "{{ITEM1_DESC_1}}", "{{ITEM1_DESC_2}}", "{{ITEM2_TITLE}}", "{{ITEM2_DESC_1}}", "{{ITEM2_DESC_2}}", "{{ITEM3_TITLE}}", "{{ITEM3_DESC_1}}", "{{ITEM3_DESC_2}}", "{{ITEM4_TITLE}}", "{{ITEM4_DESC_1}}", "{{ITEM4_DESC_2}}", "{{PAGE_NUMBER}}"]
   03_content_image: ["{{PAGE_TITLE}}", "{{PAGE_SUBTITLE}}", "{{IMAGE_PLACEHOLDER}}", "{{ITEM1_TITLE}}", "{{ITEM1_DESC_1}}", "{{ITEM1_DESC_2}}", "{{ITEM2_TITLE}}", "{{ITEM2_DESC_1}}", "{{ITEM2_DESC_2}}", "{{ITEM3_TITLE}}", "{{ITEM3_DESC_1}}", "{{ITEM3_DESC_2}}", "{{PAGE_NUMBER}}"]
@@ -36,6 +37,7 @@ placeholders:
   03_content_pyramid: ["{{PAGE_TITLE}}", "{{PAGE_SUBTITLE}}", "{{LEVEL1_LABEL}}", "{{LEVEL2_LABEL}}", "{{LEVEL3_LABEL}}", "{{LEVEL4_LABEL}}", "{{LEVEL1_TITLE}}", "{{LEVEL1_DESC}}", "{{LEVEL2_TITLE}}", "{{LEVEL2_DESC}}", "{{LEVEL3_TITLE}}", "{{LEVEL3_DESC}}", "{{LEVEL4_TITLE}}", "{{LEVEL4_DESC}}", "{{PAGE_NUMBER}}"]
   03_content_quote: ["{{QUOTE_INTRO_1}}", "{{QUOTE_INTRO_2}}", "{{QUOTE_ENGLISH}}", "{{QUOTE_MAIN}}", "{{QUOTE_AUTHOR}}"]
   03_content_steps: ["{{PAGE_TITLE}}", "{{PAGE_SUBTITLE}}", "{{STEP1_TITLE}}", "{{STEP1_SUB}}", "{{STEP1_DESC_1}}", "{{STEP1_DESC_2}}", "{{STEP2_TITLE}}", "{{STEP2_SUB}}", "{{STEP2_DESC_1}}", "{{STEP2_DESC_2}}", "{{STEP3_TITLE}}", "{{STEP3_SUB}}", "{{STEP3_DESC_1}}", "{{STEP3_DESC_2}}", "{{STEP4_TITLE}}", "{{STEP4_SUB}}", "{{STEP4_DESC_1}}", "{{STEP4_DESC_2}}", "{{STEP5_TITLE}}", "{{STEP5_SUB}}", "{{STEP5_DESC_1}}", "{{STEP5_DESC_2}}", "{{PAGE_NUMBER}}"]
+  03_content_table: ["{{PAGE_TITLE}}", "{{PAGE_SUBTITLE}}", "{{TABLE_TITLE}}", "{{COL_1}}", "{{COL_2}}", "{{COL_3}}", "{{COL_4}}", "{{COL_5}}", "{{ROW1_LABEL}}", "{{ROW1_VALUE_1}}", "{{ROW1_VALUE_2}}", "{{ROW1_VALUE_3}}", "{{ROW1_VALUE_4}}", "{{ROW2_LABEL}}", "{{ROW2_VALUE_1}}", "{{ROW2_VALUE_2}}", "{{ROW2_VALUE_3}}", "{{ROW2_VALUE_4}}", "{{ROW3_LABEL}}", "{{ROW3_VALUE_1}}", "{{ROW3_VALUE_2}}", "{{ROW3_VALUE_3}}", "{{ROW3_VALUE_4}}", "{{ROW4_LABEL}}", "{{ROW4_VALUE_1}}", "{{ROW4_VALUE_2}}", "{{ROW4_VALUE_3}}", "{{ROW4_VALUE_4}}", "{{ROW5_LABEL}}", "{{ROW5_VALUE_1}}", "{{ROW5_VALUE_2}}", "{{ROW5_VALUE_3}}", "{{ROW5_VALUE_4}}", "{{TABLE_NOTE}}", "{{PAGE_NUMBER}}"]
   03_content_timeline: ["{{PAGE_TITLE}}", "{{PAGE_SUBTITLE}}", "{{STAGE1_ICON}}", "{{STAGE1_TITLE}}", "{{STAGE1_DATE}}", "{{STAGE1_DESC}}", "{{STAGE2_ICON}}", "{{STAGE2_TITLE}}", "{{STAGE2_DATE}}", "{{STAGE2_DESC}}", "{{STAGE3_ICON}}", "{{STAGE3_TITLE}}", "{{STAGE3_DATE}}", "{{STAGE3_DESC}}", "{{PAGE_NUMBER}}"]
   04_ending: ["{{COMPANY_SLOGAN}}", "{{QR_LABEL}}", "{{COMPANY_NAME}}"]
 ---
@@ -52,7 +54,8 @@ placeholders:
 | 参考来源 | `templates/layouts/fanruan_tech/公司PPT通用模版（轻质感科技风v1.0）.pptx`（62 页版式规范手册） |
 | 优化目标 | 保留参考 PPT 的浅蓝通透感，同时提高 SVG 模板成品度与品牌识别度 |
 | 迁移说明 | 无迁移，直接替换 |
-| 模板总数 | 21 个 SVG（5 基础 + 16 扩展） |
+| 原生结构 | 1 个 `FanRuan Tech` 母版 + 1 个 `FanRuan Theme Canvas` 通用版式；23 个 SVG 作为可选择的完整页面原型，避免为仅有页面内容差异的原型重复创建 PowerPoint 版式 |
+| 模板总数 | 23 个 SVG（5 基础 + 18 扩展） |
 | 素材库 | `assets/`（背景 / 插画 / 章节数字 / 二维码）+ `icons/`（132 个品牌渐变图标） |
 
 ## 2. 画布规范
@@ -127,6 +130,8 @@ placeholders:
 
 ## 4. 页面结构
 
+所有页面共用 `fanruan_theme_canvas` 版式键。各原型的卡片、图表、流程和案例结构保持为页面本地可编辑对象；未来若要把标题、页码或内容区升级为真正的 PowerPoint 占位符，必须为相同版式键提供完全一致的槽位类型、索引和默认边界。
+
 ### 4.1 基础页面（5 页）
 
 #### `01_cover.svg` — 封面页
@@ -161,7 +166,7 @@ placeholders:
 - 右上继续显示品牌胶囊
 - 二维码位可直接嵌入素材库的 `assets/illustrations/qrcode_fanruan.jpg`（帆软软件服务号）
 
-### 4.2 扩展内容页（16 页）
+### 4.2 扩展内容页（18 页）
 
 #### `02_toc_cards.svg` — 目录页（四栏卡片式）
 
@@ -234,6 +239,18 @@ placeholders:
 - 环下配基座横条 + 数据名称 + 一行补充描述
 - 三个单元强调色按 `#035DCF / #3399FF / #66B3FF` 区分
 - 适用于核心指标汇报、成果量化展示、经营数据总览（参考幻灯片 37/38）
+
+#### `03_content_chart.svg` — 数据趋势与洞察页
+
+- 左侧为主图表区，采用五期柱形趋势、轻量网格和双系列图例，避免把图表包裹成密集仪表盘
+- 右侧保留一个关键数值和三条结论，用“数据—含义—行动”把图形转化为管理洞察
+- 适用于经营趋势、目标达成、业务增长和阶段对比（参考幻灯片 49–52）
+
+#### `03_content_table.svg` — 经营表格与行动页
+
+- 使用五列五行的清晰数据表，首列承担维度，后四列承载现状、目标、差距和责任信息
+- 表头使用品牌蓝，行底色交替采用白色与极浅蓝；底部预留结论/口径说明
+- 适用于经营复盘、指标拆解、项目台账、资源投入与行动跟踪（参考幻灯片 53）
 
 #### `03_content_architecture.svg` — 系统架构图页
 
@@ -332,6 +349,8 @@ placeholders:
 | `03_content_pyramid.svg` | 扩展 | 递进金字塔页 |
 | `03_content_cycle.svg` | 扩展 | 循环关系页 |
 | `03_content_kpi.svg` | 扩展 | KPI 数据展示页 |
+| `03_content_chart.svg` | 扩展 | 数据趋势与关键洞察页 |
+| `03_content_table.svg` | 扩展 | 经营表格与行动跟踪页 |
 | `03_content_architecture.svg` | 扩展 | 系统架构图页 |
 | `03_content_case.svg` | 扩展 | 客户案例页 |
 | `03_content_image.svg` | 扩展 | 图文展示页 |
@@ -343,3 +362,4 @@ placeholders:
 - v1.0：初始 5 页基础模板（封面/目录/章节/内容/结束）
 - v2.0：新增 8 页扩展内容模板，覆盖并列、对比、时间轴、金字塔、循环、金句等高频布局类型；完善设计规范文档（色彩体系、统一设计元素、完整占位符列表）
 - v3.0：基于参考 PPT 全量 62 页二次提取——新增 8 页扩展模板（并列五栏/六段、递进步骤、Before/After 对比、KPI 数据、系统架构、客户案例、图文展示）；新增素材库（4 张背景、7 张插画/二维码、10 个玻璃质感数字、132 个语义命名品牌图标）；补充 YAML frontmatter 供注册器与 Step 3 模板分发读取
+- v3.1：补齐参考稿中的数据表达能力，新增趋势图表页与经营表格页；将图表和结论放在同一阅读路径，统一标题、Logo、页码和浅蓝科技框架。
