@@ -1385,6 +1385,10 @@
                 <button class="btn" id="toolPan" onclick="setTool('pan')" title="平移工具 (H)">
                     <svg viewBox="0 0 24 24"><path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"/></svg>
                 </button>
+                <button class="btn active" id="snapToggle" onclick="toggleSnap()" title="自动吸附与辅助线（拖动时按 Alt 临时关闭）" aria-pressed="true">
+                    <svg viewBox="0 0 24 24"><path d="M7 2v11a5 5 0 0 0 10 0V2h-4v11a1 1 0 0 1-2 0V2H7zm2 2h2v5H9V4zm6 0v5h-2V4h2z"/></svg>
+                    吸附
+                </button>
             </div>
             
             <div class="toolbar-group">
@@ -1900,7 +1904,8 @@
             dragMoved: false,
 
             // 吸附
-            snapThreshold: 5,
+            snapEnabled: true,
+            snapThreshold: 6,
             snapLines: []
         };
 
@@ -3566,11 +3571,12 @@
                 let dx = pos.x - state.dragStartPos.x;
                 let dy = pos.y - state.dragStartPos.y;
 
-                // 智能吸附
-                const snapResult = computeSnap(dx, dy);
+                // Alt 可在精细移动时临时绕过吸附。
+                const snapResult = state.snapEnabled && !e.altKey
+                    ? computeSnap(dx, dy)
+                    : { dx, dy, lines: [] };
                 dx = snapResult.dx;
                 dy = snapResult.dy;
-                renderSnapLines(snapResult.lines);
 
                 state.selectedIds.forEach(id => {
                     const el = state.elements.find(e => e.id === id);
@@ -3583,6 +3589,7 @@
                     }
                 });
                 showControls();
+                renderSnapLines(snapResult.lines);
                 updateFloatToolbar();
                 return;
             }
@@ -4497,8 +4504,18 @@
         }
 
         // ==================== 智能吸附辅助线 ====================
+        function toggleSnap() {
+            state.snapEnabled = !state.snapEnabled;
+            const button = document.getElementById('snapToggle');
+            button.classList.toggle('active', state.snapEnabled);
+            button.setAttribute('aria-pressed', String(state.snapEnabled));
+            clearSnapLines();
+            showToast(state.snapEnabled ? '自动吸附已开启' : '自动吸附已关闭');
+        }
+
         function computeSnap(dx, dy) {
-            const threshold = state.snapThreshold;
+            // 以屏幕像素为手感基准，避免缩放后吸附范围忽大忽小。
+            const threshold = state.snapThreshold / Math.max(state.zoom, 0.01);
             const lines = [];
             const selected = [];
             state.selectedIds.forEach(id => {
@@ -4525,92 +4542,86 @@
             sel.cy = (sel.top + sel.bottom) / 2;
 
             // 收集其他元素的参考边
-            const xRefs = [], yRefs = [];
-            // 画布边缘和中心
+            const xRefs = [];
+            const yRefs = [];
             const cw = parseFloat(svgCanvas.getAttribute('width'));
             const ch = parseFloat(svgCanvas.getAttribute('height'));
-            xRefs.push(0, cw / 2, cw);
-            yRefs.push(0, ch / 2, ch);
+            xRefs.push({ pos: 0 }, { pos: cw / 2 }, { pos: cw });
+            yRefs.push({ pos: 0 }, { pos: ch / 2 }, { pos: ch });
 
             state.elements.forEach(el => {
                 if (state.selectedIds.has(el.id)) return;
+                if (el.element.getAttribute('display') === 'none'
+                    || el.element.getAttribute('visibility') === 'hidden') return;
                 const b = getElementBounds(el.element);
-                xRefs.push(b.x, b.x + b.width / 2, b.x + b.width);
-                yRefs.push(b.y, b.y + b.height / 2, b.y + b.height);
+                xRefs.push({ pos: b.x }, { pos: b.x + b.width / 2 }, { pos: b.x + b.width });
+                yRefs.push({ pos: b.y }, { pos: b.y + b.height / 2 }, { pos: b.y + b.height });
             });
 
-            let snapDx = 0, snapDy = 0;
-            let bestDistX = Infinity, bestDistY = Infinity;
             const selXEdges = [sel.left, sel.cx, sel.right];
             const selYEdges = [sel.top, sel.cy, sel.bottom];
+            let bestX = null;
+            let bestY = null;
 
             for (const sx of selXEdges) {
-                for (const rx of xRefs) {
-                    const dist = Math.abs(sx - rx);
-                    if (dist < threshold && dist < bestDistX) {
-                        bestDistX = dist;
-                        snapDx = rx - sx;
+                for (const ref of xRefs) {
+                    const dist = Math.abs(sx - ref.pos);
+                    if (dist <= threshold && (!bestX || dist < bestX.dist)) {
+                        bestX = { dist, delta: ref.pos - sx, pos: ref.pos };
                     }
                 }
             }
             for (const sy of selYEdges) {
-                for (const ry of yRefs) {
-                    const dist = Math.abs(sy - ry);
-                    if (dist < threshold && dist < bestDistY) {
-                        bestDistY = dist;
-                        snapDy = ry - sy;
+                for (const ref of yRefs) {
+                    const dist = Math.abs(sy - ref.pos);
+                    if (dist <= threshold && (!bestY || dist < bestY.dist)) {
+                        bestY = { dist, delta: ref.pos - sy, pos: ref.pos };
                     }
                 }
             }
 
-            // 生成辅助线
-            if (bestDistX < Infinity) {
-                const snapX = selXEdges.find(sx => Math.abs(sx + snapDx - Math.round(sx + snapDx)) < 0.5) + snapDx;
-                lines.push({ type: 'v', pos: Math.round(selXEdges[0] + snapDx + (selXEdges[2] - selXEdges[0]) * (bestDistX === Math.abs(selXEdges[1] + snapDx - Math.round(selXEdges[1] + snapDx)) ? 0.5 : 0)) });
-                // 简化：用 snapDx 偏移后的中间值
-                const finalX = selXEdges.reduce((best, sx) => {
-                    const snapped = sx + snapDx;
-                    return xRefs.some(r => Math.abs(snapped - r) < 1) ? snapped : best;
-                }, null);
-                if (finalX !== null) lines[lines.length - 1].pos = finalX;
-            }
-            if (bestDistY < Infinity) {
-                const finalY = selYEdges.reduce((best, sy) => {
-                    const snapped = sy + snapDy;
-                    return yRefs.some(r => Math.abs(snapped - r) < 1) ? snapped : best;
-                }, null);
-                if (finalY !== null) lines.push({ type: 'h', pos: finalY });
-            }
+            if (bestX) lines.push({ type: 'v', pos: bestX.pos });
+            if (bestY) lines.push({ type: 'h', pos: bestY.pos });
 
-            return { dx: dx + snapDx, dy: dy + snapDy, lines };
+            return {
+                dx: dx + (bestX ? bestX.delta : 0),
+                dy: dy + (bestY ? bestY.delta : 0),
+                lines
+            };
         }
 
         function renderSnapLines(lines) {
             clearSnapLines();
+            state.snapLines = lines;
             const cw = parseFloat(svgCanvas.getAttribute('width'));
             const ch = parseFloat(svgCanvas.getAttribute('height'));
-            const layer = document.getElementById('controlLayer');
+            const areaRect = canvasArea.getBoundingClientRect();
 
             lines.forEach(line => {
                 const svgLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
                 svgLine.classList.add('snap-line');
                 if (line.type === 'v') {
-                    svgLine.setAttribute('x1', line.pos);
-                    svgLine.setAttribute('y1', 0);
-                    svgLine.setAttribute('x2', line.pos);
-                    svgLine.setAttribute('y2', ch);
+                    const start = canvasToScreen(line.pos, 0);
+                    const end = canvasToScreen(line.pos, ch);
+                    svgLine.setAttribute('x1', start.x - areaRect.left);
+                    svgLine.setAttribute('y1', start.y - areaRect.top);
+                    svgLine.setAttribute('x2', end.x - areaRect.left);
+                    svgLine.setAttribute('y2', end.y - areaRect.top);
                 } else {
-                    svgLine.setAttribute('x1', 0);
-                    svgLine.setAttribute('y1', line.pos);
-                    svgLine.setAttribute('x2', cw);
-                    svgLine.setAttribute('y2', line.pos);
+                    const start = canvasToScreen(0, line.pos);
+                    const end = canvasToScreen(cw, line.pos);
+                    svgLine.setAttribute('x1', start.x - areaRect.left);
+                    svgLine.setAttribute('y1', start.y - areaRect.top);
+                    svgLine.setAttribute('x2', end.x - areaRect.left);
+                    svgLine.setAttribute('y2', end.y - areaRect.top);
                 }
-                layer.appendChild(svgLine);
+                controlLayer.appendChild(svgLine);
             });
         }
 
         function clearSnapLines() {
-            document.querySelectorAll('.snap-line').forEach(el => el.remove());
+            controlLayer.querySelectorAll('.snap-line').forEach(el => el.remove());
+            state.snapLines = [];
         }
 
         // ==================== 浮动快捷工具栏 ====================
